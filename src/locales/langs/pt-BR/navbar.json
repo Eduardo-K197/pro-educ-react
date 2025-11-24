@@ -1,0 +1,34 @@
+{
+  "menu": {
+    "app": "App",
+    "dashboard": "Dashboard",
+    "overview": "Visão geral",
+    "analytics": "Análises",
+    "ecommerce": "E-commerce",
+    "banking": "Financeiro",
+    "booking": "Reservas",
+    "file": "Arquivos",
+    "mail": "E-mail",
+    "chat": "Chat",
+    "calendar": "Calendário",
+    "kanban": "Kanban",
+    "settings": "Configurações",
+    "apps": "Aplicativos",
+    "components": "Componentes",
+    "foundation": "Fundamentos",
+    "auth": "Autenticação",
+    "errors": "Erros",
+    "management": "Gestão",
+    "user": "Usuário",
+    "job": "Trabalho",
+    "travel": "Viagem",
+    "invoice": "Fatura",
+    "blog": "Blog",
+    "webhooks": "Webhooks"
+  },
+  "webhooks": {
+    "title": "Webhooks",
+    "caption": "Monitoramento dos webhooks"
+  },
+  "subheader": "Subcabeçalho"
+}
