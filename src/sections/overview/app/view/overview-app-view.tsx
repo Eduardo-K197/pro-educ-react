@@ -29,7 +29,7 @@ import { SeoIllustration } from 'src/assets/illustrations';
 import { _appFeatured } from 'src/_mock';
 
 import { svgColorClasses } from 'src/components/svg-color';
-import { useMockedUser } from 'src/auth/hooks';
+import { useAuthContext } from 'src/auth/hooks';
 import { RouterLink } from 'src/routes/components';
 
 import { AppWidget } from '../app-widget';
@@ -42,8 +42,6 @@ import { AppCurrentDownload } from '../app-current-download';
 // import { AppTopRelated } from '../app-top-related';
 // import { AppTopInstalledCountries } from '../app-top-installed-countries';
 // import { _appAuthors, _appRelated, _appInvoices, _appInstalled } from 'src/_mock';
-
-// ----------------------------------------------------------------------
 
 type DashboardStats = {
   totalSchools: number;
@@ -63,10 +61,8 @@ function pluralize(count: number, singular: string, plural?: string) {
   return count === 1 ? singular : (plural ?? `${singular}s`);
 }
 
-// ----------------------------------------------------------------------
-
 export function OverviewAppView() {
-  const { user } = useMockedUser();
+  const { user } = useAuthContext();
   const theme = useTheme();
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -198,7 +194,7 @@ export function OverviewAppView() {
         {/* Boas-vindas */}
         <Grid xs={12} md={8}>
           <AppWelcome
-            title={`Bem-vindo de volta 👋 \n ${user?.displayName ?? 'Administrador'}`}
+            title={`Bem-vindo de volta 👋 \n ${user?.name ?? user?.email ?? 'Administrador'}`}
             description={welcomeDescription}
             img={<SeoIllustration hideBackground />}
             action={

@@ -31,7 +31,6 @@ export function AuthProvider({ children }: Props) {
         (axios as any).defaults.headers.common.Authorization = `Bearer ${accessToken}`;
       }
 
-      // <<< AQUI: relativo. Vai para http://localhost:3333/v1/sign-in (pela baseURL)
       const res = await axios.get('/sign-in');
       const d: any = res?.data || {};
 
@@ -50,8 +49,30 @@ export function AuthProvider({ children }: Props) {
       }
 
       if (d?.user) {
+        const rawUser = d.user || {};
+
+        // 👇 normalização básica pra ficar amigável no front
+        const normalizedUser = {
+          ...rawUser,
+          // tenta pegar um nome “bonitinho”
+          displayName:
+            rawUser.displayName ||
+            rawUser.name ||
+            rawUser.razaoSocial ||
+            rawUser.nome ||
+            '',
+          email: rawUser.email ?? d.email ?? '',
+          // se um dia vier avatar/foto, dá pra mapear aqui também:
+          // photoURL: rawUser.photoURL ?? rawUser.avatar ?? undefined,
+        };
+
         setState({
-          user: { ...(d.user || {}), accessToken, schools, activeSchoolId },
+          user: {
+            ...normalizedUser,
+            accessToken,
+            schools,
+            activeSchoolId,
+          },
           loading: false,
         });
       } else {
