@@ -1,4 +1,3 @@
-import type { IGroupFilters } from 'src/types/group';
 import Drawer from '@mui/material/Drawer';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -7,12 +6,19 @@ import Checkbox from '@mui/material/Checkbox';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
+type GroupFiltersLoose = Record<string, any> & {
+  tags?: string[];
+  locations?: string[];
+  visibility?: 'all' | 'public' | 'private' | string;
+  minMembers?: number | null;
+};
+
 type Props = {
   open: boolean;
   onOpen: () => void;
   onClose: () => void;
-  filters: IGroupFilters;
-  setFilters: (patch: Partial<IGroupFilters>) => void;
+  filters: any;
+  setFilters: (patch: Partial<any>) => void;
   canReset: boolean;
   options: {
     tags: string[];
@@ -21,19 +27,22 @@ type Props = {
 };
 
 export function GroupFilters({
-                               open,
-                               onOpen,
-                               onClose,
-                               filters,
-                               setFilters,
-                               canReset,
-                               options,
-                             }: Props) {
-  const toggleArrayValue = (field: keyof Pick<IGroupFilters, 'tags' | 'locations'>, value: string) => {
-    const current = filters[field];
+  open,
+  onOpen,
+  onClose,
+  filters,
+  setFilters,
+  canReset,
+  options,
+}: Props) {
+  const f = filters as unknown as GroupFiltersLoose;
+
+  const toggleArrayValue = (field: 'tags' | 'locations', value: string) => {
+    const current = Array.isArray(f[field]) ? (f[field] as string[]) : [];
+
     setFilters({
       [field]: current.includes(value) ? current.filter((v) => v !== value) : [...current, value],
-    });
+    } as any);
   };
 
   return (
@@ -42,7 +51,12 @@ export function GroupFilters({
         Filtros
       </Button>
 
-      <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: 300, p: 2 } }}>
+      <Drawer
+        anchor="right"
+        open={open}
+        onClose={onClose}
+        PaperProps={{ sx: { width: 300, p: 2 } }}
+      >
         <Stack spacing={3}>
           <FormGroup>
             {options.tags.map((t) => (
@@ -50,7 +64,7 @@ export function GroupFilters({
                 key={t}
                 control={
                   <Checkbox
-                    checked={filters.tags.includes(t)}
+                    checked={(f.tags ?? []).includes(t)}
                     onChange={() => toggleArrayValue('tags', t)}
                   />
                 }
@@ -65,7 +79,7 @@ export function GroupFilters({
                 key={l}
                 control={
                   <Checkbox
-                    checked={filters.locations.includes(l)}
+                    checked={(f.locations ?? []).includes(l)}
                     onChange={() => toggleArrayValue('locations', l)}
                   />
                 }
@@ -77,17 +91,18 @@ export function GroupFilters({
           <TextField
             label="Min. membros"
             type="number"
-            value={filters.minMembers ?? ''}
+            value={f.minMembers ?? ''}
             onChange={(e) =>
-              setFilters({ minMembers: e.target.value ? Number(e.target.value) : null })
+              setFilters({ minMembers: e.target.value ? Number(e.target.value) : null } as any)
             }
           />
 
           <TextField
             select
             label="Visibilidade"
-            value={filters.visibility}
-            onChange={(e) => setFilters({ visibility: e.target.value as IGroupFilters['visibility'] })}
+            value={f.visibility ?? 'all'}
+            onChange={(e) => setFilters({ visibility: e.target.value } as any)}
+            SelectProps={{ native: true }}
           >
             <option value="all">Todas</option>
             <option value="public">Público</option>
@@ -104,7 +119,7 @@ export function GroupFilters({
                   locations: [],
                   visibility: 'all',
                   minMembers: null,
-                })
+                } as any)
               }
             >
               Limpar

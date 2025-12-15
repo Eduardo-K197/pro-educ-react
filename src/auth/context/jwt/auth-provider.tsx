@@ -36,10 +36,7 @@ export function AuthProvider({ children }: Props) {
 
       const schools: any[] = Array.isArray(d?.schools) ? d.schools : [];
       const activeSchoolId =
-        d?.activeSchoolId ||
-        schools.find((s: any) => s?.isDefault)?.id ||
-        schools[0]?.id ||
-        null;
+        d?.activeSchoolId || schools.find((s: any) => s?.isDefault)?.id || schools[0]?.id || null;
 
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('proeduc-user', JSON.stringify(d));
@@ -56,11 +53,7 @@ export function AuthProvider({ children }: Props) {
           ...rawUser,
           // tenta pegar um nome “bonitinho”
           displayName:
-            rawUser.displayName ||
-            rawUser.name ||
-            rawUser.razaoSocial ||
-            rawUser.nome ||
-            '',
+            rawUser.displayName || rawUser.name || rawUser.razaoSocial || rawUser.nome || '',
           email: rawUser.email ?? d.email ?? '',
           // se um dia vier avatar/foto, dá pra mapear aqui também:
           // photoURL: rawUser.photoURL ?? rawUser.avatar ?? undefined,

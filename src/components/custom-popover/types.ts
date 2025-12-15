@@ -1,9 +1,8 @@
 import type { PopoverProps } from '@mui/material/Popover';
 import type { Theme, SxProps } from '@mui/material/styles';
+import type { MouseEvent, Dispatch, SetStateAction } from 'react';
 
-// ----------------------------------------------------------------------
-
-export type PopoverArrow = {
+export type CustomPopoverArrowProps = {
   hide?: boolean;
   size?: number;
   offset?: number;
@@ -23,16 +22,32 @@ export type PopoverArrow = {
     | 'right-bottom';
 };
 
+/**
+ * Tipo usado por `src/components/custom-popover/styles.tsx`
+ * descreve as props esperadas pelo elemento da seta.
+ */
+export type PopoverArrow = {
+  placement?: CustomPopoverArrowProps['placement'];
+  offset?: number;
+  size?: number;
+  theme?: Theme;
+};
+
+// Garante compatibilidade com possíveis shapes de `slotProps`
+export type CustomPopoverSlotProps = (PopoverProps['slotProps'] extends object
+  ? PopoverProps['slotProps']
+  : Record<string, any>) & {
+  arrow?: CustomPopoverArrowProps;
+};
+
 export type UsePopoverReturn = {
   open: PopoverProps['open'];
   anchorEl: PopoverProps['anchorEl'];
   onClose: () => void;
-  onOpen: (event: React.MouseEvent<HTMLElement>) => void;
-  setAnchorEl: React.Dispatch<React.SetStateAction<PopoverProps['anchorEl']>>;
+  onOpen: (event: MouseEvent<HTMLElement>) => void;
+  setAnchorEl: Dispatch<SetStateAction<PopoverProps['anchorEl']>>;
 };
 
-export type CustomPopoverProps = PopoverProps & {
-  slotProps?: PopoverProps['slotProps'] & {
-    arrow?: PopoverArrow;
-  };
+export type CustomPopoverProps = Omit<PopoverProps, 'slotProps'> & {
+  slotProps?: CustomPopoverSlotProps;
 };

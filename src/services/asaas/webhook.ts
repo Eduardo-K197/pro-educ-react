@@ -34,21 +34,14 @@ export class WebhookService {
     },
     config?: AxiosRequestConfig
   ): Promise<GetAllSchoolsWebhooksResponse> {
-    return ApiService.get<GetAllSchoolsWebhooksResponse>(
-      `${this.BASE_PATH}/all`,
-      params,
-      config
-    );
+    return ApiService.get<GetAllSchoolsWebhooksResponse>(`${this.BASE_PATH}/all`, params, config);
   }
 
   /**
    * Atualiza (habilita / reativa) um webhook
    * PUT /webhooks/asaas/:id
    */
-  static async enable(
-    id: string,
-    config?: AxiosRequestConfig
-  ): Promise<UpdateWebhookResponse> {
+  static async enable(id: string, config?: AxiosRequestConfig): Promise<UpdateWebhookResponse> {
     return ApiService.put<Partial<IAsaasWebhook>, UpdateWebhookResponse>(
       `${this.BASE_PATH}/${id}`,
       {},

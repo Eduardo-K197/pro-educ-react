@@ -24,7 +24,14 @@ type Props = {
   onDeleteRow: () => void;
 };
 
-export function GroupTableRow({ row, selected, onEditRow, onViewRow, onSelectRow, onDeleteRow }: Props) {
+export function GroupTableRow({
+  row,
+  selected,
+  onEditRow,
+  onViewRow,
+  onSelectRow,
+  onDeleteRow,
+}: Props) {
   const confirm = useBoolean();
   const popover = usePopover();
 
@@ -37,7 +44,7 @@ export function GroupTableRow({ row, selected, onEditRow, onViewRow, onSelectRow
 
         <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.name}</TableCell>
 
-        <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.description}</TableCell>
+        {/*<TableCell sx={{ whiteSpace: 'nowrap' }}>{row.description}</TableCell>*/}
 
         <TableCell>
           <Label

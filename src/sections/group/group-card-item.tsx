@@ -70,7 +70,12 @@ export function GroupCardItem({ group }: GroupCardItemProps) {
                 variant="subtitle1"
                 component={RouterLink}
                 href={paths.dashboard.group.details(group?.id)}
-                sx={{ color: 'text.primary', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                sx={{
+                  color: 'text.primary',
+                  textDecoration: 'none',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
               >
                 {group?.name ?? '—'}
               </Typography>
@@ -99,21 +104,13 @@ export function GroupCardItem({ group }: GroupCardItemProps) {
             {
               label: `${schoolCount} escola(s) no grupo`,
               icon: (
-                <Iconify
-                  width={16}
-                  icon="solar:buildings-2-bold-duotone"
-                  sx={{ flexShrink: 0 }}
-                />
+                <Iconify width={16} icon="solar:buildings-2-bold-duotone" sx={{ flexShrink: 0 }} />
               ),
             },
             {
               label: `${adminCount} admin(s) vinculados`,
               icon: (
-                <Iconify
-                  width={16}
-                  icon="solar:users-group-rounded-bold"
-                  sx={{ flexShrink: 0 }}
-                />
+                <Iconify width={16} icon="solar:users-group-rounded-bold" sx={{ flexShrink: 0 }} />
               ),
             },
           ].map((item) => (
@@ -160,11 +157,7 @@ export function GroupCardItem({ group }: GroupCardItemProps) {
           <Button
             size="small"
             variant="text"
-            endIcon={
-              <Iconify
-                icon={openSchools ? 'eva:arrow-up-fill' : 'eva:arrow-down-fill'}
-              />
-            }
+            endIcon={<Iconify icon={openSchools ? 'eva:arrow-up-fill' : 'eva:arrow-down-fill'} />}
             onClick={() => setOpenSchools((prev) => !prev)}
           >
             {openSchools ? 'Ocultar escolas' : 'Ver escolas'}

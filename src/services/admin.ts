@@ -27,11 +27,7 @@ export class AdminService {
     body: AdminUpdatePayload,
     config?: AxiosRequestConfig
   ): Promise<AdminDetail> {
-    return ApiService.put<AdminUpdatePayload, AdminDetail>(
-      `${this.BASE_PATH}/${id}`,
-      body,
-      config
-    );
+    return ApiService.put<AdminUpdatePayload, AdminDetail>(`${this.BASE_PATH}/${id}`, body, config);
   }
 
   static delete(id: string, config?: AxiosRequestConfig): Promise<void> {

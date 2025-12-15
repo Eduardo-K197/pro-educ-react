@@ -1,7 +1,7 @@
 'use client';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR from 'swr';
-import { Schools } from '@/src/lib/proeduc/api';
+import { Schools } from '@/lib/proeduc/api';
 import { useEffect, useState } from 'react';
 
 export default function Page() {
@@ -38,25 +38,45 @@ export default function Page() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">{isNew ? 'Nova Escola' : 'Editar Escola'}</h1>
         <div className="space-x-2">
-          <button onClick={() => router.back()} className="px-3 py-2 rounded-md border">Voltar</button>
-          <button onClick={onSave} className="px-3 py-2 rounded-md border bg-black text-white">Salvar</button>
+          <button onClick={() => router.back()} className="px-3 py-2 rounded-md border">
+            Voltar
+          </button>
+          <button onClick={onSave} className="px-3 py-2 rounded-md border bg-black text-white">
+            Salvar
+          </button>
         </div>
       </div>
       <div className="grid md:grid-cols-2 gap-6">
         <Field label="Nome">
-          <input className="w-full border rounded-md px-3 py-2" value={name} onChange={(e)=>setName(e.target.value)} />
+          <input
+            className="w-full border rounded-md px-3 py-2"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
         </Field>
         <Field label="ASAAS Token">
-          <input className="w-full border rounded-md px-3 py-2" value={asaasToken} onChange={(e)=>setAsaasToken(e.target.value)} />
+          <input
+            className="w-full border rounded-md px-3 py-2"
+            value={asaasToken}
+            onChange={(e) => setAsaasToken(e.target.value)}
+          />
         </Field>
         <Field label="Sandbox Mode">
           <label className="inline-flex items-center gap-2">
-            <input type="checkbox" checked={asaasSandboxMode} onChange={(e)=>setSandbox(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={asaasSandboxMode}
+              onChange={(e) => setSandbox(e.target.checked)}
+            />
             <span>Ativo</span>
           </label>
         </Field>
         <Field label="Informações de Certificado">
-          <textarea className="w-full border rounded-md px-3 py-2 min-h-28" value={certInfo} onChange={(e)=>setCertInfo(e.target.value)} />
+          <textarea
+            className="w-full border rounded-md px-3 py-2 min-h-28"
+            value={certInfo}
+            onChange={(e) => setCertInfo(e.target.value)}
+          />
         </Field>
       </div>
     </div>

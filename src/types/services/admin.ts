@@ -1,9 +1,18 @@
+import type { IDatePickerControl } from '../common';
+
 export interface AdminListItem {
   id: string;
   name: string;
   email: string;
   createdAt: string;
 }
+
+export type IAdminTableFilters = {
+  name: string;
+  status: string;
+  startDate: IDatePickerControl;
+  endDate: IDatePickerControl;
+};
 
 // detalhe (ajusta com o que o backend devolve)
 export interface AdminDetail extends AdminListItem {

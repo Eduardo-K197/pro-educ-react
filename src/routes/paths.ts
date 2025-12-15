@@ -185,6 +185,18 @@ export const paths = {
       edit: (id: string) => `${ROOTS.DASHBOARD}/groups/${id}/edit`,
       details: (id: string) => `${ROOTS.DASHBOARD}/groups/${id}`,
     },
+    schools: {
+      root: `${ROOTS.DASHBOARD}/schools`,
+      new: `${ROOTS.DASHBOARD}/schools/new`,
+      details: (id: string) => `${ROOTS.DASHBOARD}/schools/${id}`,
+      edit: (id: string) => `${ROOTS.DASHBOARD}/schools/${id}/edit`,
+    },
+    admins: {
+      root: `${ROOTS.DASHBOARD}/admins`,
+      new: `${ROOTS.DASHBOARD}/admins/new`,
+      details: (id: string) => `${ROOTS.DASHBOARD}/admins/${id}`,
+      edit: (id: string) => `${ROOTS.DASHBOARD}/admins/${id}/edit`,
+    },
     webhooks: '/dashboard/webhooks',
   },
 };

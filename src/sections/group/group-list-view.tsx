@@ -1,6 +1,6 @@
 'use client';
 
-import type { IGroupFilters, IGroupItem } from 'src/types/group';
+import type { IGroupItem } from 'src/types/group';
 import { useState, useCallback, useEffect } from 'react';
 
 import Card from '@mui/material/Card';
@@ -52,7 +52,7 @@ export function GroupListView() {
   const [tableData, setTableData] = useState<IGroupItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const filters = useSetState<IGroupFilters>({
+  const filters = useSetState<any>({
     name: '',
     status: 'all',
   });
@@ -240,7 +240,7 @@ function applyFilter({
 }: {
   inputData: IGroupItem[];
   comparator: (a: any, b: any) => number;
-  filters: IGroupFilters;
+  filters: any;
 }) {
   const { name, status } = filters;
 

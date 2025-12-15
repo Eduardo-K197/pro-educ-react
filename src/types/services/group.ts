@@ -20,4 +20,3 @@ export interface GroupUpdatePayload {
   admins?: string[];
   schools?: string[];
 }
-

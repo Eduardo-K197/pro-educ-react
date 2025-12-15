@@ -1,6 +1,8 @@
 'use client';
+
 import useSWR from 'swr';
-import { Groups, Schools, Admins } from '@/src/lib/proeduc/api';
+
+import { Groups, Admins, Schools } from 'src/lib/proeduc/api';
 
 export default function Page() {
   const { data: groups } = useSWR('groups', Groups.list);

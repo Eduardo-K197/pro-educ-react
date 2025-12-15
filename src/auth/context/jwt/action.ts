@@ -17,7 +17,12 @@ export const signInWithPassword = async ({ email, password }: SignInParams): Pro
     const res = await axios.post(buildUrl('/sign-in'), { email, password });
     const d: any = (res && (res as any).data !== undefined ? (res as any).data : res) || {};
     const token: string =
-      d.token ?? d.access_token ?? d.accessToken ?? d.data?.token ?? d.data?.access_token ?? d.data?.accessToken;
+      d.token ??
+      d.access_token ??
+      d.accessToken ??
+      d.data?.token ??
+      d.data?.access_token ??
+      d.data?.accessToken;
 
     if (!token || typeof token !== 'string' || token.length < 10) {
       throw new Error('Invalid access token!');
@@ -31,11 +36,21 @@ export const signInWithPassword = async ({ email, password }: SignInParams): Pro
 };
 
 /** Opcional: /sign-up se existir */
-export const signUp = async ({ email, password, firstName, lastName }: SignUpParams): Promise<void> => {
+export const signUp = async ({
+  email,
+  password,
+  firstName,
+  lastName,
+}: SignUpParams): Promise<void> => {
   const res = await axios.post(buildUrl('/sign-up'), { email, password, firstName, lastName });
   const d: any = (res && (res as any).data !== undefined ? (res as any).data : res) || {};
   const token: string =
-    d.token ?? d.access_token ?? d.accessToken ?? d.data?.token ?? d.data?.access_token ?? d.data?.accessToken;
+    d.token ??
+    d.access_token ??
+    d.accessToken ??
+    d.data?.token ??
+    d.data?.access_token ??
+    d.data?.accessToken;
   if (!token) throw new Error('Invalid access token!');
   await setSession(token);
 };

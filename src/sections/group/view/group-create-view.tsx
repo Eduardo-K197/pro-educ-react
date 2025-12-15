@@ -11,16 +11,18 @@ import { RouterLink } from 'src/routes/components';
 import { paths } from 'src/routes/paths';
 
 import { GroupNewEditForm } from 'src/sections/group/group-new-edit-form';
+
 import { GroupService } from 'src/services/group';
-import type { IGroupCreatePayload } from 'src/types/group';
+
+import type { IGroupCreatePayload, IGroupUpdatePayload } from 'src/types/group';
 
 export function GroupCreateView() {
   const [loading, setLoading] = useState(false);
 
-  const handleCreate = async (payload: IGroupCreatePayload) => {
+  const handleCreate = async (payload: IGroupCreatePayload | IGroupUpdatePayload) => {
     setLoading(true);
     try {
-      await GroupService.create(payload);
+      await GroupService.create(payload as any);
       // redireciona para a lista
       window.location.href = `${paths.dashboard.root}/groups`;
     } finally {

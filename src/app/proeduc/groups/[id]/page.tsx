@@ -1,7 +1,9 @@
+// File: `src/app/proeduc/groups/%5Bid%5D/page.tsx`
 'use client';
+
 import { useParams, useRouter } from 'next/navigation';
 import useSWR from 'swr';
-import { Groups, Schools, Admins } from '@/src/lib/proeduc/api';
+import { Groups, Schools, Admins } from '@/lib/proeduc/api';
 import { useEffect, useState } from 'react';
 
 export default function Page() {
@@ -37,39 +39,86 @@ export default function Page() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">{isNew ? 'Novo Grupo' : 'Editar Grupo'}</h1>
         <div className="space-x-2">
-          <button onClick={() => router.back()} className="px-3 py-2 rounded-md border">Voltar</button>
-          <button onClick={onSave} className="px-3 py-2 rounded-md border bg-black text-white">Salvar</button>
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="px-3 py-2 rounded-md border"
+          >
+            Voltar
+          </button>
+          <button
+            type="button"
+            onClick={onSave}
+            className="px-3 py-2 rounded-md border bg-black text-white"
+          >
+            Salvar
+          </button>
         </div>
       </div>
       <div className="grid md:grid-cols-3 gap-6">
         <div className="md:col-span-3 rounded-xl border p-4">
-          <label className="block text-sm mb-1">Nome</label>
-          <input className="w-full border rounded-md px-3 py-2" value={name} onChange={(e)=>setName(e.target.value)} />
+          <label htmlFor="name" className="block text-sm mb-1">
+            Nome
+          </label>
+          <input
+            id="name"
+            className="w-full border rounded-md px-3 py-2"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
         </div>
         <div className="rounded-xl border p-4">
           <div className="font-medium mb-2">Escolas no grupo</div>
           <div className="max-h-80 overflow-auto space-y-2">
-            {schools?.map(s => (
-              <label className="flex items-center gap-2" key={s.id}>
-                <input type="checkbox" checked={selSchools.includes(s.id)} onChange={(e)=>{
-                  setSelSchools((prev)=> e.target.checked ? [...new Set([...prev, s.id])] : prev.filter(x=>x!==s.id));
-                }} />
-                <span>{s.name}</span>
-              </label>
-            ))}
+            {schools?.map((s) => {
+              const inputId = `school-${s.id}`;
+              return (
+                <label className="flex items-center gap-2" htmlFor={inputId} key={s.id}>
+                  <input
+                    id={inputId}
+                    type="checkbox"
+                    checked={selSchools.includes(s.id)}
+                    onChange={(e) => {
+                      setSelSchools((prev) =>
+                        e.target.checked
+                          ? prev.includes(s.id)
+                            ? prev
+                            : [...prev, s.id]
+                          : prev.filter((x) => x !== s.id)
+                      );
+                    }}
+                  />
+                  <span>{s.name}</span>
+                </label>
+              );
+            })}
           </div>
         </div>
         <div className="rounded-xl border p-4">
           <div className="font-medium mb-2">Admins no grupo</div>
           <div className="max-h-80 overflow-auto space-y-2">
-            {admins?.map(a => (
-              <label className="flex items-center gap-2" key={a.id}>
-                <input type="checkbox" checked={selAdmins.includes(a.id)} onChange={(e)=>{
-                  setSelAdmins((prev)=> e.target.checked ? [...new Set([...prev, a.id])] : prev.filter(x=>x!==a.id));
-                }} />
-                <span>{a.email}</span>
-              </label>
-            ))}
+            {admins?.map((a) => {
+              const inputId = `admin-${a.id}`;
+              return (
+                <label className="flex items-center gap-2" htmlFor={inputId} key={a.id}>
+                  <input
+                    id={inputId}
+                    type="checkbox"
+                    checked={selAdmins.includes(a.id)}
+                    onChange={(e) => {
+                      setSelAdmins((prev) =>
+                        e.target.checked
+                          ? prev.includes(a.id)
+                            ? prev
+                            : [...prev, a.id]
+                          : prev.filter((x) => x !== a.id)
+                      );
+                    }}
+                  />
+                  <span>{a.email}</span>
+                </label>
+              );
+            })}
           </div>
         </div>
       </div>

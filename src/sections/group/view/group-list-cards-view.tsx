@@ -81,7 +81,7 @@ export function GroupListCardsView() {
         links={[
           { name: 'Dashboard', href: paths.dashboard.root },
           { name: 'Grupos', href: paths.dashboard.group.root },
-          { name: 'Lista (Cards)' },
+          { name: 'Lista (Grupos)' },
         ]}
         action={
           <Button

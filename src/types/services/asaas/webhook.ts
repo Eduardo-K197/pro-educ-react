@@ -44,15 +44,9 @@ export interface IAsaasWebhookListResponse {
 export type GetWebhooksResponse = IAsaasWebhookListResponse;
 export type UpdateWebhookResponse = IAsaasWebhook;
 
-
 // ---- WEBHOOKS AGREGADOS DE TODAS AS ESCOLAS (indexAll) ----
 
-export type IWebhookSchoolStatus =
-  | 'NONE'
-  | 'ACTIVE'
-  | 'INACTIVE'
-  | 'UNCONFIGURED'
-  | 'UNKNOWN';
+export type IWebhookSchoolStatus = 'NONE' | 'ACTIVE' | 'INACTIVE' | 'UNCONFIGURED' | 'UNKNOWN';
 
 export interface IWebhookSchoolWebhook {
   id: string;
@@ -87,9 +81,7 @@ export interface IWebhookIndexAllItemError extends IWebhookIndexAllItemBase {
   error: any;
 }
 
-export type IWebhookIndexAllItem =
-  | IWebhookIndexAllItemOk
-  | IWebhookIndexAllItemError;
+export type IWebhookIndexAllItem = IWebhookIndexAllItemOk | IWebhookIndexAllItemError;
 
 export interface IWebhookIndexAllSummary {
   [status: string]: number; // ex: ACTIVE, UNKNOWN, UNCONFIGURED...

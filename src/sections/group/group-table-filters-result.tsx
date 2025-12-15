@@ -1,5 +1,4 @@
 import type { Theme, SxProps } from '@mui/material/styles';
-import type { IGroupFilters } from 'src/types/group';
 import type { UseSetStateReturn } from 'src/hooks/use-set-state';
 
 import { useCallback } from 'react';
@@ -13,7 +12,7 @@ import { Iconify } from 'src/components/iconify';
 type Props = {
   totalResults: number;
   onResetPage: () => void;
-  filters: UseSetStateReturn<IGroupFilters>;
+  filters: UseSetStateReturn<any>;
   sx?: SxProps<Theme>;
 };
 

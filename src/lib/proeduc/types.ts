@@ -8,4 +8,6 @@ export type School = {
   groups?: string[];
 };
 export type Group = { id: string; name: string; schools?: string[]; admins?: string[] };
-export type MeResponse = { user: { id: string; name?: string; email: string; role: 'superAdmin'|'admin' } };
+export type MeResponse = {
+  user: { id: string; name?: string; email: string; role: 'superAdmin' | 'admin' };
+};

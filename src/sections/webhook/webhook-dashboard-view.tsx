@@ -101,7 +101,11 @@ export function WebhookDashboardView() {
         <Stack direction="row" spacing={2}>
           <Chip label={`Ativos: ${data?.summary.ACTIVE}`} color="success" variant="outlined" />
           {data?.summary.INACTIVE && (
-            <Chip label={`Inativos: ${data?.summary.INACTIVE}`} color="default" variant="outlined" />
+            <Chip
+              label={`Inativos: ${data?.summary.INACTIVE}`}
+              color="default"
+              variant="outlined"
+            />
           )}
           {data?.summary.UNKNOWN && (
             <Chip

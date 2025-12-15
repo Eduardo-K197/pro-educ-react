@@ -19,10 +19,7 @@ export class SchoolService {
     return ApiService.get<SchoolDetail>(`${this.BASE_PATH}/${id}`, undefined, config);
   }
 
-  static create(
-    payload: SchoolCreatePayload,
-    config?: AxiosRequestConfig
-  ): Promise<SchoolDetail> {
+  static create(payload: SchoolCreatePayload, config?: AxiosRequestConfig): Promise<SchoolDetail> {
     return ApiService.post<SchoolCreatePayload, SchoolDetail>(this.BASE_PATH, payload, config);
   }
 

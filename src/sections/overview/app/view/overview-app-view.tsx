@@ -78,7 +78,7 @@ export function OverviewAppView() {
         setError(null);
 
         const [schoolsRes, groupsRes, adminsRes] = await Promise.all([
-          SchoolService.list(), //
+          SchoolService.list(),
           GroupService.getAll(),
           AdminService.list(),
         ]);
@@ -186,7 +186,7 @@ export function OverviewAppView() {
     return `No momento você tem ${totalSchools} ${schoolsLabel} cadastrada(s) em ${totalGroups} ${groupsLabel}, sendo ${webhooks} ${webhookLabel} configurada(s) e aproximadamente ${totalStudents} ${studentsLabel} ativos.`;
   }, [stats, loading]);
 
-  const totalSchools = stats?.totalSchools ?? 0;
+  // const totalSchools = stats?.totalSchools ?? 0;
 
   return (
     <DashboardContent maxWidth="xl">
@@ -203,7 +203,7 @@ export function OverviewAppView() {
                   variant="contained"
                   color="primary"
                   component={RouterLink}
-                  href="/dashboard/schools" // ajuste se o path for outro
+                  href="/dashboard/schools"
                 >
                   Ver escolas
                 </Button>

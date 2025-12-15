@@ -140,7 +140,12 @@ export function UserListView() {
       // Se o backend aceitar filtrar status por valor BR, ajuste aqui:
       if (filters.state.status && filters.state.status !== 'all') {
         // mapear 'active'|'pending'|'banned'|'rejected' -> BR se necessário
-        const map: Record<string, string> = { active: 'Ativo', pending: 'Pendente', banned: 'Cancelado', rejected: 'Recusado' };
+        const map: Record<string, string> = {
+          active: 'Ativo',
+          pending: 'Pendente',
+          banned: 'Cancelado',
+          rejected: 'Recusado',
+        };
         params.status = map[filters.state.status] || filters.state.status;
       }
 

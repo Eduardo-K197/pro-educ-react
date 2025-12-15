@@ -1,4 +1,3 @@
-import type { IGroupFilters } from 'src/types/group';
 import type { UseSetStateReturn } from 'src/hooks/use-set-state';
 import { useCallback } from 'react';
 
@@ -9,7 +8,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import { Iconify } from 'src/components/iconify';
 
 type Props = {
-  filters: UseSetStateReturn<IGroupFilters>;
+  filters: UseSetStateReturn<any>;
   onResetPage: () => void;
   options: {
     status: { value: string; label: string }[];

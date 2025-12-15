@@ -19,11 +19,7 @@ export class ApiService {
     return query ? `?${query}` : '';
   }
 
-  static async get<T>(
-    url: string,
-    params?: QueryParams,
-    config?: AxiosRequestConfig
-  ): Promise<T> {
+  static async get<T>(url: string, params?: QueryParams, config?: AxiosRequestConfig): Promise<T> {
     const query = this.buildQueryString(params);
     const { data } = await axiosInstance.get<T>(`${url}${query}`, config);
     return data;
@@ -63,5 +59,4 @@ export class ApiService {
     const { data } = await axiosInstance.patch<TResponse>(url, body, config);
     return data;
   }
-
 }

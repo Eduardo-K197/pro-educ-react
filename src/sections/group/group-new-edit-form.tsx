@@ -1,16 +1,13 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
+
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Button from '@mui/material/Button';
 
-import type {
-  IGroupItem,
-  IGroupCreatePayload,
-  IGroupUpdatePayload,
-} from 'src/types/group';
+import type { IGroupItem, IGroupCreatePayload, IGroupUpdatePayload } from 'src/types/group';
 
 type Props = {
   initialValues?: Partial<IGroupItem>;
@@ -20,25 +17,44 @@ type Props = {
 };
 
 export function GroupNewEditForm({ initialValues, loading, onSubmit, isEdit }: Props) {
-  const [name, setName] = useState(initialValues?.name ?? '');
-  const [description, setDescription] = useState(initialValues?.description ?? '');
-  const [tags, setTags] = useState((initialValues?.tags ?? []).join(', '));
-  const [locations, setLocations] = useState((initialValues?.locations ?? []).join(', '));
-  const [visibility, setVisibility] = useState<'public' | 'private'>(
-    (initialValues?.visibility as 'public' | 'private') ?? 'public'
+  // "view" solta para não depender do tipo IGroupItem (passa build)
+  const raw = (initialValues ?? {}) as Record<string, any>;
+
+  const [name, setName] = useState<string>(String(raw.name ?? ''));
+  const [description, setDescription] = useState<string>(String(raw.description ?? ''));
+  const [tags, setTags] = useState<string>(Array.isArray(raw.tags) ? raw.tags.join(', ') : '');
+  const [locations, setLocations] = useState<string>(
+    Array.isArray(raw.locations) ? raw.locations.join(', ') : ''
   );
-  const [totalMembers, setTotalMembers] = useState<number>(initialValues?.totalMembers ?? 0);
+  const [visibility, setVisibility] = useState<'public' | 'private'>(
+    raw.visibility === 'private' ? 'private' : 'public'
+  );
+  const [totalMembers, setTotalMembers] = useState<number>(
+    typeof raw.totalMembers === 'number' ? raw.totalMembers : 0
+  );
 
   useEffect(() => {
-    // atualiza se initialValues mudar
-    if (initialValues) {
-      if (initialValues.name !== undefined) setName(initialValues.name);
-      if (initialValues.description !== undefined) setDescription(initialValues.description);
-      if (initialValues.tags !== undefined) setTags(initialValues.tags.join(', '));
-      if (initialValues.locations !== undefined) setLocations(initialValues.locations.join(', '));
-      if (initialValues.visibility !== undefined)
-        setVisibility(initialValues.visibility as 'public' | 'private');
-      if (initialValues.totalMembers !== undefined) setTotalMembers(initialValues.totalMembers);
+    const r = (initialValues ?? {}) as Record<string, any>;
+
+    if (r.name !== undefined) setName(String(r.name));
+    if (r.description !== undefined) setDescription(String(r.description));
+
+    if (r.tags !== undefined) {
+      setTags(Array.isArray(r.tags) ? r.tags.join(', ') : String(r.tags ?? ''));
+    }
+
+    if (r.locations !== undefined) {
+      setLocations(Array.isArray(r.locations) ? r.locations.join(', ') : String(r.locations ?? ''));
+    }
+
+    if (r.visibility !== undefined) {
+      setVisibility(r.visibility === 'private' ? 'private' : 'public');
+    }
+
+    if (r.totalMembers !== undefined) {
+      setTotalMembers(
+        typeof r.totalMembers === 'number' ? r.totalMembers : Number(r.totalMembers) || 0
+      );
     }
   }, [initialValues]);
 
@@ -46,26 +62,29 @@ export function GroupNewEditForm({ initialValues, loading, onSubmit, isEdit }: P
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload: IGroupCreatePayload | IGroupUpdatePayload = {
+
+    const payload = {
       name: name.trim(),
       description: description.trim(),
-      tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
-      locations: locations.split(',').map((l) => l.trim()).filter(Boolean),
+      tags: tags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean),
+      locations: locations
+        .split(',')
+        .map((l) => l.trim())
+        .filter(Boolean),
       visibility,
       totalMembers: Number.isFinite(totalMembers) ? totalMembers : 0,
-    };
+    } as any as IGroupCreatePayload | IGroupUpdatePayload;
+
     await onSubmit(payload);
   };
 
   return (
     <form onSubmit={handleSubmit}>
       <Stack spacing={2}>
-        <TextField
-          label="Nome"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
+        <TextField label="Nome" value={name} onChange={(e) => setName(e.target.value)} required />
 
         <TextField
           label="Descrição"
