@@ -1,20 +1,20 @@
 import type { AdminListItem } from 'src/types/services/admin';
 
+import { fDate, fTime } from 'src/utils/format-time';
+
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
+import Link from '@mui/material/Link';
+import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
 import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-
+import ListItemText from '@mui/material/ListItemText';
+import { Box } from '@mui/material';
 import { useRouter } from 'src/routes/hooks';
 import { paths } from 'src/routes/paths';
-
 import { useBoolean } from 'src/hooks/use-boolean';
-
-import { fDateTime } from 'src/utils/format-time';
-
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 
@@ -32,6 +32,8 @@ export function AdminTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
   const router = useRouter();
   const confirm = useBoolean();
 
+  const { name, email, createdAt, id } = row;
+
   const handleEdit = () => {
     router.push(paths.dashboard.admins.edit(row.id));
   };
@@ -40,7 +42,7 @@ export function AdminTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
     <>
       <TableRow hover selected={selected}>
         <TableCell padding="checkbox">
-          <Checkbox checked={selected} onClick={onSelectRow} />
+          <Checkbox id={row.id} checked={selected} onClick={onSelectRow} />
         </TableCell>
 
         <TableCell>
@@ -49,37 +51,42 @@ export function AdminTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
               {row.name ? row.name.charAt(0).toUpperCase() : '?'}
             </Avatar>
 
-            <Stack spacing={0.25}>
-              <Typography variant="subtitle2" noWrap>
+            <Stack sx={{ typography: 'body2', flex: '1 1 auto', alignItems: 'flex-start' }}>
+              <Link color="inherit" onClick={onViewRow} sx={{ cursor: 'pointer' }}>
                 {row.name}
-              </Typography>
-
-              <Typography variant="body2" color="text.secondary" noWrap>
+              </Link>
+              <Box component="span" sx={{ color: 'text.disabled', typography: 'body2' }}>
                 {row.email}
-              </Typography>
+              </Box>
             </Stack>
           </Stack>
         </TableCell>
 
-        <TableCell width={180}>
-          <Typography variant="body2" noWrap>
-            {fDateTime(row.createdAt)}
-          </Typography>
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>
+          <ListItemText
+            primary={fDate(createdAt)}
+            secondary={fTime(createdAt)} 
+            primaryTypographyProps={{ typography: 'body2' }}
+            secondaryTypographyProps={{ typography: 'caption', color: 'text.disabled' }}
+          />
         </TableCell>
 
-        <TableCell align="right" width={88}>
-          <IconButton color="primary" onClick={onViewRow}>
-            <Iconify icon="eva:eye-fill" />
-          </IconButton>
-
-          <IconButton color="primary" onClick={handleEdit}>
-            <Iconify icon="eva:edit-fill" />
-          </IconButton>
+        <TableCell>
+          <Stack direction="row" alignItems="center">
+            <Tooltip title="Quick Edit" placement="top" arrow>
+              <IconButton
+                color={"primary"}
+                onClick={handleEdit}
+              >
+                <Iconify icon="solar:pen-bold" />
+              </IconButton>
+            </Tooltip>
 
           <IconButton color="error" onClick={confirm.onTrue}>
             <Iconify icon="solar:trash-bin-trash-bold" />
           </IconButton>
-        </TableCell>
+          </Stack>
+        </TableCell>        
       </TableRow>
 
       <ConfirmDialog
