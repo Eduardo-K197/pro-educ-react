@@ -196,6 +196,9 @@ export const paths = {
       new: `${ROOTS.DASHBOARD}/admins/new`,
       details: (id: string) => `${ROOTS.DASHBOARD}/admins/${id}`,
       edit: (id: string) => `${ROOTS.DASHBOARD}/admins/${id}/edit`,
+      demo: {
+        edit: `${ROOTS.DASHBOARD}/admins/${MOCK_ID}/edit`,
+      },
     },
     webhooks: '/dashboard/webhooks',
   },

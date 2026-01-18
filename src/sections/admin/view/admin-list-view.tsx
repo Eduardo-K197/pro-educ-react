@@ -24,6 +24,7 @@ import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+import { USER_STATUS_OPTIONS } from 'src/_mock';
 
 import { useTable, getComparator, rowInPage } from 'src/components/table';
 import { CustomTable } from 'src/components/list-table/list-table';
@@ -31,12 +32,14 @@ import { CustomTable } from 'src/components/list-table/list-table';
 import { AdminTableRow } from '../admin-table-row';
 import { AdminTableToolbar } from '../admin-table-toolbar';
 import { AdminTableFiltersResult } from '../admin-table-filters-result';
+import { Admin } from '@/lib/proeduc/types';
 
-const STATUS_OPTIONS = [{ value: 'all', label: 'All' }];
+const STATUS_OPTIONS = [{ value: 'all', label: 'All' }, ...USER_STATUS_OPTIONS];
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Name' }, 
   { id: 'createdAt', label: 'Created at', width: 180 },
+  { id: 'status', label: 'Status', width: 100 },
   { id: '', width: 88 },
 ];
 
@@ -64,7 +67,13 @@ export function AdminListView() {
       setLoading(true);
       const resp = await AdminService.list();
       const admins = (resp as any).admins ?? resp;
-      setTableData(admins);
+
+      const adminsWithStatus = admins.map((admin: Admin) => ({
+        ...admin,
+        status: admin.status || 'active'
+      })) // pega a lista que de admin que admin que ja existe e adiciona o campo de status
+
+      setTableData(adminsWithStatus);
     } catch (error) {
       console.error(error);
       toast.error('Erro ao carregar administradores');
@@ -133,6 +142,13 @@ export function AdminListView() {
     [router]
   );
 
+  const handleEditRow = useCallback(
+    (id: string) => {
+      router.push(paths.dashboard.admins.edit(id)); // mantém sua rota atual
+    },
+    [router]
+  );
+
   const handleFilterStatus = useCallback(
     (event: React.SyntheticEvent, newValue: string) => {
       table.onResetPage();
@@ -193,9 +209,16 @@ export function AdminListView() {
                         ((tab.value === 'all' || tab.value === filters.state.status) && 'filled') ||
                         'soft'
                       }
-                      color={tab.value === 'all' ? 'primary' : 'default'}
+                    color={
+                      (tab.value === 'active' && 'success') ||
+                      (tab.value === 'pending' && 'warning') ||
+                      (tab.value === 'banned' && 'error') ||
+                      'default'
+                    }
                     >
-                      {tableData.length}
+                    {['active', 'pending', 'banned', 'rejected'].includes(tab.value)
+                      ? tableData.filter((admin) => admin.status === tab.value).length
+                      : tableData.length}
                     </Label>
                   }
                 />
@@ -231,6 +254,7 @@ export function AdminListView() {
               selected={table.selected.includes(row.id)}
               onSelectRow={() => table.onSelectRow(row.id)}
               onDeleteRow={() => handleDeleteRow(row.id)}
+              onEditRow={() => handleEditRow(row.id)}
               onViewRow={() => handleViewRow(row.id)}
             />
           ))}
@@ -270,7 +294,7 @@ type ApplyFilterProps = {
 };
 
 function applyFilter({ inputData, comparator, filters, dateError }: ApplyFilterProps) {
-  const { name, startDate, endDate } = filters;
+  const { name, status, startDate, endDate } = filters;
 
   const stabilizedThis = inputData.map((el, index) => [el, index] as const);
 
@@ -288,6 +312,11 @@ function applyFilter({ inputData, comparator, filters, dateError }: ApplyFilterP
         admin.name.toLowerCase().indexOf(name.toLowerCase()) !== -1 ||
         admin.email.toLowerCase().indexOf(name.toLowerCase()) !== -1
     );
+  }
+
+  // filtra os usuarios que esttão com o memso stattus que o filtro no momento
+  if (status !== 'all') {
+    inputData = inputData.filter((user) => user.status === status);
   }
 
   if (!dateError) {

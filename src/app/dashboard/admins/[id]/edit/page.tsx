@@ -1,11 +1,11 @@
 import { _jobs } from 'src/_mock/_job';
 import { CONFIG } from 'src/config-global';
 
-import { JobEditView } from 'src/sections/job/view';
+import { AdminEditView } from 'src/sections/admin/view';
 
 // ----------------------------------------------------------------------
 
-export const metadata = { title: `Job edit | Dashboard - ${CONFIG.appName}` };
+export const metadata = { title: `Admin edit | Dashboard - ${CONFIG.appName}` };
 
 type Props = {
   params: { id: string };
@@ -14,9 +14,7 @@ type Props = {
 export default function Page({ params }: Props) {
   const { id } = params;
 
-  const currentJob = _jobs.find((job) => job.id === id);
-
-  return <JobEditView job={currentJob} />;
+  return <AdminEditView id={id}/>;
 }
 
 // ----------------------------------------------------------------------
@@ -28,14 +26,3 @@ export default function Page({ params }: Props) {
 const dynamic = CONFIG.isStaticExport ? 'auto' : 'force-dynamic';
 
 export { dynamic };
-
-/**
- * [2] Static exports
- * https://nextjs.org/docs/app/building-your-application/deploying/static-exports
- */
-export async function generateStaticParams() {
-  if (CONFIG.isStaticExport) {
-    return _jobs.map((job) => ({ id: job.id }));
-  }
-  return [];
-}

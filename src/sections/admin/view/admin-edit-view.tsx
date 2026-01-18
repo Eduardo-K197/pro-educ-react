@@ -1,29 +1,35 @@
 'use client';
 
+import type { IJobItem } from 'src/types/job';
+
 import { paths } from 'src/routes/paths';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
-import { JobNewEditForm } from '../job-new-edit-form';
+import { JobNewEditForm } from '../admin-new-edit-form';
 
 // ----------------------------------------------------------------------
 
-export function JobCreateView() {
+type Props = {
+  job?: IJobItem;
+};
+
+export function JobEditView({ job }: Props) {
   return (
     <DashboardContent>
       <CustomBreadcrumbs
-        heading="Create a new job"
+        heading="Edit"
         links={[
           { name: 'Dashboard', href: paths.dashboard.root },
           { name: 'Job', href: paths.dashboard.job.root },
-          { name: 'New job' },
+          { name: job?.title },
         ]}
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
-      <JobNewEditForm />
+      <JobNewEditForm currentJob={job} />
     </DashboardContent>
   );
 }

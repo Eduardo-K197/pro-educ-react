@@ -1,4 +1,4 @@
-export type Admin = { id: string; name?: string; email: string; groups?: string[] };
+export type Admin = { id: string; name?: string; status?: string; email: string; groups?: string[] }; // add o status opicional
 export type School = {
   id: string;
   name: string;

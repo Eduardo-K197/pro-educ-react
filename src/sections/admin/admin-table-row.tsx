@@ -17,6 +17,8 @@ import { paths } from 'src/routes/paths';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
+import { Label } from 'src/components/label';
+
 
 // ----------------------------------------------------------------------
 
@@ -25,10 +27,11 @@ type Props = {
   selected: boolean;
   onViewRow: () => void;
   onSelectRow: () => void;
+  onEditRow: () => void;
   onDeleteRow: () => void;
 };
 
-export function AdminTableRow({ row, selected, onViewRow, onSelectRow, onDeleteRow }: Props) {
+export function AdminTableRow({ row, selected, onViewRow, onEditRow, onSelectRow, onDeleteRow }: Props) {
   const router = useRouter();
   const confirm = useBoolean();
 
@@ -52,7 +55,7 @@ export function AdminTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
             </Avatar>
 
             <Stack sx={{ typography: 'body2', flex: '1 1 auto', alignItems: 'flex-start' }}>
-              <Link color="inherit" onClick={onViewRow} sx={{ cursor: 'pointer' }}>
+              <Link color="inherit" onClick={onEditRow} sx={{ cursor: 'pointer' }}>
                 {row.name}
               </Link>
               <Box component="span" sx={{ color: 'text.disabled', typography: 'body2' }}>
@@ -69,6 +72,20 @@ export function AdminTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
             primaryTypographyProps={{ typography: 'body2' }}
             secondaryTypographyProps={{ typography: 'caption', color: 'text.disabled' }}
           />
+        </TableCell>
+
+        <TableCell>
+          <Label
+            variant="soft"
+            color={
+              (row.status === 'active' && 'success') ||
+              (row.status === 'pending' && 'warning') ||
+              (row.status === 'banned' && 'error') ||
+              'default'
+            }
+          >
+            {row.status}
+          </Label>
         </TableCell>
 
         <TableCell>
