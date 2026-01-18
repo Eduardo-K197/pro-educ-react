@@ -1,4 +1,3 @@
-import { _jobs } from 'src/_mock/_job';
 import { CONFIG } from 'src/config-global';
 
 import { AdminEditView } from 'src/sections/admin/view';
@@ -14,7 +13,14 @@ type Props = {
 export default function Page({ params }: Props) {
   const { id } = params;
 
-  return <AdminEditView id={id}/>;
+  const currentAdmin = {
+    id: id,
+    name: 'Admin Simulado',
+    email: 'admin@simulado.com',
+    status: 'active',
+  };
+
+  return <AdminEditView admin={currentAdmin} />;
 }
 
 // ----------------------------------------------------------------------

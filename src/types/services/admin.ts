@@ -39,3 +39,12 @@ export interface AdminUpdatePayload {
 export interface AdminsIndexResponse {
   admins: AdminListItem[];
 }
+
+export type IAdminItem = {
+  id: string;
+  name: string;
+  email: string;
+  status?: string;
+  avatarUrl?: string;
+  isVerified?: boolean;
+};

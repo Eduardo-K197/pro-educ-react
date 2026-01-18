@@ -1,11 +1,11 @@
 import { CONFIG } from 'src/config-global';
 
-import { JobCreateView } from 'src/sections/job/view';
+import { AdminCreateView } from '@/sections/admin/view';
 
 // ----------------------------------------------------------------------
 
-export const metadata = { title: `Create a new job | Dashboard - ${CONFIG.appName}` };
+export const metadata = { title: `Create a new admin | Dashboard - ${CONFIG.appName}` };
 
 export default function Page() {
-  return <JobCreateView />;
+  return <AdminCreateView />;
 }

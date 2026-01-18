@@ -3,27 +3,26 @@
 import { paths } from 'src/routes/paths';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
-import { JobNewEditForm } from '../admin-new-edit-form';
+import { AdminNewEditForm } from '../admin-new-edit-form'; 
 
 // ----------------------------------------------------------------------
 
-export function JobCreateView() {
+export function AdminCreateView() {
   return (
     <DashboardContent>
       <CustomBreadcrumbs
-        heading="Create a new job"
+        heading="Create a new admin"
         links={[
           { name: 'Dashboard', href: paths.dashboard.root },
-          { name: 'Job', href: paths.dashboard.job.root },
-          { name: 'New job' },
+          { name: 'Admins', href: paths.dashboard.admins.root },
+          { name: 'New admin' },
         ]}
         sx={{ mb: { xs: 3, md: 5 } }}
       />
-
-      <JobNewEditForm />
+      
+      <AdminNewEditForm />
     </DashboardContent>
   );
 }
