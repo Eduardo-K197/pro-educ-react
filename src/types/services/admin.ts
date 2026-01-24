@@ -47,4 +47,5 @@ export type IAdminItem = {
   status?: string;
   avatarUrl?: string;
   isVerified?: boolean;
+  schools?: string[];
 };

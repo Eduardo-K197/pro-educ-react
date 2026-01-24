@@ -15,6 +15,15 @@ export interface SchoolListItem {
   entryPendingCount: number;
 }
 
+export type ISchoolItem = {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+  isVerified?: boolean;
+  admins?: SchoolAdmin[];
+  groups?: SchoolGroup[];
+};
+
 export interface PaginationMeta {
   page?: number;
   perPage?: number;

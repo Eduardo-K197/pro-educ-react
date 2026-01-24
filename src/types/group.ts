@@ -48,6 +48,9 @@ export interface GroupAdminRelation {
   admin: {
     id: string;
     name: string;
+    email: string;
+    avatarUrl?: string;
+    schools?: any[];
   };
 }
 
@@ -56,6 +59,8 @@ export interface GroupSchoolRelation {
   school: {
     id: string;
     name: string;
+    createdAt: string;
+    admins?: any[]
   };
 }
 

@@ -92,7 +92,6 @@ export function ProfileFormLayout ({ children, isEdit, isSubmitting, disableStat
         </Card>
       </Grid>
 
-        {/* LADO DIREITO: Dados + Senha */}
         <Grid xs={12} md={8}>
             <Card sx={{ p: 3 }}>
                 <Box
