@@ -74,7 +74,6 @@ export function AdminNewEditForm({ currentAdmin }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      // SIMULAÇÃO (Igual ao do User)
       await new Promise((resolve) => setTimeout(resolve, 500));
       
       reset();

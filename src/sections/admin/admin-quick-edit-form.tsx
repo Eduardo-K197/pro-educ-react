@@ -16,7 +16,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 
 import { toast } from 'src/components/snackbar';
-import { Form, Field} from 'src/components/hook-form';
+import { Form, Field } from 'src/components/hook-form';
 
 const ADMIN_STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },

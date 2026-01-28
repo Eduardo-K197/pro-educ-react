@@ -24,9 +24,10 @@ import { RouterLink } from 'src/routes/components';
 import { Iconify } from 'src/components/iconify';
 
 import { GroupAdminRelation, GroupSchoolRelation } from '@/types/group';
+import { IAdminItem } from '@/types/services/admin';
 
 interface GroupDetailsViewCardProps {
-    item: GroupAdminRelation | GroupSchoolRelation;
+    item: IAdminItem | GroupSchoolRelation;
     type: 'admin' | 'school';
 }
 
@@ -45,17 +46,17 @@ export function GroupDetailsViewCard({ type, item }: GroupDetailsViewCardProps) 
   let editLink = '';
   let schoolCount = 0;
   let adminCount= 0;
-  let schoolList = [];
+  let schoolList: string[] = [];
   let adminList = [];
 
   if (type === 'admin') {
-    const admin = item as GroupAdminRelation;
+    const admin = item as IAdminItem;
 
-    itemId = admin.admin?.id;
-    title = admin.admin?.name;
-    subtitle = admin.admin?.email;
+    itemId = admin.id;
+    title = admin.name;
+    subtitle = admin.email;
     icon = 'solar:user-id-bold-duotone';
-    schoolList = admin?.admin.schools ?? [];
+    schoolList = admin.schools ?? [];
     schoolCount = schoolList.length;
 
     detailsLink = paths.dashboard.admins.details(itemId)
@@ -183,7 +184,7 @@ export function GroupDetailsViewCard({ type, item }: GroupDetailsViewCardProps) 
               <Stack spacing={0.5}>
                 {schoolList.map((gs: any, idx: number) => (
                   <Typography key={gs?.school?.id ?? idx} variant="body2">
-                    • {gs?.school?.name ?? 'Sem nome'}
+                    • {gs?.name ?? 'Sem nome'}
                   </Typography>
                 ))}
               </Stack>
