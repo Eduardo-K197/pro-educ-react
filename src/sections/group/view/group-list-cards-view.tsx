@@ -12,7 +12,6 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 
 import { paths } from 'src/routes/paths';
-import { RouterLink } from 'src/routes/components';
 
 import { orderBy } from 'src/utils/helper';
 
@@ -24,27 +23,28 @@ import { EmptyContent } from 'src/components/empty-content';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
 import { GroupCardItem } from '../group-card-item';
+import { GroupQuickAddGroup } from '../group-quick-add-group';
 
 export function GroupListCardsView() {
   const [groups, setGroups] = useState<IGroupItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [openCreate, setOpenCreate] = useState(false);
+
+  const fetchGroups = useCallback(async () => {
+    try {
+      const res = await GroupService.getAll();
+      setGroups(res); 
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let mounted = true;
-
-    GroupService.getAll()
-      .then((res) => {
-        if (mounted) setGroups(res);
-      })
-      .finally(() => {
-        if (mounted) setLoading(false);
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    fetchGroups();
+  }, [fetchGroups]);
 
   const handleSearch = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
@@ -52,13 +52,10 @@ export function GroupListCardsView() {
 
   const filteredGroups = useMemo(() => {
     const byName = search.trim().toLowerCase();
-
     let data = groups;
-
     if (byName) {
       data = data.filter((group) => group.name.toLowerCase().includes(byName));
     }
-
     return orderBy(data, ['name'], ['asc']);
   }, [groups, search]);
 
@@ -85,10 +82,9 @@ export function GroupListCardsView() {
         ]}
         action={
           <Button
-            component={RouterLink}
-            href={paths.dashboard.group.new}
             variant="contained"
             startIcon={<Iconify icon="mingcute:add-line" />}
+            onClick={() => setOpenCreate(true)}
           >
             Novo grupo
           </Button>
@@ -96,7 +92,7 @@ export function GroupListCardsView() {
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
-      {/* Toolbar no estilo do Job (search + contagem) */}
+      {/* Toolbar */}
       <Stack
         spacing={2.5}
         justifyContent="space-between"
@@ -133,6 +129,15 @@ export function GroupListCardsView() {
           ))}
         </Grid>
       )}
+
+      {openCreate && (
+        <GroupQuickAddGroup
+          open={openCreate}
+          onClose={() => setOpenCreate(false)}
+          onRefresh={fetchGroups} 
+        />
+      )}
+
     </DashboardContent>
   );
 }

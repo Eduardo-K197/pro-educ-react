@@ -1,5 +1,5 @@
-import { boolean, z as zod } from 'zod';
-import { useEffect, useMemo, useState } from 'react';
+import { z as zod } from 'zod';
+import { useMemo, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -15,143 +15,144 @@ import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
-import { Field, Form } from 'src/components/hook-form';
+import { Form, Field } from 'src/components/hook-form';
 import { toast } from 'src/components/snackbar';
 
 import { GroupService } from 'src/services/group';
 import { AdminService } from 'src/services/admin';
 import { SchoolService } from 'src/services/school';
-import { IGroupItem } from 'src/types/group';
-import { ISchoolItem } from '@/types/services/school';
-import { IAdminItem } from '@/types/services/admin';
 
 // ----------------------------------------------------------------------
 
-export type GroupQuickEditSchemaType = zod.infer<typeof GroupQuickEditSchema>;
-
-export const GroupQuickEditSchema = zod.object({
-  name: zod.string().min(1, { message: 'O Nome é obrigatorio!' }),
+export const GroupQuickCreateSchema = zod.object({
+  name: zod.string().min(1, 'O nome do grupo é obrigatório'),
 });
+
+export type GroupQuickCreateSchemaType = zod.infer<typeof GroupQuickCreateSchema>;
 
 // ----------------------------------------------------------------------
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  currentGroup: IGroupItem
-  onRefresh?: () => void; 
+  onRefresh?: () => void;
 };
 
-export function GroupQuickEdit({ currentGroup, open, onClose, onRefresh }: Props) {
+export function GroupQuickAddGroup ({ open, onClose, onRefresh }: Props) {
+  
+  const [allAdmins, setAllAdmins] = useState<any[]>([]);
+  const [allSchools, setAllSchools] = useState<any[]>([]);
 
-   const [allAdmins, setAllAdmins] = useState<IAdminItem[]>([]);
-   const [allSchools, setAllSchools] = useState<ISchoolItem[]>([]);
+  const [selectedAdmins, setSelectedAdmins] = useState<Set<string>>(new Set());
+  const [selectedSchools, setSelectedSchools] = useState<Set<string>>(new Set());
 
-   const [selectedAdmins, setSelectedAdmins] = useState<Set<string>>(
-    new Set(currentGroup.groupAdmin?.map(ga => ga.admin?.id).filter(Boolean) as string[])
-   );
 
-   const [selectedSchools, setSelectedSchools] = useState<Set<string>>(
-    new Set(currentGroup.groupSchool?.map(s => s.school?.id).filter(Boolean) as string[])
-   );
-
-   useEffect(() => {
+useEffect(() => {
     if (open) {
       const fetchData = async () => {
-        try{
+        try {
           const [adminsRes, schoolsRes] = await Promise.all([
             AdminService.list(),
-            SchoolService.list()
+            SchoolService.list({ perPage: 100 }) 
           ]);
           
-          setAllAdmins(adminsRes.admins);
-          setAllSchools(schoolsRes.schools);
+          const adminsList = (adminsRes as any).admins || (adminsRes as any).data || [];
+          const schoolsList = (schoolsRes as any).schools || (schoolsRes as any).data || [];
+
+          setAllAdmins(adminsList);
+          setAllSchools(schoolsList);
 
         } catch (error) {
-          console.error('Erro ao buscar dados:', error);
-          toast.error('Erro ao carregar listas.')
+          console.error('Erro no fetchData:', error);
+          toast.error('Erro ao carregar listas');
         }
       };
-      fetchData();
+
+      fetchData(); 
     }
   }, [open]);
 
   const defaultValues = useMemo(
     () => ({
-      name: currentGroup.name || '',
+      name: '',
     }),
-    [currentGroup]
+    []
   );
 
-  const methods = useForm<GroupQuickEditSchemaType>({
-    resolver: zodResolver(GroupQuickEditSchema),
+  const methods = useForm<GroupQuickCreateSchemaType>({
+    resolver: zodResolver(GroupQuickCreateSchema),
     defaultValues,
   });
 
   const {
-    reset,
     handleSubmit,
     formState: { isSubmitting },
+    reset,
   } = methods;
-
-  useEffect(() => {
-    if(currentGroup) {
-        reset({name: currentGroup.name});
-        setSelectedAdmins(new Set(currentGroup.groupAdmin?.map(ga => ga.admin?.id).filter(Boolean) as string[]));
-        setSelectedSchools(new Set(currentGroup.groupSchool?.map(s => s.school?.id).filter(Boolean) as string[]));
-    }
-  }, [currentGroup, reset]);
 
   const handleToggleAdmin = (id: string) => {
     const newSelected = new Set(selectedAdmins);
-    if (newSelected.has(id)) {
-      newSelected.delete(id)
-    } else {
-      newSelected.add(id)
-    }
-    setSelectedAdmins(newSelected)
-  }
+    if (newSelected.has(id)) newSelected.delete(id);
+    else newSelected.add(id);
+    setSelectedAdmins(newSelected);
+  };
 
-   const handleToggleSchool = (id: string) => {
+  const handleToggleSchool = (id: string) => {
     const newSelected = new Set(selectedSchools);
-    if (newSelected.has(id)) {
-      newSelected.delete(id)
-    } else {
-      newSelected.add(id)
-    }
-    setSelectedSchools(newSelected)
-  }
+    if (newSelected.has(id)) newSelected.delete(id);
+    else newSelected.add(id);
+    setSelectedSchools(newSelected);
+  };
 
-  const onSubmit = handleSubmit(async (data) => {
+const onSubmit = handleSubmit(async (data) => {
     try {
-      const payload = {
+      const createPayload = {
         name: data.name,
         admins: Array.from(selectedAdmins),
         schools: Array.from(selectedSchools)
       };
 
-      await GroupService.update(currentGroup.id, payload)
+      console.info('1. Criando Grupo:', createPayload);
+      
+      const newGroup = await GroupService.create(createPayload as any);
 
-      toast.success('Grupo atualizado com sucesso!');
+      if (newGroup?.id) {
+        const hasAdmins = selectedAdmins.size > 0;
+        const hasSchools = selectedSchools.size > 0;
+
+        if (hasAdmins || hasSchools) {
+           const updatePayload = {
+             admins: Array.from(selectedAdmins),
+             schools: Array.from(selectedSchools),
+           };
+           
+           await GroupService.update(newGroup.id, updatePayload as any);
+        }
+      }
+
+      toast.success('Grupo criado com sucesso!');
 
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       if (onRefresh) onRefresh(); 
-      
-      reset();
+
+      reset(); 
+      setSelectedAdmins(new Set()); 
+      setSelectedSchools(new Set());
       onClose();
       
-
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error('Erro ao atualizar grupo')
+
+      const message = error.response?.data?.message || error.message || 'Erro ao criar grupo';
+      toast.error(`Erro: ${message}`);
     }
   });
 
   return (
     <Dialog fullWidth maxWidth="sm" open={open} onClose={onClose}>
       <Form methods={methods} onSubmit={onSubmit}>
-        <DialogTitle>Editar Grupo</DialogTitle>
+        <DialogTitle>Novo Grupo</DialogTitle>
 
         <DialogContent>
           <Stack spacing={3} sx={{ pt: 1 }}>
@@ -179,13 +180,12 @@ export function GroupQuickEdit({ currentGroup, open, onClose, onRefresh }: Props
                                 />
                             }
                             label={`${admin.name} | ${admin.email}`}
-                            sx={{ mr: 0, '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }}
                         />
                     ))}
-                    {allAdmins.length === 0 && <Typography variant="caption" sx={{ p: 1 }}>Nenhum admin encontrado.</Typography>}
+                    {allAdmins.length === 0 && <Typography variant="caption" sx={{p:1}}>Nenhum admin encontrado.</Typography>}
                 </Stack>
             </Box>
-            
+
             <Box>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>Escolas</Typography>
                 <Stack 
@@ -207,10 +207,9 @@ export function GroupQuickEdit({ currentGroup, open, onClose, onRefresh }: Props
                                 />
                             }
                             label={school.name}
-                            sx={{ mr: 0, '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }}
                         />
                     ))}
-                    {allSchools.length === 0 && <Typography variant="caption" sx={{ p: 1 }}>Nenhuma escola encontrada.</Typography>}
+                    {allSchools.length === 0 && <Typography variant="caption" sx={{p:1}}>Nenhuma escola encontrada.</Typography>}
                 </Stack>
             </Box>
 

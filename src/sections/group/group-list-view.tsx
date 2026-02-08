@@ -11,8 +11,7 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 
 import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hooks';
-import { RouterLink } from 'src/routes/components';
+import { useRouter } from 'src/routes/hooks'; 
 
 import { useSetState } from 'src/hooks/use-set-state';
 
@@ -38,6 +37,8 @@ import { GroupTableRow } from './group-table-row';
 import { GroupTableToolbar } from './group-table-toolbar';
 import { GroupTableFiltersResult } from './group-table-filters-result';
 
+import { GroupQuickAddGroup } from './group-quick-add-group';
+
 const TABLE_HEAD = [
   { id: 'name', label: 'Nome' },
   { id: 'description', label: 'Descrição' },
@@ -51,31 +52,29 @@ export function GroupListView() {
 
   const [tableData, setTableData] = useState<IGroupItem[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const [openCreate, setOpenCreate] = useState(false);
 
   const filters = useSetState<any>({
     name: '',
     status: 'all',
   });
 
-  useEffect(() => {
-    let mounted = true;
-    setLoading(true);
-
-    GroupService.getAll()
-      .then((data) => {
-        if (mounted) setTableData(data);
-      })
-      .catch(() => {
-        toast.error('Erro ao carregar grupos');
-      })
-      .finally(() => {
-        if (mounted) setLoading(false);
-      });
-
-    return () => {
-      mounted = false;
-    };
+  const fetchGroups = useCallback(async () => {
+    try {
+      const data = await GroupService.getAll();
+      setTableData(data); 
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao carregar grupos');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchGroups();
+  }, [fetchGroups]);
 
   const dataFiltered = applyFilter({
     inputData: tableData,
@@ -152,10 +151,9 @@ export function GroupListView() {
         ]}
         action={
           <Button
-            component={RouterLink}
-            href={paths.dashboard.group.new}
             variant="contained"
             startIcon={<Iconify icon="mingcute:add-line" />}
+            onClick={() => setOpenCreate(true)}
           >
             Novo grupo
           </Button>
@@ -229,36 +227,42 @@ export function GroupListView() {
           onRowsPerPageChange={table.onChangeRowsPerPage}
         />
       </Card>
+
+      <GroupQuickAddGroup
+        open={openCreate}
+        onClose={() => setOpenCreate(false)}
+        onRefresh={fetchGroups} 
+      />
     </DashboardContent>
   );
 }
 
 function applyFilter({
-  inputData,
-  comparator,
-  filters,
-}: {
-  inputData: IGroupItem[];
-  comparator: (a: any, b: any) => number;
-  filters: any;
-}) {
-  const { name, status } = filters;
-
-  const stabilized = inputData.map((el, index) => [el, index] as const);
-  stabilized.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-
-  let data = stabilized.map((el) => el[0]);
-
-  if (name) {
-    data = data.filter((g) => g.name.toLowerCase().includes(name.toLowerCase()));
-  }
-  if (status !== 'all') {
-    data = data.filter((g) => (status === 'active' ? g.active : !g.active));
-  }
-
-  return data;
+    inputData,
+    comparator,
+    filters,
+  }: {
+    inputData: IGroupItem[];
+    comparator: (a: any, b: any) => number;
+    filters: any;
+  }) {
+    const { name, status } = filters;
+  
+    const stabilized = inputData.map((el, index) => [el, index] as const);
+    stabilized.sort((a, b) => {
+      const order = comparator(a[0], b[0]);
+      if (order !== 0) return order;
+      return a[1] - b[1];
+    });
+  
+    let data = stabilized.map((el) => el[0]);
+  
+    if (name) {
+      data = data.filter((g) => g.name.toLowerCase().includes(name.toLowerCase()));
+    }
+    if (status !== 'all') {
+      data = data.filter((g) => (status === 'active' ? g.active : !g.active));
+    }
+  
+    return data;
 }

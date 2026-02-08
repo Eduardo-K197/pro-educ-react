@@ -21,9 +21,9 @@ import { toast } from 'src/components/snackbar';
 import { Form, Field } from 'src/components/hook-form';
 import { Iconify } from 'src/components/iconify';
 
-import { GroupService } from '@/services/group';
-import { AdminService } from '@/services/admin';
-import { IGroupItem } from '@/types/group';
+import { GroupService } from 'src/services/group';
+import { AdminService } from 'src/services/admin';
+import { IGroupItem } from 'src/types/group';
 
 // ----------------------------------------------------------------------
 
@@ -35,9 +35,7 @@ export const GroupQuickAddAdminSchema = zod.object({
     .string()
     .min(1, { message: 'Email é obrigatório!!' })
     .email({ message: 'Formato de email inválido!' }),
-  password: zod
-    .string()
-    .min(6, {message: 'A senha deve ter no mínimo 6 caracteres!'}),
+  password: zod.string().min(6, { message: 'A senha deve ter no mínimo 6 caracteres!' }).or(zod.literal('')),
 });
 
 // ----------------------------------------------------------------------
@@ -45,22 +43,25 @@ export const GroupQuickAddAdminSchema = zod.object({
 type Props = {
   open: boolean;
   onClose: () => void;
-  groupId: string;
+  groupId?: string;
+  currentAdmin?: any;    
+  onRefresh?: () => void; 
 };
 
-export function GroupQuickAddAdmin({ groupId, open, onClose }: Props) {
+export function GroupQuickAddAdmin({ groupId, open, onClose, currentAdmin, onRefresh }: Props) {
 
   const [showPassword, setShowPassword] = useState(false);
 
   const [allGroups, setAllGroups] = useState<IGroupItem[]>([]);
-  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set([groupId]));
+  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set(groupId ? [groupId] : []));
 
   useEffect(() => {
     if (open) {
       const fetchGroups = async () => {
-        try{
+        try {
           const response = await GroupService.getAll();
-          setAllGroups(response);
+          const list = Array.isArray(response) ? response : (response as any).data || [];
+          setAllGroups(list);
         } catch (error) {
           console.error('Erro ao buscar grupos:', error);
         }
@@ -69,13 +70,40 @@ export function GroupQuickAddAdmin({ groupId, open, onClose }: Props) {
     }
   }, [open]);
 
+  useEffect(() => {
+    if (open) {
+      if (currentAdmin) {
+        reset({
+          name: currentAdmin.name,
+          email: currentAdmin.email,
+          password: '', 
+        });
+
+        const adminGroupIds = currentAdmin.groups?.map((g: any) => g.id) || [];
+
+        const groupsSet = new Set<string>(adminGroupIds);
+
+        if (groupId) {
+            groupsSet.add(groupId);
+        }
+
+        setSelectedGroups(groupsSet);
+
+      } else {
+
+        reset({ name: '', email: '', password: '' });
+        setSelectedGroups(new Set(groupId ? [groupId] : []));
+      }
+    }
+  }, [currentAdmin, open, groupId]);
+
   const defaultValues = useMemo(
     () => ({
-      name: '',
-      email: '',
+      name: currentAdmin?.name || '',
+      email: currentAdmin?.email || '',
       password: '',
     }),
-    []
+    [currentAdmin]
   );
 
   const methods = useForm<GroupQuickAddAdminSchemaType>({
@@ -93,33 +121,58 @@ export function GroupQuickAddAdmin({ groupId, open, onClose }: Props) {
   const handleToggleGroup = (id: string) => {
     const newSelected = new Set(selectedGroups);
     if (newSelected.has(id)) {
-      newSelected.delete(id)
+      newSelected.delete(id);
     } else {
-      newSelected.add(id)
+      newSelected.add(id);
     }
-    setSelectedGroups(newSelected)
-  }
+    setSelectedGroups(newSelected);
+  };
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const payload = {
+
+      const payload: any = {
         name: data.name,
         email: data.email,
-        password: data.password,
-        passwordConfirmation: data.password,
-        groups: Array.from(selectedGroups)
+        groups: Array.from(selectedGroups),
       };
 
-      await AdminService.create(payload)
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (data.password) {
+        payload.password = data.password;
+        payload.passwordConfirmation = data.password;
+      }
 
-      toast.success('Admin adicionado com sucesso!');
+      if (currentAdmin) {
+
+        if (!data.password) {
+           delete payload.password;
+           delete payload.passwordConfirmation;
+        }
+
+        await AdminService.update(currentAdmin.id, payload);
+        toast.success('Admin atualizado com sucesso!');
+
+      } else {
+        if (!data.password) {
+            toast.error('Senha é obrigatória para novos admins');
+            return;
+        }
+        
+        await AdminService.create(payload);
+        toast.success('Admin criado com sucesso!');
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Pequeno delay visual
+
+      if (onRefresh) onRefresh();
+      
       reset();
       onClose();
+
     } catch (error) {
       console.error(error);
-      toast.error('Erro ao adicionar admin')
+      toast.error(currentAdmin ? 'Erro ao atualizar admin' : 'Erro ao criar admin');
     }
   });
 
@@ -132,21 +185,22 @@ export function GroupQuickAddAdmin({ groupId, open, onClose }: Props) {
       PaperProps={{ sx: { maxWidth: 720 } }}
     >
       <Form methods={methods} onSubmit={onSubmit}>
-        <DialogTitle>Adicionar Novo Admin</DialogTitle>
+        <DialogTitle>{currentAdmin ? 'Editar Admin' : 'Adicionar Novo Admin'}</DialogTitle>
 
         <DialogContent>
           <Box
             rowGap={3}
             columnGap={2}
             display="grid"
-            gridTemplateColumns={{ pt: 1}}
+            gridTemplateColumns={{ pt: 1 }}
           >
 
             <Field.Text name="name" label="Nome Completo" />
             <Field.Text name="email" label="Email" />
+            
             <Field.Text
-              name="password" 
-              label="Senha" 
+              name="password"
+              label={currentAdmin ? "Nova Senha (deixe vazio para manter)" : "Senha"}
               type={showPassword ? 'text' : 'password'}
               InputProps={{
                 endAdornment: (
@@ -171,13 +225,13 @@ export function GroupQuickAddAdmin({ groupId, open, onClose }: Props) {
                 }}
               >
                 {allGroups.map((group) => {
-                  return(
+                  return (
                     <FormControlLabel
                       key={group.id}
                       control={
                         <Switch
-                        checked={selectedGroups.has(group.id)}
-                        onChange={() => handleToggleGroup(group.id)}
+                          checked={selectedGroups.has(group.id)}
+                          onChange={() => handleToggleGroup(group.id)}
                         />
                       }
                       label={group.name}
@@ -186,9 +240,9 @@ export function GroupQuickAddAdmin({ groupId, open, onClose }: Props) {
                 })}
 
                 {allGroups.length === 0 && (
-                    <Typography variant="caption" sx={{ p: 1, color: 'text.secondary' }}>
-                       Carregando grupos...
-                    </Typography>
+                  <Typography variant="caption" sx={{ p: 1, color: 'text.secondary' }}>
+                    Carregando grupos...
+                  </Typography>
                 )}
 
               </Stack>

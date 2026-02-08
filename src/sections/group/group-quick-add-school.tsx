@@ -10,23 +10,18 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent'; 
-import IconButton from '@mui/material/IconButton';
-import InputAdornment from '@mui/material/InputAdornment';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import InputLabel from '@mui/material/InputLabel';
 
 import { toast } from 'src/components/snackbar';
-import { Form, Field, RHFTextField } from 'src/components/hook-form';
-import { RHFSwitch } from 'src/components/hook-form';
+import { Form, RHFTextField, RHFSwitch } from 'src/components/hook-form';
 
-import { GroupService } from '@/services/group';
-import { SchoolService } from '@/services/school';
-import { IGroupItem } from '@/types/group';
-import { SchoolCreatePayload } from '@/types/services/school';
-import { InputLabel } from '@mui/material';
-
+import { GroupService } from 'src/services/group';
+import { SchoolService } from 'src/services/school';
+import { IGroupItem } from 'src/types/group';
 
 // ----------------------------------------------------------------------
 
@@ -37,7 +32,6 @@ export const GroupQuickAddSchoolSchema = zod.object({
   asaasToken: zod.string().optional(),
   asaasSandboxMode: zod.boolean().default(false),
   asaasHomologationMode: zod.boolean().default(false),
-  // campos auxiliares para edição em textarea (um item por linha)
   materialsText: zod.string().optional(),
   categoriesText: zod.string().optional(),
 });
@@ -47,22 +41,25 @@ export const GroupQuickAddSchoolSchema = zod.object({
 type Props = {
   open: boolean;
   onClose: () => void;
-  groupId: string;
+  groupId?: string;
+  currentSchool?: any;
+  onRefresh?: () => void;
 };
 
-export function GroupQuickAddSchool({ groupId, open, onClose }: Props) {
+export function GroupQuickAddSchool({ groupId, open, onClose, currentSchool, onRefresh }: Props) {
 
-  const [certificateFile, setCertificateFile] = useState<File | null>();
+  const [certificateFile, setCertificateFile] = useState<File | null>(null);
 
   const [allGroups, setAllGroups] = useState<IGroupItem[]>([]);
-  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set([groupId]));
+  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set(groupId ? [groupId] : []));
 
   useEffect(() => {
     if (open) {
       const fetchGroups = async () => {
-        try{
+        try {
           const response = await GroupService.getAll();
-          setAllGroups(response);
+          const list = Array.isArray(response) ? response : (response as any).data || [];
+          setAllGroups(list);
         } catch (error) {
           console.error('Erro ao buscar grupos:', error);
         }
@@ -71,16 +68,54 @@ export function GroupQuickAddSchool({ groupId, open, onClose }: Props) {
     }
   }, [open]);
 
+  useEffect(() => {
+    if (open) {
+      if (currentSchool) {
+        
+        const materialsStr = currentSchool.defaultMaterials?.map((m: any) => m.name).join('\n') || '';
+        const categoriesStr = currentSchool.categories?.map((c: any) => c.name).join('\n') || '';
+
+        reset({
+          name: currentSchool.name || '',
+          asaasToken: currentSchool.asaasToken || '',
+          asaasSandboxMode: currentSchool.asaasSandboxMode || false,
+          asaasHomologationMode: currentSchool.asaasHomologationMode || false,
+          materialsText: materialsStr,
+          categoriesText: categoriesStr,
+        });
+
+        const schoolGroupIds = currentSchool.groups?.map((g: any) => g.id) || [];
+        const groupsSet = new Set<string>(schoolGroupIds);
+
+        if (groupId) groupsSet.add(groupId);
+        
+        setSelectedGroups(groupsSet);
+
+      } else {
+
+        reset({
+            name: '',
+            asaasToken: '',
+            asaasSandboxMode: false,
+            asaasHomologationMode: false,
+            materialsText: '',
+            categoriesText: '',
+        });
+        setSelectedGroups(new Set(groupId ? [groupId] : []));
+        setCertificateFile(null);
+      }
+    }
+  }, [currentSchool, open, groupId]); 
   const defaultValues = useMemo(
     () => ({
-        name: '',
-        asaasToken: '',
-        asaasSandboxMode: false,
-        asaasHomologationMode: false,
+        name: currentSchool?.name || '',
+        asaasToken: currentSchool?.asaasToken || '',
+        asaasSandboxMode: currentSchool?.asaasSandboxMode || false,
+        asaasHomologationMode: currentSchool?.asaasHomologationMode || false,
         materialsText: '',
         categoriesText: '',
     }),
-    []
+    [currentSchool]
   );
 
   const methods = useForm<GroupQuickAddSchoolSchemaType>({
@@ -102,54 +137,56 @@ export function GroupQuickAddSchool({ groupId, open, onClose }: Props) {
   const handleToggleGroup = (id: string) => {
     const newSelected = new Set(selectedGroups);
     if (newSelected.has(id)) {
-      newSelected.delete(id)
+      newSelected.delete(id);
     } else {
-      newSelected.add(id)
+      newSelected.add(id);
     }
-    setSelectedGroups(newSelected)
-  }
+    setSelectedGroups(newSelected);
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-        setCertificateFile(event.target.files[0])
+        setCertificateFile(event.target.files[0]);
     }
-  }
+  };
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-     const materialNames = (values.materialsText || '')
-       .split('\n')
-       .map((s) => s.trim())
-       .filter(Boolean);
+      const materialNames = (values.materialsText || '')
+        .split('\n').map((s) => s.trim()).filter(Boolean);
 
-     const categoryNames = (values.categoriesText || '')
-       .split('\n')
-       .map((s) => s.trim())
-       .filter(Boolean);
+      const categoryNames = (values.categoriesText || '')
+        .split('\n').map((s) => s.trim()).filter(Boolean);
 
-      const payload: SchoolCreatePayload = {
+      const payload: any = {
         name: values.name,
         asaasToken: values.asaasToken || undefined,
         asaasSandboxMode: values.asaasSandboxMode,
         asaasHomologationMode: values.asaasHomologationMode,
         defaultMaterials: materialNames.map((name) => ({ name })),
         categories: categoryNames.map((name) => ({ name })),
-        // admins e groups podem ser plugados aqui depois
-
         groups: Array.from(selectedGroups)
       };
 
-      await SchoolService.create(payload)
+      if (currentSchool) {
+        await SchoolService.update(currentSchool.id, payload);
+        toast.success('Escola atualizada com sucesso!');
+      } else {
+        await SchoolService.create(payload);
+        toast.success('Escola criada com sucesso!');
+      }
       
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      toast.success('Escola adicionada com sucesso!');
+      if (onRefresh) onRefresh();
+      
       reset();
       setCertificateFile(null);
       onClose();
+
     } catch (error) {
       console.error(error);
-      toast.error('Erro ao adicionar escola')
+      toast.error(currentSchool ? 'Erro ao atualizar escola' : 'Erro ao criar escola');
     }
   });
 
@@ -162,7 +199,7 @@ export function GroupQuickAddSchool({ groupId, open, onClose }: Props) {
       PaperProps={{ sx: { maxWidth: 720 } }}
     >
       <Form methods={methods} onSubmit={onSubmit}>
-        <DialogTitle>Adicionar Nova Escola</DialogTitle>
+        <DialogTitle>{currentSchool ? 'Editar Escola' : 'Adicionar Nova Escola'}</DialogTitle>
 
         <DialogContent>
         <Stack spacing={3} sx={{ pt: 1 }}>
@@ -192,28 +229,30 @@ export function GroupQuickAddSchool({ groupId, open, onClose }: Props) {
                 />
             </Box>
 
-            <Box>
-                <InputLabel sx={{ mb: 1, fontSize: 14 }}>Enviar certificado</InputLabel>
-                <Stack 
-                    direction="row" 
-                    alignItems="center" 
-                    spacing={2} 
-                    sx={{ 
-                        p: 2, 
-                        borderRadius: 1, 
-                        border: (theme) => `1px dashed ${theme.palette.divider}`,
-                        bgcolor: (theme) => theme.palette.background.neutral
-                    }}
-                >
-                    <Button variant="contained" color="inherit" component="label" size="small">
-                        Escolher Arquivo
-                        <input hidden type="file" accept=".p12,.pem,.crt" onChange={handleFileChange} />
-                    </Button>
-                    <Typography variant="body2" noWrap sx={{ maxWidth: 200, color: 'text.secondary' }}>
-                        {certificateFile ? certificateFile.name : 'Nenhum arquivo selecionado'}
-                    </Typography>
-                </Stack>
-            </Box>
+            {!currentSchool && (
+                <Box>
+                    <InputLabel sx={{ mb: 1, fontSize: 14 }}>Enviar certificado</InputLabel>
+                    <Stack 
+                        direction="row" 
+                        alignItems="center" 
+                        spacing={2} 
+                        sx={{ 
+                            p: 2, 
+                            borderRadius: 1, 
+                            border: (theme) => `1px dashed ${theme.palette.divider}`,
+                            bgcolor: (theme) => theme.palette.background.neutral
+                        }}
+                    >
+                        <Button variant="contained" color="inherit" component="label" size="small">
+                            Escolher Arquivo
+                            <input hidden type="file" accept=".p12,.pem,.crt" onChange={handleFileChange} />
+                        </Button>
+                        <Typography variant="body2" noWrap sx={{ maxWidth: 200, color: 'text.secondary' }}>
+                            {certificateFile ? certificateFile.name : 'Nenhum arquivo selecionado'}
+                        </Typography>
+                    </Stack>
+                </Box>
+            )}
 
             <RHFTextField 
                 name="materialsText" 
@@ -258,7 +297,7 @@ export function GroupQuickAddSchool({ groupId, open, onClose }: Props) {
 
                 {allGroups.length === 0 && (
                     <Typography variant="caption" sx={{ p: 1, color: 'text.secondary' }}>
-                       Carregando grupos...
+                        Carregando grupos...
                     </Typography>
                 )}
 

@@ -4,19 +4,14 @@ import { useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
-import MenuList from '@mui/material/MenuList';
-import MenuItem from '@mui/material/MenuItem';
 import Collapse from '@mui/material/Collapse';
-import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import ListItemText from '@mui/material/ListItemText';
 
-import { usePopover, CustomPopover } from 'src/components/custom-popover';
+import { usePopover } from 'src/components/custom-popover';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
@@ -26,14 +21,21 @@ import { Iconify } from 'src/components/iconify';
 import { GroupAdminRelation, GroupSchoolRelation } from '@/types/group';
 import { IAdminItem } from '@/types/services/admin';
 
+import { GroupQuickAddAdmin } from './group-quick-add-admin';
+import { GroupQuickAddSchool } from './group-quick-add-school';
+
 interface GroupDetailsViewCardProps {
-    item: IAdminItem | GroupSchoolRelation;
-    type: 'admin' | 'school';
+  item: IAdminItem | GroupSchoolRelation;
+  type: 'admin' | 'school';
+  onRefresh?: () => void;
+  groupId?: string;
 }
 
-export function GroupDetailsViewCard({ type, item }: GroupDetailsViewCardProps) {
+export function GroupDetailsViewCard({ type, item, onRefresh, groupId }: GroupDetailsViewCardProps) {
   const [openSchools, setOpenSchools] = useState(false);
-  const [openAdmins, setOpenAdmins] = useState(false);
+  
+  const [editingAdmin, setEditingAdmin] = useState<any>(null);
+  const [editingSchool, setEditingSchool] = useState<any>(null);
 
   const confirm = useBoolean();
   const popover = usePopover();
@@ -43,11 +45,12 @@ export function GroupDetailsViewCard({ type, item }: GroupDetailsViewCardProps) 
   let subtitle = '';
   let icon = '';
   let detailsLink = '';
-  let editLink = '';
   let schoolCount = 0;
-  let adminCount= 0;
-  let schoolList: string[] = [];
-  let adminList = [];
+  let adminCount = 0;
+  let schoolList: any[] = [];
+  let adminList: any[] = [];
+
+  let objectToEdit: any = null;
 
   if (type === 'admin') {
     const admin = item as IAdminItem;
@@ -59,28 +62,36 @@ export function GroupDetailsViewCard({ type, item }: GroupDetailsViewCardProps) 
     schoolList = admin.schools ?? [];
     schoolCount = schoolList.length;
 
-    detailsLink = paths.dashboard.admins.details(itemId)
-    editLink = paths.dashboard.admins.edit(itemId)
+    detailsLink = paths.dashboard.admins.details(itemId);
+    
+    objectToEdit = admin;
   } else {
-    const school = item as GroupSchoolRelation;
- 
-    itemId = school.school?.id;
-    title = school.school?.name;
-    icon = 'solar:buildings-bold-duotone'
-    subtitle = school.school?.createdAt;
-    adminList = school?.school.admins ?? [];
+    const schoolRel = item as GroupSchoolRelation;
+    
+    itemId = schoolRel.school?.id;
+    title = schoolRel.school?.name;
+    icon = 'solar:buildings-bold-duotone';
+    subtitle = schoolRel.school?.createdAt;
+    adminList = schoolRel?.school?.admins ?? [];
     adminCount = adminList.length;
 
-    detailsLink = paths.dashboard.schools.details(itemId)
-    editLink = paths.dashboard.schools.edit(itemId)
+    detailsLink = paths.dashboard.schools.details(itemId);
+
+    objectToEdit = schoolRel.school;
   }
 
   const isSchool = type === 'school';
   
-  const listCount = isSchool ? adminCount : schoolCount;
-  
   const showLabel = isSchool ? 'Ver admins' : 'Ver escolas';
   const hideLabel = isSchool ? 'Ocultar admins' : 'Ocultar escolas';
+
+  const handleEditClick = () => {
+    if (type === 'admin') {
+      setEditingAdmin(objectToEdit);
+    } else {
+      setEditingSchool(objectToEdit);
+    }
+  };
 
   return (
     <>
@@ -92,12 +103,11 @@ export function GroupDetailsViewCard({ type, item }: GroupDetailsViewCardProps) 
           flexDirection: 'column',
         }}
       >
-
         {/* Cabeçalho / título com Avatar */}
         <Box sx={{ p: 3, pb: 2 }}>
           <Stack direction="row" spacing={2} alignItems="center">
             <Avatar
-              src={icon ?? undefined}
+              src={undefined} // Ajuste se tiver URL da imagem
               alt={title ?? 'logo'}
               sx={{ width: 40, height: 40, flexShrink: 0 }}
             >
@@ -114,6 +124,7 @@ export function GroupDetailsViewCard({ type, item }: GroupDetailsViewCardProps) 
                   textDecoration: 'none',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 {title ?? '—'}
@@ -122,49 +133,49 @@ export function GroupDetailsViewCard({ type, item }: GroupDetailsViewCardProps) 
               <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
                 {subtitle || '-'}
               </Typography>
-
             </Stack>
           </Stack>
         </Box>
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        {/* Ações principais (igual “botões grandes” do job) */}
+        {/* Ações principais */}
         <Stack spacing={1} sx={{ p: 3, pt: 2 }}>
+          
+          {/* BOTÃO EDITAR (ALTERADO) */}
           <Button
             variant="outlined"
             size="small"
             startIcon={<Iconify icon="solar:pen-bold" />}
-            component={RouterLink}
-            href={editLink}
+            onClick={handleEditClick} // <--- Agora abre o modal
           >
             {type === 'admin' ? 'Editar Admin' : 'Editar Escola'}
           </Button>
-
-          <Button
-            variant="soft"
-            size="small"
-            startIcon={<Iconify icon="solar:eye-bold" />}
-            component={RouterLink}
-            href={detailsLink}
-          >
-            Ver detalhes
-          </Button>
-
-          {type === 'school' && (         
+     
             <Button
               variant="outlined"
               size="small"
               startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
-              component={RouterLink}
-              href={detailsLink}
               color='error'
               onClick={() => {
                 confirm.onTrue();
                 popover.onClose();
               }}
             >
-              Excluir Escola
+            {type === 'admin' ? 'Excluir Admin' : 'Excluir Escola'}
+            </Button>
+
+          {type === 'school' && (        
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<Iconify icon="solar:eye-bold" />}
+              onClick={() => {
+                confirm.onTrue();
+                popover.onClose();
+              }}
+            >
+              Acessar
             </Button>
           )} 
 
@@ -183,7 +194,7 @@ export function GroupDetailsViewCard({ type, item }: GroupDetailsViewCardProps) 
             {type === 'admin' && ( schoolCount > 0 ? (
               <Stack spacing={0.5}>
                 {schoolList.map((gs: any, idx: number) => (
-                  <Typography key={gs?.school?.id ?? idx} variant="body2">
+                  <Typography key={gs?.id ?? idx} variant="body2">
                     • {gs?.name ?? 'Sem nome'}
                   </Typography>
                 ))}
@@ -197,8 +208,8 @@ export function GroupDetailsViewCard({ type, item }: GroupDetailsViewCardProps) 
             {type === 'school' && ( adminCount > 0 ? (
               <Stack spacing={0.5}>
                 {adminList.map((ga: any, idx: number) => (
-                  <Typography key={ga?.admin?.id ?? idx} variant="body2">
-                    • {ga?.admin?.name ?? 'Sem nome'}
+                  <Typography key={ga?.id ?? idx} variant="body2">
+                    • {ga?.name ?? 'Sem nome'}
                   </Typography>
                 ))}
               </Stack>
@@ -210,6 +221,38 @@ export function GroupDetailsViewCard({ type, item }: GroupDetailsViewCardProps) 
           </Collapse> 
         </Stack>
       </Card>
+
+      {/* --- MODAIS DE EDIÇÃO RENDERIZADOS AQUI --- */}
+      
+      {editingAdmin && (
+        <GroupQuickAddAdmin
+          open={!!editingAdmin}
+          currentAdmin={editingAdmin}
+          onClose={() => setEditingAdmin(null)}
+          onRefresh={onRefresh}
+          groupId="" 
+        />
+      )}
+
+      {editingAdmin && (
+        <GroupQuickAddAdmin
+          open={!!editingAdmin}
+          currentAdmin={editingAdmin}
+          onClose={() => setEditingAdmin(null)}
+          onRefresh={onRefresh}
+          groupId={groupId || ''} 
+        />
+      )}
+
+      {editingSchool && (
+        <GroupQuickAddSchool
+          open={!!editingSchool}
+          currentSchool={editingSchool}
+          onClose={() => setEditingSchool(null)}
+          onRefresh={onRefresh}
+          groupId="" 
+        />
+      )}
     </>
   );
 }

@@ -9,18 +9,13 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
-import MenuList from '@mui/material/MenuList';
-import MenuItem from '@mui/material/MenuItem';
 import Collapse from '@mui/material/Collapse';
-import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import ListItemText from '@mui/material/ListItemText';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
 import { Iconify } from 'src/components/iconify';
-import { usePopover, CustomPopover } from 'src/components/custom-popover';
 
 interface GroupCardItemProps {
   group: any;
@@ -28,7 +23,6 @@ interface GroupCardItemProps {
 
 export function GroupCardItem({ group }: GroupCardItemProps) {
   const [openSchools, setOpenSchools] = useState(false);
-  const popover = usePopover();
 
   const schoolList = group?.groupSchool ?? [];
   const adminList = group?.groupAdmin ?? [];
@@ -46,13 +40,6 @@ export function GroupCardItem({ group }: GroupCardItemProps) {
           flexDirection: 'column',
         }}
       >
-        {/* Menu de ações no canto (igual JobItem) */}
-        <IconButton
-          onClick={popover.onOpen}
-          sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}
-        >
-          <Iconify icon="eva:more-vertical-fill" />
-        </IconButton>
 
         {/* Cabeçalho / título com Avatar */}
         <Box sx={{ p: 3, pb: 2 }}>
@@ -145,14 +132,16 @@ export function GroupCardItem({ group }: GroupCardItemProps) {
           </Button>
 
           <Button
-            variant="outlined"
-            size="small"
-            startIcon={<Iconify icon="solar:pen-bold" />}
-            component={RouterLink}
-            href={paths.dashboard.group.edit(group?.id)}
-          >
-            Editar grupo
-          </Button>
+              variant="outlined"
+              size="small"
+              startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
+              color='error'
+              onClick={() => {
+
+              }}
+            >
+              Excluir grupo
+            </Button>          
 
           <Button
             size="small"
@@ -182,38 +171,6 @@ export function GroupCardItem({ group }: GroupCardItemProps) {
           </Collapse>
         </Stack>
       </Card>
-
-      {/* Popover de ações (igual job) */}
-      <CustomPopover
-        open={popover.open}
-        anchorEl={popover.anchorEl}
-        onClose={popover.onClose}
-        slotProps={{ arrow: { placement: 'right-top' } }}
-      >
-        <MenuList>
-          <MenuItem
-            onClick={() => {
-              popover.onClose();
-            }}
-            component={RouterLink}
-            href={paths.dashboard.group.details(group?.id)}
-          >
-            <Iconify icon="solar:eye-bold" />
-            <ListItemText primary="Ver detalhes" />
-          </MenuItem>
-
-          <MenuItem
-            onClick={() => {
-              popover.onClose();
-            }}
-            component={RouterLink}
-            href={paths.dashboard.group.edit(group?.id)}
-          >
-            <Iconify icon="solar:pen-bold" />
-            <ListItemText primary="Editar grupo" />
-          </MenuItem>
-        </MenuList>
-      </CustomPopover>
     </>
   );
 }

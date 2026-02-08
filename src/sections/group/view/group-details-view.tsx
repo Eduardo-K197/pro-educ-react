@@ -11,13 +11,14 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import { Iconify } from 'src/components/iconify';
 import { RouterLink } from 'src/routes/components';
+import { useRouter } from 'src/routes/hooks';
 import { paths } from 'src/routes/paths';
 
 import type { IGroupItem } from 'src/types/group';
 import { GroupDetailsViewCard } from '../group-details-view-card';
 import { IAdminItem } from '@/types/services/admin';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { GroupQuickAddAdmin } from '../group-quick-add-admin';
 import { GroupQuickAddSchool } from '../group-quick-add-school';
 import { GroupQuickEdit } from '../group-quick-edit-form';
@@ -37,6 +38,12 @@ export function GroupDetailsView({ group, adminList }: Props) {
   const [openAddAdmin, setOpenAddAdmin] = useState(false);
   const [openAddSchool, setOpenAddSchool] = useState(false);
   const [openEditGroup, setOpenEditGroup] = useState(false);
+
+  const router = useRouter()
+
+  const handleRefresh = useCallback(() =>{
+    router.refresh();
+  }, [router])
 
   return (
 
@@ -129,6 +136,8 @@ export function GroupDetailsView({ group, adminList }: Props) {
                     <GroupDetailsViewCard  
                       item={ga} 
                       type='admin' 
+                      groupId={group.id} 
+                      onRefresh={() => {}}
                     />
                   </Grid>
                 ))}
@@ -174,6 +183,7 @@ export function GroupDetailsView({ group, adminList }: Props) {
           open={openAddAdmin}
           onClose={() => setOpenAddAdmin(false)}
           groupId={group.id}
+          onRefresh={handleRefresh}
         />
       )}
 
@@ -182,6 +192,7 @@ export function GroupDetailsView({ group, adminList }: Props) {
           open={openAddSchool}
           onClose={() => setOpenAddSchool(false)}
           groupId={group.id}
+          onRefresh={handleRefresh}
         />
       )}
 
@@ -190,6 +201,7 @@ export function GroupDetailsView({ group, adminList }: Props) {
           open={openEditGroup}
           onClose={() => setOpenEditGroup(false)}
           currentGroup={group}
+          onRefresh={handleRefresh}
         />
       )}
     </DashboardContent>
