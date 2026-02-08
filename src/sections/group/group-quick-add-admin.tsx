@@ -163,7 +163,7 @@ export function GroupQuickAddAdmin({ groupId, open, onClose, currentAdmin, onRef
         toast.success('Admin criado com sucesso!');
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Pequeno delay visual
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       if (onRefresh) onRefresh();
       

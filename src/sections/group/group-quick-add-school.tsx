@@ -23,6 +23,8 @@ import { GroupService } from 'src/services/group';
 import { SchoolService } from 'src/services/school';
 import { IGroupItem } from 'src/types/group';
 
+import type { SchoolCreatePayload, SchoolUpdatePayload } from 'src/types/services/school';
+
 // ----------------------------------------------------------------------
 
 export type GroupQuickAddSchoolSchemaType = zod.infer<typeof GroupQuickAddSchoolSchema>;
@@ -71,8 +73,8 @@ export function GroupQuickAddSchool({ groupId, open, onClose, currentSchool, onR
   useEffect(() => {
     if (open) {
       if (currentSchool) {
+        const materialsStr = currentSchool.defaultMaterials?.map((m: any) => m.name).join('\n') || currentSchool.materials?.map((m:any) => m.name).join('\n') || '';
         
-        const materialsStr = currentSchool.defaultMaterials?.map((m: any) => m.name).join('\n') || '';
         const categoriesStr = currentSchool.categories?.map((c: any) => c.name).join('\n') || '';
 
         reset({
@@ -88,11 +90,9 @@ export function GroupQuickAddSchool({ groupId, open, onClose, currentSchool, onR
         const groupsSet = new Set<string>(schoolGroupIds);
 
         if (groupId) groupsSet.add(groupId);
-        
         setSelectedGroups(groupsSet);
 
       } else {
-
         reset({
             name: '',
             asaasToken: '',
@@ -105,7 +105,8 @@ export function GroupQuickAddSchool({ groupId, open, onClose, currentSchool, onR
         setCertificateFile(null);
       }
     }
-  }, [currentSchool, open, groupId]); 
+  }, [currentSchool, open, groupId]);
+
   const defaultValues = useMemo(
     () => ({
         name: currentSchool?.name || '',
@@ -136,11 +137,8 @@ export function GroupQuickAddSchool({ groupId, open, onClose, currentSchool, onR
 
   const handleToggleGroup = (id: string) => {
     const newSelected = new Set(selectedGroups);
-    if (newSelected.has(id)) {
-      newSelected.delete(id);
-    } else {
-      newSelected.add(id);
-    }
+    if (newSelected.has(id)) newSelected.delete(id);
+    else newSelected.add(id);
     setSelectedGroups(newSelected);
   };
 
@@ -158,21 +156,38 @@ export function GroupQuickAddSchool({ groupId, open, onClose, currentSchool, onR
       const categoryNames = (values.categoriesText || '')
         .split('\n').map((s) => s.trim()).filter(Boolean);
 
-      const payload: any = {
-        name: values.name,
-        asaasToken: values.asaasToken || undefined,
-        asaasSandboxMode: values.asaasSandboxMode,
-        asaasHomologationMode: values.asaasHomologationMode,
-        defaultMaterials: materialNames.map((name) => ({ name })),
-        categories: categoryNames.map((name) => ({ name })),
-        groups: Array.from(selectedGroups)
-      };
-
       if (currentSchool) {
-        await SchoolService.update(currentSchool.id, payload);
+
+        const updatePayload: SchoolUpdatePayload = {
+            name: values.name,
+            asaasToken: values.asaasToken,
+            asaasSandboxMode: values.asaasSandboxMode,
+        
+            materials: materialNames.map((name) => ({ name })),
+            
+            categories: categoryNames.map((name) => ({ name })),
+            groups: Array.from(selectedGroups),
+
+        };
+
+        await SchoolService.update(currentSchool.id, updatePayload);
         toast.success('Escola atualizada com sucesso!');
+
       } else {
-        await SchoolService.create(payload);
+
+        const createPayload: SchoolCreatePayload = {
+            name: values.name,
+            asaasToken: values.asaasToken,
+            asaasSandboxMode: values.asaasSandboxMode,
+            
+            asaasHomologationMode: values.asaasHomologationMode,
+            defaultMaterials: materialNames.map((name) => ({ name })),
+            
+            categories: categoryNames.map((name) => ({ name })),
+            groups: Array.from(selectedGroups),
+        };
+
+        await SchoolService.create(createPayload);
         toast.success('Escola criada com sucesso!');
       }
       
@@ -223,10 +238,14 @@ export function GroupQuickAddSchool({ groupId, open, onClose, currentSchool, onR
                     name="asaasSandboxMode" 
                     label={sandbox ? 'Sandbox habilitado' : 'Sandbox desabilitado'} 
                 />
-                <RHFSwitch 
-                    name="asaasHomologationMode" 
-                    label={homolog ? 'Homologação habilitada' : 'Homologação desabilitada'} 
-                />
+                
+                {/* Esconde Homologação na edição */}
+                {!currentSchool && (
+                    <RHFSwitch 
+                        name="asaasHomologationMode" 
+                        label={homolog ? 'Homologação habilitada' : 'Homologação desabilitada'} 
+                    />
+                )}
             </Box>
 
             {!currentSchool && (
