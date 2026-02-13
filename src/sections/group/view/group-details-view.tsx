@@ -23,6 +23,8 @@ import { GroupDetailsViewCard } from '../group-details-view-card';
 import { GroupQuickAddAdmin } from '../group-quick-add-admin';
 import { GroupQuickAddSchool } from '../group-quick-add-school';
 import { GroupQuickEdit } from '../group-quick-edit-form';
+import { GroupService } from '@/services/group';
+import { toast } from 'sonner';
 
 
 type Props = {
@@ -37,8 +39,13 @@ export function GroupDetailsView({ group, adminList, schoolList }: Props) {
   const totalSchools = group.groupSchool?.length ?? 0;
   const totalAdmins = group.groupAdmin?.length ?? 0;
 
-  const adminsId = group.groupAdmin?.map(a => a.admin?.id) ?? [];
-  const schoolsId = group.groupSchool?.map(s => s.school?.id) ?? [];
+  const adminsId = useMemo(() => 
+    group.groupAdmin?.map(a => a.admin?.id).filter(Boolean) as string[] ?? [], 
+  [group]);
+
+  const schoolsId = useMemo(() => 
+    group.groupSchool?.map(s => s.school?.id).filter(Boolean) as string[] ?? [], 
+  [group]);
 
   const groupAdminsById = useMemo(() => 
     adminList.filter(a => adminsId.includes(a.id)), 
@@ -67,6 +74,49 @@ export function GroupDetailsView({ group, adminList, schoolList }: Props) {
   const handleRefresh = useCallback(() =>{
     router.refresh();
   }, [router])
+
+  const handleDeleteAdmin = useCallback(async (adminId: string) => {
+    try {
+      const newAdminsIds = adminsId.filter((id) => id !== adminId)
+      const currentSchoolIds = schoolsId
+
+      await GroupService.update(group.id, {
+        name: group.name,
+        admins: newAdminsIds,
+        schools: currentSchoolIds,
+      } as any)
+
+      toast.success('Admin removido do grupo!')
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      handleRefresh()
+    }
+    catch (error) {
+      console.error(error);
+      toast.error('Erro ao remover admin')
+    }
+  }, [group.id, adminsId, schoolsId, handleRefresh])
+
+  const handleDeleteSchool = useCallback(async (schoolId: string) => {
+    try {
+      const newSchoolsIds = schoolsId.filter((id) => id !== schoolId)
+      const currentAdminsIds = adminsId
+
+      await GroupService.update(group.id, {
+        name: group.name,
+        admins: currentAdminsIds,
+        schools: newSchoolsIds,
+      } as any)
+
+      toast.success('Escola removida do grupo!')
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      handleRefresh()
+    }
+    catch (error) {
+      console.error(error);
+      toast.error('Erro ao remover escola')
+    }
+  }, [group.id, adminsId, schoolsId, handleRefresh])
 
   return (
     <DashboardContent>
@@ -130,7 +180,8 @@ export function GroupDetailsView({ group, adminList, schoolList }: Props) {
                   item={ga} 
                   type='admin' 
                   groupId={group.id} 
-                  onRefresh={handleRefresh} // Use handleRefresh aqui
+                  onRefresh={handleRefresh}
+                  onDeleteRow={() => handleDeleteAdmin(ga.id)}
                 />
               </Grid>
             ))}
@@ -164,6 +215,7 @@ export function GroupDetailsView({ group, adminList, schoolList }: Props) {
                   type='school'
                   groupId={group.id} 
                   onRefresh={handleRefresh}
+                  onDeleteRow={() => handleDeleteSchool(gs.id)}
                 />
               </Grid>
             ))}

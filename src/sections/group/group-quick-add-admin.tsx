@@ -133,7 +133,6 @@ export function GroupQuickAddAdmin({ groupId, open, onClose, currentAdmin, onRef
 
       const payload: any = {
         name: data.name,
-        email: data.email,
         groups: Array.from(selectedGroups),
       };
 
@@ -145,6 +144,10 @@ export function GroupQuickAddAdmin({ groupId, open, onClose, currentAdmin, onRef
 
       if (currentAdmin) {
 
+        if (data.email !== currentAdmin.email) {
+          payload.email = data.email
+        }
+
         if (!data.password) {
            delete payload.password;
            delete payload.passwordConfirmation;
@@ -154,6 +157,8 @@ export function GroupQuickAddAdmin({ groupId, open, onClose, currentAdmin, onRef
         toast.success('Admin atualizado com sucesso!');
 
       } else {
+        payload.email = data.email
+
         if (!data.password) {
             toast.error('Senha é obrigatória para novos admins');
             return;

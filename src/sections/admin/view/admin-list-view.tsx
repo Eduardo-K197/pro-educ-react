@@ -32,13 +32,13 @@ import { CustomTable } from 'src/components/list-table/list-table';
 import { AdminTableRow } from '../admin-table-row';
 import { AdminTableToolbar } from '../admin-table-toolbar';
 import { AdminTableFiltersResult } from '../admin-table-filters-result';
-import { Admin } from '@/lib/proeduc/types';
+import { IAdminItem } from 'src/types/services/admin';
 
-const STATUS_OPTIONS = [{ value: 'all', label: 'All' }, ...USER_STATUS_OPTIONS];
+const STATUS_OPTIONS = [{ value: 'all', label: 'Todos' }, ...USER_STATUS_OPTIONS];
 
 const TABLE_HEAD = [
-  { id: 'name', label: 'Name' }, 
-  { id: 'createdAt', label: 'Created at', width: 180 },
+  { id: 'name', label: 'Nome' }, 
+  { id: 'school', label: 'Escolas', width: 300},
   { id: 'status', label: 'Status', width: 100 },
   { id: '', width: 88 },
 ];
@@ -68,7 +68,7 @@ export function AdminListView() {
       const resp = await AdminService.list();
       const admins = (resp as any).admins ?? resp;
 
-      const adminsWithStatus = admins.map((admin: Admin) => ({
+      const adminsWithStatus = admins.map((admin: IAdminItem) => ({
         ...admin,
         status: admin.status || 'active'
       })) // pega a lista que de admin que admin que ja existe e adiciona o campo de status
@@ -160,11 +160,11 @@ export function AdminListView() {
   return (
     <DashboardContent>
       <CustomBreadcrumbs
-        heading="List"
+        heading="Lista"
         links={[
           { name: 'Dashboard', href: paths.dashboard.root },
           { name: 'Admins', href: paths.dashboard.admins.root },
-          { name: 'List' },
+          { name: 'Lista' },
         ]}
         action={
           <Button
@@ -173,7 +173,7 @@ export function AdminListView() {
             variant="contained"
             startIcon={<Iconify icon="mingcute:add-line" />}
           >
-            New Admin
+            Novo Admin
           </Button>
         }
         sx={{ mb: { xs: 3, md: 5 } }}
@@ -263,10 +263,10 @@ export function AdminListView() {
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title="Delete"
+        title="Deletar"
         content={
           <>
-            Are you sure want to delete <strong> {table.selected.length} </strong> items?
+            Tem certeza que deseja deletar? <strong> {table.selected.length} </strong> items?
           </>
         }
         action={
@@ -278,7 +278,7 @@ export function AdminListView() {
               confirm.onFalse();
             }}
           >
-            Delete
+            Deletar
           </Button>
         }
       />

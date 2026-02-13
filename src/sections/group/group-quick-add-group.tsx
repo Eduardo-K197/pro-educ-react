@@ -132,7 +132,7 @@ const onSubmit = handleSubmit(async (data) => {
 
       toast.success('Grupo criado com sucesso!');
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       if (onRefresh) onRefresh(); 
 

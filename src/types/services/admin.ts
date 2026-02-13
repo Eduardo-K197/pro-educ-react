@@ -5,7 +5,8 @@ export interface AdminListItem {
   name: string;
   email: string;
   status?: string;
-  createdAt: string;
+  createdAt?: string;
+  schools?: { id: string; name: string }[];
 }
 
 export type IAdminTableFilters = {

@@ -23,15 +23,17 @@ import { ISchoolItem } from '@/types/services/school';
 
 import { GroupQuickAddAdmin } from './group-quick-add-admin';
 import { GroupQuickAddSchool } from './group-quick-add-school';
+import { ConfirmDialog } from '@/components/custom-dialog';
 
 interface GroupDetailsViewCardProps {
-  item: IAdminItem | ISchoolItem;
-  type: 'admin' | 'school';
-  onRefresh?: () => void;
+  item?: IAdminItem | ISchoolItem;
+  type?: 'admin' | 'school';
   groupId?: string;
+  onRefresh?: () => void;
+  onDeleteRow: () => void;
 }
 
-export function GroupDetailsViewCard({ type, item, onRefresh, groupId }: GroupDetailsViewCardProps) {
+export function GroupDetailsViewCard({ type, item, onRefresh, groupId, onDeleteRow }: GroupDetailsViewCardProps) {
   const [openSchools, setOpenSchools] = useState(false);
   
   const [editingAdmin, setEditingAdmin] = useState<any>(null);
@@ -171,8 +173,6 @@ export function GroupDetailsViewCard({ type, item, onRefresh, groupId }: GroupDe
               size="small"
               startIcon={<Iconify icon="solar:eye-bold" />}
               onClick={() => {
-                confirm.onTrue();
-                popover.onClose();
               }}
             >
               Acessar
@@ -221,6 +221,27 @@ export function GroupDetailsViewCard({ type, item, onRefresh, groupId }: GroupDe
           </Collapse> 
         </Stack>
       </Card>
+
+      <ConfirmDialog
+        open={confirm.value}
+        onClose={confirm.onFalse}
+        title="Excluir"
+        content={`Tem certeza que deseja deletar "${title}" deste grupo?`}
+        action={
+          <Button
+            variant='contained'
+            color='error'
+            onClick={() => {
+              onDeleteRow();
+              confirm.onFalse;
+            }}
+          >
+            Deletar
+          </Button>
+        }
+      >
+
+      </ConfirmDialog>
       
       {editingAdmin && (
         <GroupQuickAddAdmin

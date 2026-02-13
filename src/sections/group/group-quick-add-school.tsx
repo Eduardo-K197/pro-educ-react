@@ -162,8 +162,6 @@ export function GroupQuickAddSchool({ groupId, open, onClose, currentSchool, onR
             name: values.name,
             asaasToken: values.asaasToken,
             asaasSandboxMode: values.asaasSandboxMode,
-        
-            materials: materialNames.map((name) => ({ name })),
             
             categories: categoryNames.map((name) => ({ name })),
             groups: Array.from(selectedGroups),
@@ -173,12 +171,13 @@ export function GroupQuickAddSchool({ groupId, open, onClose, currentSchool, onR
         await SchoolService.update(currentSchool.id, updatePayload);
         toast.success('Escola atualizada com sucesso!');
 
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (onRefresh) onRefresh();
+
       } else {
 
         const createPayload: SchoolCreatePayload = {
             name: values.name,
-            asaasToken: values.asaasToken,
-            asaasSandboxMode: values.asaasSandboxMode,
             
             asaasHomologationMode: values.asaasHomologationMode,
             defaultMaterials: materialNames.map((name) => ({ name })),
@@ -187,11 +186,16 @@ export function GroupQuickAddSchool({ groupId, open, onClose, currentSchool, onR
             groups: Array.from(selectedGroups),
         };
 
+        if (!values.asaasHomologationMode) {
+          createPayload.asaasToken = values.asaasToken;
+          createPayload.asaasSandboxMode = values.asaasSandboxMode;
+        }
+
         await SchoolService.create(createPayload);
         toast.success('Escola criada com sucesso!');
       }
       
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       if (onRefresh) onRefresh();
       
@@ -273,13 +277,6 @@ export function GroupQuickAddSchool({ groupId, open, onClose, currentSchool, onR
                 </Box>
             )}
 
-            <RHFTextField 
-                name="materialsText" 
-                label="Materiais Padrão" 
-                placeholder="Um material por linha..."
-                multiline 
-                rows={3} 
-            />
             <RHFTextField 
                 name="categoriesText" 
                 label="Categorias" 
