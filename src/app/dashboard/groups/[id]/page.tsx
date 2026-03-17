@@ -19,7 +19,7 @@ export default function GroupDetailsPage({ params }: { params: { id: string } })
 
     const fetchData = async () => {
       try {
-        
+
         const [groupData, adminsResponse] = await Promise.all([
           GroupService.getById(params.id),
           AdminService.list()
@@ -27,7 +27,14 @@ export default function GroupDetailsPage({ params }: { params: { id: string } })
 
         if (mounted) {
           setGroup(groupData);
-          setAllAdmins(adminsResponse.admins || [])
+          setAllAdmins(
+            (adminsResponse.admins || []).map((admin) => ({
+              id: admin.id,
+              name: admin.name,
+              email: admin.email,
+              status: admin.status,
+            }))
+          );
         }
       } catch (error) {
         console.error("Eroo ao carregar os dados:", error);
