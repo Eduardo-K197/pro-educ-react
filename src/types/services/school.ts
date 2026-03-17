@@ -20,6 +20,7 @@ export type ISchoolItem = {
   name: string;
   avatarUrl?: string;
   isVerified?: boolean;
+  createdAt: string;
   admins?: SchoolAdmin[];
   groups?: SchoolGroup[];
 };

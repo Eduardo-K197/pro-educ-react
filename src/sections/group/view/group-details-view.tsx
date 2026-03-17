@@ -14,70 +14,117 @@ import { RouterLink } from 'src/routes/components';
 import { useRouter } from 'src/routes/hooks';
 import { paths } from 'src/routes/paths';
 
-import type { IGroupItem } from 'src/types/group';
-import { GroupDetailsViewCard } from '../group-details-view-card';
 import { IAdminItem } from '@/types/services/admin';
+import { ISchoolItem } from '@/types/services/school';
+import type { IGroupItem } from 'src/types/group';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react'; // Adicione useMemo
+import { GroupDetailsViewCard } from '../group-details-view-card';
 import { GroupQuickAddAdmin } from '../group-quick-add-admin';
 import { GroupQuickAddSchool } from '../group-quick-add-school';
 import { GroupQuickEdit } from '../group-quick-edit-form';
+import { GroupService } from '@/services/group';
+import { toast } from 'sonner';
+
 
 type Props = {
   group: IGroupItem;
   adminList: IAdminItem[];
+  schoolList: ISchoolItem[];
 };
 
-export function GroupDetailsView({ group, adminList }: Props) {
+export function GroupDetailsView({ group, adminList, schoolList }: Props) {
+  const router = useRouter();
+
   const totalSchools = group.groupSchool?.length ?? 0;
   const totalAdmins = group.groupAdmin?.length ?? 0;
 
-  const adminsId = group.groupAdmin?.map(a => a.admin?.id) ?? [];
-  const groupAdminsById = adminList.filter(a => adminsId.includes(a.id))
+  const adminsId = useMemo(() => 
+    group.groupAdmin?.map(a => a.admin?.id).filter(Boolean) as string[] ?? [], 
+  [group]);
+
+  const schoolsId = useMemo(() => 
+    group.groupSchool?.map(s => s.school?.id).filter(Boolean) as string[] ?? [], 
+  [group]);
+
+  const groupAdminsById = useMemo(() => 
+    adminList.filter(a => adminsId.includes(a.id)), 
+  [adminList, adminsId]);
+
+
+  const groupSchoolsById = useMemo(() => {
+    const filteredSchools = schoolList.filter(s => schoolsId.includes(s.id));
+
+    return filteredSchools.map((school) => {
+        const adminsDestaEscola = groupAdminsById.filter((admin) => 
+            admin.schools?.some((s: any) => {
+                const idToCheck = s.id ?? s; 
+                return String(idToCheck) === String(school.id);
+            })
+        );
+        return { ...school, admins: adminsDestaEscola };
+    });
+  }, [schoolList, schoolsId, groupAdminsById]);
+
 
   const [openAddAdmin, setOpenAddAdmin] = useState(false);
   const [openAddSchool, setOpenAddSchool] = useState(false);
   const [openEditGroup, setOpenEditGroup] = useState(false);
 
-  const router = useRouter()
-
   const handleRefresh = useCallback(() =>{
     router.refresh();
   }, [router])
 
+  const handleDeleteAdmin = useCallback(async (adminId: string) => {
+    try {
+      const newAdminsIds = adminsId.filter((id) => id !== adminId)
+      const currentSchoolIds = schoolsId
+
+      await GroupService.update(group.id, {
+        name: group.name,
+        admins: newAdminsIds,
+        schools: currentSchoolIds,
+      } as any)
+
+      toast.success('Admin removido do grupo!')
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      handleRefresh()
+    }
+    catch (error) {
+      console.error(error);
+      toast.error('Erro ao remover admin')
+    }
+  }, [group.id, adminsId, schoolsId, handleRefresh])
+
+  const handleDeleteSchool = useCallback(async (schoolId: string) => {
+    try {
+      const newSchoolsIds = schoolsId.filter((id) => id !== schoolId)
+      const currentAdminsIds = adminsId
+
+      await GroupService.update(group.id, {
+        name: group.name,
+        admins: currentAdminsIds,
+        schools: newSchoolsIds,
+      } as any)
+
+      toast.success('Escola removida do grupo!')
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      handleRefresh()
+    }
+    catch (error) {
+      console.error(error);
+      toast.error('Erro ao remover escola')
+    }
+  }, [group.id, adminsId, schoolsId, handleRefresh])
+
   return (
-
-  <DashboardContent>
+    <DashboardContent>
+      
       <Stack direction="row" spacing={1} sx={{ mb: 2 }} flexWrap="wrap">
-        <Typography
-            variant="caption"
-            sx={{
-              bgcolor: 'primary.main',
-              color: 'primary.contrastText',
-              px: 1,
-              py: 0.25,
-              borderRadius: 1,
-              fontSize: 18
-            }}
-        >
-            {totalSchools} {totalSchools === 1 ? 'escola' : 'escolas'}
-        </Typography>
-
-        <Typography
-            variant="caption"
-            sx={{
-              bgcolor: 'secondary.main',
-              color: 'secondary.contrastText',
-              px: 1,
-              py: 0.25,
-              borderRadius: 1,
-              fontSize: 18
-            }}
-          >
-            {totalAdmins} {totalAdmins === 1 ? 'admin' : 'admins'}
-        </Typography>
       </Stack>
-    <CustomBreadcrumbs
+
+      <CustomBreadcrumbs
         heading={group.name}
         links={[
           { name: 'Dashboard', href: paths.dashboard.root },
@@ -104,18 +151,14 @@ export function GroupDetailsView({ group, adminList }: Props) {
           </Stack>
         }
         sx={{ mb: { xs: 3, md: 5 } }}
-    />
+      />
 
-
-    <Card sx={{ p: 2 }}>
-
+      <Card sx={{ p: 2 }}>
         <Box sx={{ mt: 3 }}>
-
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant="subtitle2" fontSize={20} fontWeight={"bold"} sx={{ mb: 1 }}>
-            Administradores
-          </Typography>
-
+            <Typography variant="subtitle2" fontSize={20} fontWeight={"bold"} sx={{ mb: 1 }}>
+              Administradores
+            </Typography>
             <Button
               variant="outlined"
               startIcon={<Iconify icon="mingcute:add-line"  />}
@@ -125,32 +168,31 @@ export function GroupDetailsView({ group, adminList }: Props) {
             </Button>
           </Box>
 
-              {totalAdmins === 0 && (
-                <Typography variant="body2">
-                  Nenhuma escola encontrada
-                </Typography>
-              )}
-              <Grid container spacing={3} mt={3}>
-                {groupAdminsById.map((ga) => (
-                  <Grid xs={12} sm={6} md={4} key={ga.id}>
-                    <GroupDetailsViewCard  
-                      item={ga} 
-                      type='admin' 
-                      groupId={group.id} 
-                      onRefresh={() => {}}
-                    />
-                  </Grid>
-                ))}
+          {totalAdmins === 0 && (
+            <Typography variant="body2">
+              Nenhum administrador encontrado
+            </Typography>
+          )}
+          <Grid container spacing={3} mt={3}>
+            {groupAdminsById.map((ga) => (
+              <Grid xs={12} sm={6} md={4} key={ga.id}>
+                <GroupDetailsViewCard  
+                  item={ga} 
+                  type='admin' 
+                  groupId={group.id} 
+                  onRefresh={handleRefresh}
+                  onDeleteRow={() => handleDeleteAdmin(ga.id)}
+                />
               </Grid>
+            ))}
+          </Grid>
         </Box>
 
         <Box sx={{ mt: 1 }}>
-
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3}}>
             <Typography variant="subtitle2" fontSize={20} fontWeight={"bold"} sx={{ mb: 1 }}>
               Escolas
             </Typography>
-
             <Button
               variant="outlined"
               startIcon={<Iconify icon="mingcute:add-line" />}
@@ -160,24 +202,28 @@ export function GroupDetailsView({ group, adminList }: Props) {
             </Button>
           </Box>
 
-            {totalSchools === 0 && (
-              <Typography variant="body2" color="text.secondary">
-                Nenhuma escola vinculada.
-              </Typography>
-            )}
-            <Grid container spacing={3} mt={3}>
-              {group.groupSchool?.map((gs) => (
+          {totalSchools === 0 && (
+            <Typography variant="body2" color="text.secondary">
+              Nenhuma escola vinculada.
+            </Typography>
+          )}
+          <Grid container spacing={3} mt={3}>
+            {groupSchoolsById.map((gs) => (
               <Grid xs={12} sm={6} md={4} key={gs.id}>
                 <GroupDetailsViewCard
                   item={gs} 
-                  type='school' 
+                  type='school'
+                  groupId={group.id} 
+                  onRefresh={handleRefresh}
+                  onDeleteRow={() => handleDeleteSchool(gs.id)}
                 />
               </Grid>
-              ))}
-            </Grid>
+            ))}
+          </Grid>
         </Box>
       </Card>
 
+      {/* MODAIS */}
       {openAddAdmin && (
         <GroupQuickAddAdmin
           open={openAddAdmin}

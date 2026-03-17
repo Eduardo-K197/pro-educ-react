@@ -21,7 +21,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { Iconify } from 'src/components/iconify';
 import { EmptyContent } from 'src/components/empty-content';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-
+import { toast } from 'src/components/snackbar';
 import { GroupCardItem } from '../group-card-item';
 import { GroupQuickAddGroup } from '../group-quick-add-group';
 
@@ -49,6 +49,20 @@ export function GroupListCardsView() {
   const handleSearch = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
   }, []);
+
+  const handleDeleteRow = useCallback(
+    async (id: string) => {
+      try {
+        await GroupService.delete(id);
+        const deleteRow = groups.filter((row) => row.id !== id);
+        setGroups(deleteRow)
+        toast.success('Grupo excluído com sucesso!');
+      } catch (error) {
+        toast.error('Erro ao excluir administrador');
+      }
+    },
+    [groups]
+  );
 
   const filteredGroups = useMemo(() => {
     const byName = search.trim().toLowerCase();
@@ -124,7 +138,11 @@ export function GroupListCardsView() {
         <Grid container spacing={3}>
           {filteredGroups.map((group, idx) => (
             <Grid xs={12} sm={6} md={4} key={group.id ?? idx}>
-              <GroupCardItem group={group} />
+              <GroupCardItem 
+                group={group} 
+                onDeleteRow={() => handleDeleteRow(group.id)}
+                onRefresh={fetchGroups}
+              />
             </Grid>
           ))}
         </Grid>

@@ -134,7 +134,7 @@ export function GroupQuickEdit({ currentGroup, open, onClose, onRefresh }: Props
 
       toast.success('Grupo atualizado com sucesso!');
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       if (onRefresh) onRefresh(); 
       

@@ -1,4 +1,4 @@
-import type { IAdminItem } from '@/types/services/admin';
+import type { AdminListItem, IAdminItem } from '@/types/services/admin';
 
 import { z as zod } from 'zod';
 import { useMemo } from 'react';
@@ -43,7 +43,7 @@ export const AdminQuickEditSchema = zod.object({
 type Props = {
   open: boolean;
   onClose: () => void;
-  currentAdmin?: IAdminItem;
+  currentAdmin?: AdminListItem;
 };
 
 export function AdminQuickEditForm({ currentAdmin, open, onClose }: Props) {

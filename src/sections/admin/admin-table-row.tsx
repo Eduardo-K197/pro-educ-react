@@ -1,7 +1,5 @@
 import type { AdminListItem } from 'src/types/services/admin';
 
-import { fDate, fTime } from 'src/utils/format-time';
-
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
 import Link from '@mui/material/Link';
@@ -12,8 +10,7 @@ import TableCell from '@mui/material/TableCell';
 import MenuList from '@mui/material/MenuList';
 import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
-import ListItemText from '@mui/material/ListItemText';
-import { Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import { useRouter } from 'src/routes/hooks';
 import { paths } from 'src/routes/paths';
 import { useBoolean } from 'src/hooks/use-boolean';
@@ -23,6 +20,7 @@ import { Label } from 'src/components/label';
 import { usePopover, CustomPopover } from 'src/components/custom-popover';
 
 import { AdminQuickEditForm } from './admin-quick-edit-form';
+import { ISchoolItem } from '@/types/services/school';
 
 
 // ----------------------------------------------------------------------
@@ -42,9 +40,9 @@ export function AdminTableRow({ row, selected, onViewRow, onEditRow, onSelectRow
 
   const quickEdit = useBoolean();
   const popover = usePopover();
+  const SchoolPopover = usePopover();
 
-
-  const { name, email, createdAt, id } = row;
+  const { name, email, schools, id } = row;
 
   const handleEdit = () => {
     router.push(paths.dashboard.admins.edit(row.id));
@@ -75,12 +73,34 @@ export function AdminTableRow({ row, selected, onViewRow, onEditRow, onSelectRow
         </TableCell>
 
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
-          <ListItemText
-            primary={fDate(createdAt)}
-            secondary={fTime(createdAt)} 
-            primaryTypographyProps={{ typography: 'body2' }}
-            secondaryTypographyProps={{ typography: 'caption', color: 'text.disabled' }}
-          />
+          {schools && schools.length > 0 ? (
+            <>
+              <Button
+                color='inherit'
+                variant='outlined'
+                size='small'
+                onClick={SchoolPopover.onOpen}
+                endIcon={<Iconify icon={SchoolPopover.open ? 'eva:arrow-ios-upward-fill' : 'eva:arrow-ios-downward-fill'} />}
+              >
+                {schools.length} {schools.length === 1 ? 'Escola' : 'Escolas'}
+              </Button>            
+
+              <CustomPopover
+                open={SchoolPopover.open}
+                anchorEl={SchoolPopover.anchorEl}
+                onClose={SchoolPopover.onClose}
+                sx={{ width: 200, p: 0}}
+              >
+                {schools.map((school) => (
+                  <MenuItem key={school.id} sx={{ typography: 'body2'}}>
+                    {school.name}
+                  </MenuItem>
+                ))}
+              </CustomPopover>
+            </>
+          ) : (
+            '-'
+          )}
         </TableCell>
 
         <TableCell>
@@ -130,7 +150,7 @@ export function AdminTableRow({ row, selected, onViewRow, onEditRow, onSelectRow
                   sx={{ color: 'error.main' }}
                 >
                   <Iconify icon="solar:trash-bin-trash-bold" />
-                  Delete
+                  Deletar
                 </MenuItem>
       
                 <MenuItem
@@ -150,8 +170,8 @@ export function AdminTableRow({ row, selected, onViewRow, onEditRow, onSelectRow
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title="Delete"
-        content="Are you sure want to delete?"
+        title="Deletar"
+        content="Você tem certeza que quer deletar?"
         action={
           <IconButton
             onClick={() => {

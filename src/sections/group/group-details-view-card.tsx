@@ -18,20 +18,22 @@ import { RouterLink } from 'src/routes/components';
 
 import { Iconify } from 'src/components/iconify';
 
-import { GroupAdminRelation, GroupSchoolRelation } from '@/types/group';
 import { IAdminItem } from '@/types/services/admin';
+import { ISchoolItem } from '@/types/services/school';
 
 import { GroupQuickAddAdmin } from './group-quick-add-admin';
 import { GroupQuickAddSchool } from './group-quick-add-school';
+import { ConfirmDialog } from '@/components/custom-dialog';
 
 interface GroupDetailsViewCardProps {
-  item: IAdminItem | GroupSchoolRelation;
-  type: 'admin' | 'school';
-  onRefresh?: () => void;
+  item?: IAdminItem | ISchoolItem;
+  type?: 'admin' | 'school';
   groupId?: string;
+  onRefresh?: () => void;
+  onDeleteRow: () => void;
 }
 
-export function GroupDetailsViewCard({ type, item, onRefresh, groupId }: GroupDetailsViewCardProps) {
+export function GroupDetailsViewCard({ type, item, onRefresh, groupId, onDeleteRow }: GroupDetailsViewCardProps) {
   const [openSchools, setOpenSchools] = useState(false);
   
   const [editingAdmin, setEditingAdmin] = useState<any>(null);
@@ -66,18 +68,22 @@ export function GroupDetailsViewCard({ type, item, onRefresh, groupId }: GroupDe
     
     objectToEdit = admin;
   } else {
-    const schoolRel = item as GroupSchoolRelation;
+    const school = item as ISchoolItem;
     
-    itemId = schoolRel.school?.id;
-    title = schoolRel.school?.name;
+    itemId = school.id;
+    title = school.name;
     icon = 'solar:buildings-bold-duotone';
-    subtitle = schoolRel.school?.createdAt;
-    adminList = schoolRel?.school?.admins ?? [];
+    
+    const date = new Date(school.createdAt);
+    const formattedDate = date.toLocaleDateString('pt-BR');
+    subtitle = `Criado em ${formattedDate}`;
+
+    adminList = school.admins ?? [];
     adminCount = adminList.length;
 
     detailsLink = paths.dashboard.schools.details(itemId);
 
-    objectToEdit = schoolRel.school;
+    objectToEdit = school;
   }
 
   const isSchool = type === 'school';
@@ -103,11 +109,10 @@ export function GroupDetailsViewCard({ type, item, onRefresh, groupId }: GroupDe
           flexDirection: 'column',
         }}
       >
-        {/* Cabeçalho / título com Avatar */}
         <Box sx={{ p: 3, pb: 2 }}>
           <Stack direction="row" spacing={2} alignItems="center">
             <Avatar
-              src={undefined} // Ajuste se tiver URL da imagem
+              src={undefined} 
               alt={title ?? 'logo'}
               sx={{ width: 40, height: 40, flexShrink: 0 }}
             >
@@ -139,31 +144,28 @@ export function GroupDetailsViewCard({ type, item, onRefresh, groupId }: GroupDe
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        {/* Ações principais */}
         <Stack spacing={1} sx={{ p: 3, pt: 2 }}>
-          
-          {/* BOTÃO EDITAR (ALTERADO) */}
           <Button
             variant="outlined"
             size="small"
             startIcon={<Iconify icon="solar:pen-bold" />}
-            onClick={handleEditClick} // <--- Agora abre o modal
+            onClick={handleEditClick}
           >
             {type === 'admin' ? 'Editar Admin' : 'Editar Escola'}
           </Button>
      
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
-              color='error'
-              onClick={() => {
-                confirm.onTrue();
-                popover.onClose();
-              }}
-            >
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
+            color='error'
+            onClick={() => {
+              confirm.onTrue();
+              popover.onClose();
+            }}
+          >
             {type === 'admin' ? 'Excluir Admin' : 'Excluir Escola'}
-            </Button>
+          </Button>
 
           {type === 'school' && (        
             <Button
@@ -171,8 +173,6 @@ export function GroupDetailsViewCard({ type, item, onRefresh, groupId }: GroupDe
               size="small"
               startIcon={<Iconify icon="solar:eye-bold" />}
               onClick={() => {
-                confirm.onTrue();
-                popover.onClose();
               }}
             >
               Acessar
@@ -222,18 +222,27 @@ export function GroupDetailsViewCard({ type, item, onRefresh, groupId }: GroupDe
         </Stack>
       </Card>
 
-      {/* --- MODAIS DE EDIÇÃO RENDERIZADOS AQUI --- */}
-      
-      {editingAdmin && (
-        <GroupQuickAddAdmin
-          open={!!editingAdmin}
-          currentAdmin={editingAdmin}
-          onClose={() => setEditingAdmin(null)}
-          onRefresh={onRefresh}
-          groupId="" 
-        />
-      )}
+      <ConfirmDialog
+        open={confirm.value}
+        onClose={confirm.onFalse}
+        title="Excluir"
+        content={`Tem certeza que deseja deletar "${title}" deste grupo?`}
+        action={
+          <Button
+            variant='contained'
+            color='error'
+            onClick={() => {
+              onDeleteRow();
+              confirm.onFalse;
+            }}
+          >
+            Deletar
+          </Button>
+        }
+      >
 
+      </ConfirmDialog>
+      
       {editingAdmin && (
         <GroupQuickAddAdmin
           open={!!editingAdmin}

@@ -14,14 +14,20 @@ import Typography from '@mui/material/Typography';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
+import { usePopover } from 'src/components/custom-popover';
+import { useBoolean } from 'src/hooks/use-boolean';
 
 import { Iconify } from 'src/components/iconify';
+import { ConfirmDialog } from '@/components/custom-dialog';
+import { Groups } from '@/lib/proeduc/api';
 
 interface GroupCardItemProps {
   group: any;
+  onDeleteRow: () => void;
+  onRefresh?: () => void;
 }
 
-export function GroupCardItem({ group }: GroupCardItemProps) {
+export function GroupCardItem({ group, onDeleteRow, onRefresh }: GroupCardItemProps) {
   const [openSchools, setOpenSchools] = useState(false);
 
   const schoolList = group?.groupSchool ?? [];
@@ -29,6 +35,9 @@ export function GroupCardItem({ group }: GroupCardItemProps) {
 
   const schoolCount = schoolList.length;
   const adminCount = adminList.length;
+
+  const confirm = useBoolean();
+  const popover = usePopover();
 
   return (
     <>
@@ -137,7 +146,8 @@ export function GroupCardItem({ group }: GroupCardItemProps) {
               startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
               color='error'
               onClick={() => {
-
+                confirm.onTrue()
+                popover.onClose()
               }}
             >
               Excluir grupo
@@ -171,6 +181,25 @@ export function GroupCardItem({ group }: GroupCardItemProps) {
           </Collapse>
         </Stack>
       </Card>
+
+      <ConfirmDialog
+        open={confirm.value}
+        onClose={confirm.onFalse}
+        title="Excluir"
+        content={`Tem certeza que deseja deletar "${group?.name}" `}
+        action={
+          <Button
+            variant='contained'
+            color='error'
+            onClick={() => {
+              onDeleteRow();
+              confirm.onFalse;
+            }}
+          >
+            Deletar
+          </Button>
+        }
+      />
     </>
   );
 }
