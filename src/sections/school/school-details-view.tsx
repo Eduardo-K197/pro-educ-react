@@ -56,13 +56,16 @@ export function SchoolDetailsView() {
     );
   }
 
+  // certificateUrl pode vir como _certificateFilename do back; preferimos uma única variável
+  const certificateValue = school.certificateUrl || school._certificateFilename || null;
+
   return (
     <DashboardContent>
       <CustomBreadcrumbs
-        heading="School details"
+        heading="Detalhes da escola"
         links={[
           { name: 'Dashboard', href: paths.dashboard.root },
-          { name: 'Schools', href: paths.dashboard.schools.root },
+          { name: 'Escolas', href: paths.dashboard.schools.root },
           { name: school.name },
         ]}
         action={
@@ -71,7 +74,7 @@ export function SchoolDetailsView() {
             startIcon={<Iconify icon="eva:edit-2-fill" />}
             onClick={() => router.push(paths.dashboard.schools.edit(school.id))}
           >
-            Edit
+            Editar
           </Button>
         }
         sx={{ mb: { xs: 3, md: 5 } }}
@@ -86,7 +89,7 @@ export function SchoolDetailsView() {
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
               <Typography variant="subtitle2" gutterBottom>
-                Asaas token
+                Token do Asaas
               </Typography>
               <Typography
                 variant="body2"
@@ -101,30 +104,28 @@ export function SchoolDetailsView() {
 
             <Grid item xs={12} md={4}>
               <Typography variant="subtitle2" gutterBottom>
-                Sandbox mode
+                Modo sandbox
               </Typography>
-              <Typography variant="body2">
-                {school.asaasSandboxMode ? 'Enabled' : 'Disabled'}
-              </Typography>
+              <Typography variant="body2">{school.asaasSandboxMode ? 'Ativado' : 'Desativado'}</Typography>
             </Grid>
 
             <Grid item xs={12} md={4}>
               <Typography variant="subtitle2" gutterBottom>
-                Homologation mode
+                Modo homologação
               </Typography>
               <Typography variant="body2">
-                {school.asaasHomologationMode ? 'Enabled' : 'Disabled'}
+                {school.asaasHomologationMode ? 'Ativado' : 'Desativado'}
               </Typography>
             </Grid>
           </Grid>
 
           {/* Certificado, se existir */}
-          {school.certificateUrl && (
+          {certificateValue && (
             <>
               <Divider />
 
               <Typography variant="subtitle2" gutterBottom>
-                Certificate
+                Modelo de certificado
               </Typography>
 
               <Typography
@@ -134,7 +135,7 @@ export function SchoolDetailsView() {
                   wordBreak: 'break-all',
                 }}
               >
-                {school.certificateUrl}
+                {certificateValue}
               </Typography>
             </>
           )}
@@ -144,9 +145,9 @@ export function SchoolDetailsView() {
           {/* Admins x Employees */}
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                Admins
-              </Typography>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                  Administradores
+                </Typography>
 
               {school.admins?.length ? (
                 <Stack direction="row" flexWrap="wrap" gap={1}>
@@ -159,17 +160,17 @@ export function SchoolDetailsView() {
                     />
                   ))}
                 </Stack>
-              ) : (
+                ) : (
                 <Typography variant="body2" color="text.secondary">
-                  No admins.
+                  Nenhum administrador vinculado.
                 </Typography>
               )}
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                Employees
-              </Typography>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                  Funcionários
+                </Typography>
 
               {school.employees?.length ? (
                 <Stack direction="row" flexWrap="wrap" gap={1}>
@@ -182,9 +183,9 @@ export function SchoolDetailsView() {
                     />
                   ))}
                 </Stack>
-              ) : (
+                ) : (
                 <Typography variant="body2" color="text.secondary">
-                  No employees.
+                  Nenhum funcionário vinculado.
                 </Typography>
               )}
             </Grid>
@@ -195,9 +196,9 @@ export function SchoolDetailsView() {
           {/* Materials x Categories */}
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                Materials
-              </Typography>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                  Materiais
+                </Typography>
 
               {school.materials?.length ? (
                 <Stack direction="row" flexWrap="wrap" gap={1}>
@@ -210,17 +211,17 @@ export function SchoolDetailsView() {
                     />
                   ))}
                 </Stack>
-              ) : (
+                ) : (
                 <Typography variant="body2" color="text.secondary">
-                  No materials.
+                  Nenhum material cadastrado.
                 </Typography>
               )}
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                Categories
-              </Typography>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                  Categorias
+                </Typography>
 
               {school.categories?.length ? (
                 <Stack direction="row" flexWrap="wrap" gap={1}>
@@ -233,9 +234,9 @@ export function SchoolDetailsView() {
                     />
                   ))}
                 </Stack>
-              ) : (
+                ) : (
                 <Typography variant="body2" color="text.secondary">
-                  No categories.
+                  Nenhuma categoria cadastrada.
                 </Typography>
               )}
             </Grid>
@@ -245,9 +246,9 @@ export function SchoolDetailsView() {
 
           {/* Groups */}
           <div>
-            <Typography variant="subtitle1" sx={{ mb: 1 }}>
-              Groups
-            </Typography>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Grupos
+              </Typography>
 
             {school.groups?.length ? (
               <Stack direction="row" flexWrap="wrap" gap={1}>
@@ -255,11 +256,11 @@ export function SchoolDetailsView() {
                   <Chip key={group.id} label={group.name} size="small" sx={{ borderRadius: 999 }} />
                 ))}
               </Stack>
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                No groups.
-              </Typography>
-            )}
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Nenhum grupo vinculado.
+                </Typography>
+              )}
           </div>
         </Stack>
       </Card>

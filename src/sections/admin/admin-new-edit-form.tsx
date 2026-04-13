@@ -1,9 +1,7 @@
-import type { IAdminItem } from 'src/types/services/admin';
-
 import { z as zod } from 'zod';
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -16,32 +14,41 @@ import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
 
-import { ProfileFormLayout } from '@/components/hook-form/profile-form-layout';
+import { ProfileFormLayout } from 'src/components/hook-form/profile-form-layout';
+
+import type { AdminDetail } from 'src/types/services/admin';
+import { AdminService } from 'src/services/admin';
+import { GroupService } from 'src/services/group';
 
 export type NewAdminSchemaType = zod.infer<typeof NewAdminSchema>;
 
-export const NewAdminSchema = zod.object({
-  avatarUrl: schemaHelper.file({ message: { required_error: 'Avatar is required!' } }).optional().nullable(),
-  name: zod.string().min(1, { message: 'Name is required!' }),
-  email: zod
-    .string()
-    .min(1, { message: 'Email is required!' })
-    .email({ message: 'Email must be a valid email address!' }),
-  status: zod.string(),
-  password: zod.string().optional(),
-  passwordConfirmation: zod.string().optional(),
-}).refine((data) => {
-  if (data.password && data.password !== data.passwordConfirmation) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Passwords don't match",
-  path: ["passwordConfirmation"],
-});
+export const NewAdminSchema = zod
+  .object({
+    avatarUrl: schemaHelper.file({ message: { required_error: 'Avatar is required!' } }).optional().nullable(),
+    name: zod.string().min(1, { message: 'Nome obrigatório!' }),
+    email: zod
+      .string()
+      .min(1, { message: 'E-mail obrigatório!' })
+      .email({ message: 'Informe um e-mail válido!' }),
+    status: zod.string(),
+    password: zod.string().optional(),
+    passwordConfirmation: zod.string().optional(),
+    groups: zod
+      .array(
+        zod.object({ id: zod.string(), name: zod.string() })
+      )
+      .default([]),
+  })
+  .refine((data) => {
+    if (data.password && data.password !== data.passwordConfirmation) return false;
+    return true;
+  }, {
+    message: 'As senhas não conferem',
+    path: ['passwordConfirmation'],
+  });
 
 type Props = {
-  currentAdmin?: IAdminItem;
+  currentAdmin?: AdminDetail;
 };
 
 export function AdminNewEditForm({ currentAdmin }: Props) {
@@ -56,6 +63,7 @@ export function AdminNewEditForm({ currentAdmin }: Props) {
       avatarUrl: currentAdmin?.avatarUrl || null,
       password: '',
       passwordConfirmation: '',
+      groups: currentAdmin?.groups || [],
     }),
     [currentAdmin]
   );
@@ -72,34 +80,84 @@ export function AdminNewEditForm({ currentAdmin }: Props) {
     formState: { isSubmitting },
   } = methods;
 
+  const [groupOptions, setGroupOptions] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    const loadGroups = async () => {
+      try {
+        const groups = await GroupService.listPagination();
+        setGroupOptions(groups.map((g: any) => ({ id: g.id, name: g.name })));
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Erro ao carregar grupos', error);
+      }
+    };
+
+    void loadGroups();
+  }, []);
+
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      
+      if (!currentAdmin && !data.password) {
+        toast.error('Senha obrigatória para criar administrador');
+        return;
+      }
+
+      const payloadBase = {
+        name: data.name,
+        email: data.email,
+        groups: data.groups.map((g) => g.id),
+      };
+
+      if (currentAdmin) {
+        await AdminService.update(currentAdmin.id, {
+          ...payloadBase,
+          ...(data.password
+            ? { password: data.password, passwordConfirmation: data.passwordConfirmation }
+            : {}),
+        });
+
+        toast.success('Administrador atualizado com sucesso!');
+      } else {
+        await AdminService.create({
+          ...payloadBase,
+          password: data.password || '',
+          passwordConfirmation: data.passwordConfirmation || '',
+        });
+
+        toast.success('Administrador cadastrado com sucesso!');
+      }
+
       reset();
-      toast.success(currentAdmin ? 'Update success!' : 'Create success!');
       router.push(paths.dashboard.admins.root);
-      console.info('DATA', data);
-      
     } catch (error) {
-      console.error(error);
+      // eslint-disable-next-line no-console
+      console.error('Erro ao salvar administrador', error);
+      toast.error('Erro ao salvar administrador');
     }
   });
 
   return (
-    <Form methods={methods} onSubmit={onSubmit}>     
-        <ProfileFormLayout
-          isEdit={!!currentAdmin}
-          isSubmitting={isSubmitting}
-        >
+    <Form methods={methods} onSubmit={onSubmit}>
+      <ProfileFormLayout isEdit={!!currentAdmin} isSubmitting={isSubmitting}>
+        <Field.Text name="name" label="Nome" />
+        <Field.Text name="email" label="E-mail" InputLabelProps={{ shrink: true }} />
 
-        <Field.Text name="name" label="Full name" />
-        <Field.Text name="email" label="Email address" />
-            
+        <Field.Autocomplete
+          name="groups"
+          label="Grupos"
+          placeholder="Selecione os grupos"
+          multiple
+          disableCloseOnSelect
+          options={groupOptions}
+          getOptionLabel={(option: any) => option.name}
+          isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
+        />
+
         {/* SENHAS: Visual apenas, para manter o layout correto */}
         <Field.Text
           name="password"
-          label={currentAdmin ? "New Password (Optional)" : "Password"}
+          label={currentAdmin ? 'Nova senha (opcional)' : 'Senha'}
           type={passwordShow.value ? 'text' : 'password'}
           InputProps={{
             endAdornment: (
@@ -112,12 +170,7 @@ export function AdminNewEditForm({ currentAdmin }: Props) {
           }}
         />
 
-        <Field.Text
-          name="passwordConfirmation"
-          label="Confirm Password"
-          type={passwordShow.value ? 'text' : 'password'}
-        />
-
+        <Field.Text name="passwordConfirmation" label="Confirmar senha" type={passwordShow.value ? 'text' : 'password'} />
       </ProfileFormLayout>
     </Form>
   );

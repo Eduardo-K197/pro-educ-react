@@ -22,8 +22,8 @@ import { GroupService } from 'src/services/group';
 import { AdminService } from 'src/services/admin';
 import { SchoolService } from 'src/services/school';
 import { IGroupItem } from 'src/types/group';
-import { ISchoolItem } from '@/types/services/school';
-import { IAdminItem } from '@/types/services/admin';
+import type { SchoolListItem } from 'src/types/services/school';
+import type { AdminListItem } from 'src/types/services/admin';
 
 // ----------------------------------------------------------------------
 
@@ -39,13 +39,13 @@ type Props = {
   open: boolean;
   onClose: () => void;
   currentGroup: IGroupItem
-  onRefresh?: () => void; 
+  onRefresh?: () => void;
 };
 
 export function GroupQuickEdit({ currentGroup, open, onClose, onRefresh }: Props) {
 
-   const [allAdmins, setAllAdmins] = useState<IAdminItem[]>([]);
-   const [allSchools, setAllSchools] = useState<ISchoolItem[]>([]);
+   const [allAdmins, setAllAdmins] = useState<AdminListItem[]>([]);
+   const [allSchools, setAllSchools] = useState<SchoolListItem[]>([]);
 
    const [selectedAdmins, setSelectedAdmins] = useState<Set<string>>(
     new Set(currentGroup.groupAdmin?.map(ga => ga.admin?.id).filter(Boolean) as string[])
@@ -63,7 +63,7 @@ export function GroupQuickEdit({ currentGroup, open, onClose, onRefresh }: Props
             AdminService.list(),
             SchoolService.list()
           ]);
-          
+
           setAllAdmins(adminsRes.admins);
           setAllSchools(schoolsRes.schools);
 
@@ -136,11 +136,11 @@ export function GroupQuickEdit({ currentGroup, open, onClose, onRefresh }: Props
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      if (onRefresh) onRefresh(); 
-      
+      if (onRefresh) onRefresh();
+
       reset();
       onClose();
-      
+
 
     } catch (error) {
       console.error(error);
@@ -155,18 +155,18 @@ export function GroupQuickEdit({ currentGroup, open, onClose, onRefresh }: Props
 
         <DialogContent>
           <Stack spacing={3} sx={{ pt: 1 }}>
-            
+
             <Field.Text name="name" label="Nome do Grupo" />
 
             <Box>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>Admins</Typography>
-                <Stack 
-                    sx={{ 
-                        maxHeight: 200, 
-                        overflowY: 'auto', 
+                <Stack
+                    sx={{
+                        maxHeight: 200,
+                        overflowY: 'auto',
                         border: (theme) => `1px solid ${theme.palette.divider}`,
-                        borderRadius: 1, 
-                        p: 1 
+                        borderRadius: 1,
+                        p: 1
                     }}
                 >
                     {allAdmins.map((admin) => (
@@ -185,16 +185,16 @@ export function GroupQuickEdit({ currentGroup, open, onClose, onRefresh }: Props
                     {allAdmins.length === 0 && <Typography variant="caption" sx={{ p: 1 }}>Nenhum admin encontrado.</Typography>}
                 </Stack>
             </Box>
-            
+
             <Box>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>Escolas</Typography>
-                <Stack 
-                    sx={{ 
-                        maxHeight: 200, 
-                        overflowY: 'auto', 
+                <Stack
+                    sx={{
+                        maxHeight: 200,
+                        overflowY: 'auto',
                         border: (theme) => `1px solid ${theme.palette.divider}`,
-                        borderRadius: 1, 
-                        p: 1 
+                        borderRadius: 1,
+                        p: 1
                     }}
                 >
                     {allSchools.map((school) => (

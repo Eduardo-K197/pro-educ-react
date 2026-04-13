@@ -1,26 +1,17 @@
 import { CONFIG } from 'src/config-global';
-
 import { AdminEditView } from 'src/sections/admin/view';
 
 // ----------------------------------------------------------------------
 
-export const metadata = { title: `Admin edit | Dashboard - ${CONFIG.appName}` };
+export const metadata = { title: `Editar administrador | Dashboard - ${CONFIG.appName}` };
 
 type Props = {
   params: { id: string };
 };
 
 export default function Page({ params }: Props) {
-  const { id } = params;
-
-  const currentAdmin = {
-    id: id,
-    name: 'Admin Simulado',
-    email: 'admin@simulado.com',
-    status: 'active',
-  };
-
-  return <AdminEditView admin={currentAdmin} />;
+  // A view `AdminEditView` carrega os dados do administrador via `useParams()` internamente.
+  return <AdminEditView />;
 }
 
 // ----------------------------------------------------------------------

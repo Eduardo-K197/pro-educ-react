@@ -19,6 +19,7 @@ export type IAdminTableFilters = {
 // detalhe (ajusta com o que o backend devolve)
 export interface AdminDetail extends AdminListItem {
   groups: { id: string; name: string }[];
+  avatarUrl?: string;
 }
 
 export interface AdminCreatePayload {
@@ -48,5 +49,6 @@ export type IAdminItem = {
   status?: string;
   avatarUrl?: string;
   isVerified?: boolean;
-  schools?: string[];
+  // Pode ser apenas uma lista de ids (string[]) ou array de objetos {id,name}
+  schools?: string[] | { id: string; name: string }[];
 };

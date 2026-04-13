@@ -3,9 +3,9 @@ import type { AxiosRequestConfig } from 'axios';
 import axios from 'axios';
 
 import { CONFIG } from 'src/config-global';
+import { STORAGE_KEY as JWT_STORAGE_KEY } from 'src/auth/context/jwt/constant';
 
 export const STORAGE_KEYS = {
-  token: 'minimal-jwt-token',
   schoolId: 'proeduc-school-id',
 };
 
@@ -25,7 +25,7 @@ axiosInstance.interceptors.request.use((config) => {
 
   const token =
     typeof window !== 'undefined'
-      ? sessionStorage.getItem(STORAGE_KEYS.token) || sessionStorage.getItem('accessToken')
+      ? sessionStorage.getItem(JWT_STORAGE_KEY) || sessionStorage.getItem('accessToken')
       : null;
 
   if (token) {
