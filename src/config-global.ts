@@ -10,6 +10,16 @@ export type ConfigValue = {
   serverUrl: string;
   assetsDir: string;
   isStaticExport: boolean;
+  /**
+   * UI flags
+   * - Keep these enabled only when you really want to show template promotional blocks.
+   */
+  ui: {
+    showTemplatePromo: boolean;
+    showTemplateCredits: boolean;
+    supportEmail: string;
+    companyName: string;
+  };
   auth: {
     method: 'jwt' | 'amplify' | 'firebase' | 'supabase' | 'auth0';
     skip: boolean;
@@ -33,11 +43,21 @@ export type ConfigValue = {
 // ----------------------------------------------------------------------
 
 export const CONFIG: ConfigValue = {
-  appName: 'Minimal UI',
+  appName: process.env.NEXT_PUBLIC_APP_NAME ?? 'ProEduc',
   appVersion: packageJson.version,
   serverUrl: process.env.NEXT_PUBLIC_SERVER_URL ?? '',
   assetsDir: process.env.NEXT_PUBLIC_ASSETS_DIR ?? '',
   isStaticExport: JSON.parse(`${process.env.BUILD_STATIC_EXPORT}`),
+  ui: {
+    showTemplatePromo: process.env.NEXT_PUBLIC_SHOW_TEMPLATE_PROMO
+      ? process.env.NEXT_PUBLIC_SHOW_TEMPLATE_PROMO === 'true'
+      : false,
+    showTemplateCredits: process.env.NEXT_PUBLIC_SHOW_TEMPLATE_CREDITS
+      ? process.env.NEXT_PUBLIC_SHOW_TEMPLATE_CREDITS === 'true'
+      : false,
+    supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? 'suporte@proeduc.com.br',
+    companyName: process.env.NEXT_PUBLIC_COMPANY_NAME ?? 'ProEduc',
+  },
   /**
    * Auth
    * @method jwt | amplify | firebase | supabase | auth0

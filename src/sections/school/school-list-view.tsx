@@ -118,11 +118,11 @@ export function SchoolListView() {
   return (
     <DashboardContent>
       <CustomBreadcrumbs
-        heading="Schools"
+        heading="Escolas"
         links={[
-          { name: 'Dashboard', href: paths.dashboard.root },
-          { name: 'Schools', href: paths.dashboard.schools.root },
-          { name: 'List' },
+          { name: 'Painel', href: paths.dashboard.root },
+          { name: 'Escolas', href: paths.dashboard.schools.root },
+          { name: 'Listagem' },
         ]}
         action={
           <Button
@@ -131,7 +131,7 @@ export function SchoolListView() {
             variant="contained"
             startIcon={<Iconify icon="mingcute:add-line" />}
           >
-            New school
+            Nova escola
           </Button>
         }
         sx={{ mb: { xs: 3, md: 5 } }}

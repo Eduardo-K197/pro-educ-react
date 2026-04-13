@@ -7,6 +7,8 @@ import Switch from '@mui/material/Switch';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 
+import { CONFIG } from 'src/config-global';
+
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
@@ -80,9 +82,11 @@ export function PaymentSummary({ sx, ...other }: BoxProps) {
         * Plus applicable taxes
       </Typography>
 
-      <Button fullWidth size="large" variant="contained" sx={{ mt: 5, mb: 3 }}>
-        Upgrade plan
-      </Button>
+      {CONFIG.ui.showTemplatePromo && (
+        <Button fullWidth size="large" variant="contained" sx={{ mt: 5, mb: 3 }}>
+          Upgrade plan
+        </Button>
+      )}
 
       <Stack alignItems="center" spacing={1}>
         <Stack direction="row" alignItems="center" spacing={1}>

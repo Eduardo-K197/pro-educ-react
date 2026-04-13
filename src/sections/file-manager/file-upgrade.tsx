@@ -13,6 +13,10 @@ import { SvgColor } from 'src/components/svg-color';
 // ----------------------------------------------------------------------
 
 export function FileUpgrade({ sx, ...other }: CardProps) {
+  if (!CONFIG.ui.showTemplatePromo) {
+    return null;
+  }
+
   return (
     <Card
       sx={{

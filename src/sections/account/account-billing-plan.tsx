@@ -11,6 +11,8 @@ import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Unstable_Grid2';
 import CardHeader from '@mui/material/CardHeader';
 
+import { CONFIG } from 'src/config-global';
+
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import { PlanFreeIcon, PlanStarterIcon, PlanPremiumIcon } from 'src/assets/icons';
@@ -189,10 +191,12 @@ export function AccountBillingPlan({ cardList, addressBook, plans }: Props) {
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        <Stack spacing={1.5} direction="row" justifyContent="flex-end" sx={{ p: 3 }}>
-          <Button variant="outlined">Cancel plan</Button>
-          <Button variant="contained">Upgrade plan</Button>
-        </Stack>
+        {CONFIG.ui.showTemplatePromo && (
+          <Stack spacing={1.5} direction="row" justifyContent="flex-end" sx={{ p: 3 }}>
+            <Button variant="outlined">Cancel plan</Button>
+            <Button variant="contained">Upgrade plan</Button>
+          </Stack>
+        )}
       </Card>
 
       <PaymentCardListDialog

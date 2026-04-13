@@ -13,6 +13,8 @@ import Typography from '@mui/material/Typography';
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
+import { CONFIG } from 'src/config-global';
+
 import { _socials } from 'src/_mock';
 import { TwitterIcon, FacebookIcon, LinkedinIcon, InstagramIcon } from 'src/assets/icons';
 
@@ -22,7 +24,7 @@ import { Logo } from 'src/components/logo';
 
 const LINKS = [
   {
-    headline: 'Minimal',
+    headline: 'ProEduc',
     children: [
       { name: 'About us', href: paths.about },
       { name: 'Contact us', href: paths.contact },
@@ -36,7 +38,7 @@ const LINKS = [
       { name: 'Privacy policy', href: '#' },
     ],
   },
-  { headline: 'Contact', children: [{ name: 'support@minimals.cc', href: '#' }] },
+  { headline: 'Contact', children: [{ name: CONFIG.ui.supportEmail, href: `mailto:${CONFIG.ui.supportEmail}` }] },
 ];
 
 // ----------------------------------------------------------------------
@@ -80,8 +82,8 @@ export function Footer({ layoutQuery, sx }: FooterProps) {
                 [theme.breakpoints.up(layoutQuery)]: { mx: 'unset' },
               }}
             >
-              The starting point for your next project with Minimal UI Kit, built on the newest
-              version of Material-UI ©, ready to be customized to your style.
+              Plataforma administrativa do {CONFIG.ui.companyName}, pronta para ser customizada de
+              acordo com as necessidades da sua operação.
             </Typography>
 
             <Stack
@@ -144,7 +146,7 @@ export function Footer({ layoutQuery, sx }: FooterProps) {
         </Grid>
 
         <Typography variant="body2" sx={{ mt: 10 }}>
-          © All rights reserved.
+          © {new Date().getFullYear()} {CONFIG.ui.companyName}. Todos os direitos reservados.
         </Typography>
       </Container>
     </Box>
@@ -172,9 +174,7 @@ export function HomeFooter({ sx }: HomeFooterProps) {
       <Container>
         <Logo />
         <Box sx={{ mt: 1, typography: 'caption' }}>
-          © All rights reserved.
-          <br /> made by
-          <Link href="https://minimals.cc/"> minimals.cc </Link>
+          © {new Date().getFullYear()} {CONFIG.ui.companyName}. Todos os direitos reservados.
         </Box>
       </Container>
     </Box>

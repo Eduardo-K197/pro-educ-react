@@ -44,11 +44,11 @@ export function SchoolEditView() {
   return (
     <DashboardContent>
       <CustomBreadcrumbs
-        heading="Edit school"
+        heading="Editar escola"
         links={[
-          { name: 'Dashboard', href: paths.dashboard.root },
-          { name: 'Schools', href: paths.dashboard.schools.root },
-          { name: school?.name || 'Edit' },
+          { name: 'Painel', href: paths.dashboard.root },
+          { name: 'Escolas', href: paths.dashboard.schools.root },
+          { name: school?.name || 'Editar' },
         ]}
         sx={{ mb: { xs: 3, md: 5 } }}
       />

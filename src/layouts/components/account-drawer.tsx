@@ -25,7 +25,7 @@ import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 import { AnimateAvatar } from 'src/components/animate';
 
-import { useMockedUser } from 'src/auth/hooks';
+import { useAuthContext } from 'src/auth/hooks';
 
 import { UpgradeBlock } from './nav-upgrade';
 import { AccountButton } from './account-button';
@@ -49,7 +49,7 @@ export function AccountDrawer({ data = [], sx, ...other }: AccountDrawerProps) {
 
   const pathname = usePathname();
 
-  const { user } = useMockedUser();
+  const { user } = useAuthContext();
 
   const [open, setOpen] = useState(false);
 
@@ -188,9 +188,7 @@ export function AccountDrawer({ data = [], sx, ...other }: AccountDrawerProps) {
             })}
           </Stack>
 
-          <Box sx={{ px: 2.5, py: 3 }}>
-            <UpgradeBlock />
-          </Box>
+          {/* removed UpgradeBlock to avoid promotional content */}
         </Scrollbar>
 
         <Box sx={{ p: 2.5 }}>

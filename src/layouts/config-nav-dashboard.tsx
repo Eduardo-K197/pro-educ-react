@@ -49,15 +49,15 @@ export const navData = [
    * Overview
    */
   {
-    subheader: 'Overview',
+    subheader: 'Visão geral',
     items: [
-      { title: 'App', path: paths.dashboard.root, icon: ICONS.dashboard },
+      { title: 'Aplicativo', path: paths.dashboard.root, icon: ICONS.dashboard },
       // { title: 'Ecommerce', path: paths.dashboard.general.ecommerce, icon: ICONS.ecommerce },
       // { title: 'Analytics', path: paths.dashboard.general.analytics, icon: ICONS.analytics },
       // { title: 'Banking', path: paths.dashboard.general.banking, icon: ICONS.banking },
       // { title: 'Booking', path: paths.dashboard.general.booking, icon: ICONS.booking },
       // { title: 'File', path: paths.dashboard.general.file, icon: ICONS.file },
-      { title: 'Course', path: paths.dashboard.general.course, icon: ICONS.course },
+      { title: 'Cursos', path: paths.dashboard.general.course, icon: ICONS.course },
       { title: 'Webhooks', path: paths.dashboard.webhooks, icon: ICONS.webhook },
     ],
   },
@@ -65,19 +65,19 @@ export const navData = [
    * Management
    */
   {
-    subheader: 'Management',
+    subheader: 'Gerenciamento',
     items: [
       {
-        title: 'User',
+        title: 'Usuário',
         path: paths.dashboard.user.root,
         icon: ICONS.user,
         children: [
-          { title: 'Profile', path: paths.dashboard.user.root },
-          { title: 'Cards', path: paths.dashboard.user.cards },
-          { title: 'List', path: paths.dashboard.user.list },
-          { title: 'Create', path: paths.dashboard.user.new },
-          { title: 'Edit', path: paths.dashboard.user.demo.edit },
-          { title: 'Account', path: paths.dashboard.user.account },
+          { title: 'Perfil', path: paths.dashboard.user.root },
+          { title: 'Cartões', path: paths.dashboard.user.cards },
+          { title: 'Listagem', path: paths.dashboard.user.list },
+          { title: 'Criar', path: paths.dashboard.user.new },
+          { title: 'Editar', path: paths.dashboard.user.demo.edit },
+          { title: 'Conta', path: paths.dashboard.user.account },
         ],
       },
       // {

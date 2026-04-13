@@ -9,11 +9,11 @@ export function SchoolCreateView() {
   return (
     <DashboardContent>
       <CustomBreadcrumbs
-        heading="Create school"
+        heading="Cadastrar escola"
         links={[
-          { name: 'Dashboard', href: paths.dashboard.root },
-          { name: 'Schools', href: paths.dashboard.schools.root },
-          { name: 'Create' },
+          { name: 'Painel', href: paths.dashboard.root },
+          { name: 'Escolas', href: paths.dashboard.schools.root },
+          { name: 'Cadastrar' },
         ]}
       />
 

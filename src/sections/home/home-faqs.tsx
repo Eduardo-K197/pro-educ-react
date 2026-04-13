@@ -15,6 +15,8 @@ import AccordionSummary, { accordionSummaryClasses } from '@mui/material/Accordi
 
 import { varAlpha } from 'src/theme/styles';
 
+import { CONFIG } from 'src/config-global';
+
 import { Iconify } from 'src/components/iconify';
 import { varFade, MotionViewport } from 'src/components/animate';
 
@@ -25,100 +27,54 @@ import { FloatLine, FloatPlusIcon, FloatTriangleDownIcon } from './components/sv
 
 const FAQs = [
   {
-    question: 'How can I get the update?',
+    question: 'Como faço para acessar o painel?',
     answer: (
       <Typography>
-        You will get 12 months of free
-        <Link
-          href="https://support.mui.com/hc/en-us/articles/360008775240-How-do-I-get-access-to-an-item-I-purchased"
-          target="_blank"
-          rel="noopener"
-          sx={{ mx: 0.5 }}
-        >
-          updates
-        </Link>
-        with the purchase. Please renew your license to get updates after that.
+        Use seu e-mail e senha de acesso. Em caso de dúvida, entre em contato com o suporte em{' '}
+        <Link href={`mailto:${CONFIG.ui.supportEmail}`}>{CONFIG.ui.supportEmail}</Link>.
       </Typography>
     ),
   },
   {
-    question: 'Which license is right for you?',
-    answer: (
-      <Box component="ul" sx={{ pl: 3, listStyleType: 'disc' }}>
-        <li> All licenses do not apply to open source.</li>
-        <li> One licenses / one end product (3 licenses / 3 products...).</li>
-        <li>
-          <strong>Standard / Plus</strong> license used in free products (Internal management...).
-        </li>
-        <li>
-          <strong>Extended</strong> license used in charge products, collect fees from users
-          (SAAS...).
-        </li>
-        <li>
-          Learn more about the
-          <Link
-            href="https://docs.minimals.cc/package/"
-            target="_blank"
-            rel="noopener"
-            sx={{ mx: 0.5 }}
-          >
-            package & license
-          </Link>
-        </li>
-      </Box>
-    ),
-  },
-  {
-    question: 'How long is my license valid for?',
-    answer: (
-      <Box component="ul" sx={{ pl: 3, listStyleType: 'disc' }}>
-        <li> The license is lifetime.</li>
-        <li> You get 12 months of free updates.</li>
-      </Box>
-    ),
-  },
-  {
-    question: 'Which platforms will the template support?',
+    question: 'Posso alterar dados cadastrais?',
     answer: (
       <Typography>
-        {`The components in MUI are designed to work in the latest, stable releases of all major browsers, including Chrome, Firefox, Safari, and Edge. We don't support Internet Explorer 11. `}
-        Learn more about the
-        <Link
-          href="https://mui.com/material-ui/getting-started/supported-platforms/"
-          target="_blank"
-          rel="noopener"
-          sx={{ mx: 0.5 }}
-        >
-          supported platforms
-        </Link>
+        Sim. Dependendo do seu perfil de acesso, você pode editar informações em áreas como Usuários
+        e Configurações.
       </Typography>
     ),
   },
   {
-    question: 'For what kind of projects is the Standard license intended?',
+    question: 'Esqueci minha senha. E agora?',
     answer: (
       <Typography>
-        The Standard license is designed for internal applications in which staff will access the
-        application. An example could be the back-office dashboard of a public-facing e-commerce
-        website in which staff would sign in and manage inventory, customers, etc.
+        Use a opção de recuperação de senha na tela de login. Se não receber o e-mail, verifique o
+        spam ou contate o suporte.
       </Typography>
     ),
   },
   {
-    question: 'Do you have a free demo to review the code before purchasing?',
+    question: 'Quais navegadores são suportados?',
     answer: (
       <Typography>
-        Yes, you can check out our
-        <Link
-          href="https://mui.com/store/items/minimal-dashboard-free/"
-          target="_blank"
-          rel="noopener"
-          sx={{ mx: 0.5 }}
-        >
-          open source
-        </Link>
-        dashboard template which should give you an overview of the code quality and folder
-        structure. Keep in mind that some aspects may differ from this Paid version.
+        Recomendamos as versões mais recentes do Chrome, Firefox, Safari e Edge.
+      </Typography>
+    ),
+  },
+  {
+    question: 'Como solicito ajuda?',
+    answer: (
+      <Typography>
+        Se você encontrou um problema ou precisa de orientação, envie um e-mail para{' '}
+        <Link href={`mailto:${CONFIG.ui.supportEmail}`}>{CONFIG.ui.supportEmail}</Link>.
+      </Typography>
+    ),
+  },
+  {
+    question: 'Como reportar feedback?',
+    answer: (
+      <Typography>
+        Envie sugestões e feedbacks para <Link href={`mailto:${CONFIG.ui.supportEmail}`}>{CONFIG.ui.supportEmail}</Link>.
       </Typography>
     ),
   },
@@ -231,7 +187,7 @@ export function HomeFAQs({ sx, ...other }: BoxProps) {
         <Button
           color="inherit"
           variant="contained"
-          href="mailto:support@minimals.cc?subject=[Feedback] from Customer"
+          href={`mailto:${CONFIG.ui.supportEmail}?subject=[Suporte] ${CONFIG.ui.companyName}`}
           startIcon={<Iconify icon="fluent:mail-24-filled" />}
         >
           Contact us

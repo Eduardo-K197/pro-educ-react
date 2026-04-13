@@ -21,20 +21,40 @@ export function CustomBreadcrumbs({
 }: CustomBreadcrumbsProps) {
   const lastLink = links[links.length - 1].name;
 
+  // Traduções simples para breadcrumbs/headings (fallback para o texto original)
+  const TRANSLATIONS: Record<string, string> = {
+    Dashboard: 'Painel',
+    List: 'Listagem',
+    Create: 'Cadastrar',
+    Edit: 'Editar',
+    'Create a new user': 'Cadastrar usuário',
+    Schools: 'Escolas',
+    School: 'Escola',
+    Users: 'Usuários',
+    User: 'Usuário',
+    Admins: 'Administradores',
+    Groups: 'Grupos',
+    Group: 'Grupo',
+    Permission: 'Permissão',
+    Account: 'Conta',
+  };
+
+  const t = (s?: string) => (s && TRANSLATIONS[s]) || s || '';
+
   const renderHeading = (
-    <Typography variant="h4" sx={{ mb: 2, ...slotProps?.heading }}>
-      {heading}
-    </Typography>
+    <Typography variant="h4" sx={{ mb: 2, ...slotProps?.heading }}>{t(heading)}</Typography>
   );
+
+  const translatedLinks = links.map((l) => ({ ...l, name: t(l.name) }));
 
   const renderLinks = (
     <Breadcrumbs separator={<Separator />} sx={slotProps?.breadcrumbs} {...other}>
-      {links.map((link, index) => (
+      {translatedLinks.map((link, index) => (
         <BreadcrumbsLink
           key={link.name ?? index}
           link={link}
           activeLast={activeLast}
-          disabled={link.name === lastLink}
+          disabled={link.name === t(lastLink)}
         />
       ))}
     </Breadcrumbs>
