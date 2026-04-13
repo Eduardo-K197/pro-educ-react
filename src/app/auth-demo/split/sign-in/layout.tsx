@@ -7,5 +7,7 @@ type Props = {
 };
 
 export default function Layout({ children }: Props) {
-  return <AuthSplitLayout section={{ title: 'Hi, Welcome back' }}>{children}</AuthSplitLayout>;
+  return (
+    <AuthSplitLayout section={{ title: 'Bem-vindo ao sistema ProEduc' }}>{children}</AuthSplitLayout>
+  );
 }

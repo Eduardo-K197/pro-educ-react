@@ -32,9 +32,9 @@ export function Section({
   method,
   layoutQuery,
   methods,
-  title = 'Manage the job',
+  title = 'Bem-vindo ao sistema ProEduc',
   imgUrl = `${CONFIG.assetsDir}/assets/illustrations/illustration-dashboard.webp`,
-  subtitle = 'More effectively with optimized workflows.',
+  subtitle = 'Acesse sua conta para continuar.',
   ...other
 }: SectionProps) {
   const theme = useTheme();

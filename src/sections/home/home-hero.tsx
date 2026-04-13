@@ -11,20 +11,16 @@ import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-import AvatarGroup from '@mui/material/AvatarGroup';
-import Avatar, { avatarClasses } from '@mui/material/Avatar';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
 import { useResponsive } from 'src/hooks/use-responsive';
 
-import { _mock } from 'src/_mock';
 import { CONFIG } from 'src/config-global';
 import { textGradient } from 'src/theme/styles';
 
 import { Iconify } from 'src/components/iconify';
-import { SvgColor } from 'src/components/svg-color';
 import { varFade, MotionContainer } from 'src/components/animate';
 
 import { HeroBackground } from './components/hero-background';
@@ -73,9 +69,9 @@ export function HomeHero({ sx, ...other }: BoxProps) {
         }}
       >
         <Box component="span" sx={{ width: 1, opacity: 0.24 }}>
-          Boost your building
+          ProEduc
         </Box>
-        process with
+        Gestão educacional
         <Box
           component={m.span}
           animate={{ backgroundPosition: '200% center' }}
@@ -93,7 +89,7 @@ export function HomeHero({ sx, ...other }: BoxProps) {
             ml: { xs: 0.75, md: 1, xl: 1.5 },
           }}
         >
-          Minimal
+          simples
         </Box>
       </Box>
     </AnimatedDiv>
@@ -109,7 +105,7 @@ export function HomeHero({ sx, ...other }: BoxProps) {
           [theme.breakpoints.up(lgKey)]: { fontSize: 20, lineHeight: '36px' },
         }}
       >
-        {`The starting point for your next project is based on MUI. \nEasy customization helps you build apps faster and better.`}
+        {'Centralize alunos, turmas e rotinas administrativas em um só lugar.'}
       </Typography>
     </AnimatedDiv>
   );
@@ -124,16 +120,7 @@ export function HomeHero({ sx, ...other }: BoxProps) {
         justifyContent="center"
         sx={{ typography: 'subtitle2' }}
       >
-        <AvatarGroup sx={{ [`& .${avatarClasses.root}`]: { width: 32, height: 32 } }}>
-          {[...Array(3)].map((_, index) => (
-            <Avatar
-              key={_mock.fullName(index + 1)}
-              alt={_mock.fullName(index + 1)}
-              src={_mock.image.avatar(index + 1)}
-            />
-          ))}
-        </AvatarGroup>
-        160+ Happy customers
+        Fácil de usar • Seguro • Feito para escolas
       </Box>
     </AnimatedDiv>
   );
@@ -144,40 +131,25 @@ export function HomeHero({ sx, ...other }: BoxProps) {
         <Stack alignItems="center" spacing={2.5}>
           <Button
             component={RouterLink}
-            href={paths.dashboard.root}
+            href={paths.contact}
             color="inherit"
             size="large"
             variant="contained"
             startIcon={<Iconify width={24} icon="iconoir:flash" />}
           >
-            <span>
-              Live preview
-              <Box
-                component="small"
-                sx={{
-                  mt: '-3px',
-                  opacity: 0.64,
-                  display: 'flex',
-                  fontSize: theme.typography.pxToRem(10),
-                  fontWeight: theme.typography.fontWeightMedium,
-                }}
-              >
-                v{CONFIG.appVersion}
-              </Box>
-            </span>
+            Solicitar demonstração
           </Button>
 
           <Link
             color="inherit"
             variant="body2"
-            target="_blank"
-            rel="noopener"
-            href={paths.freeUI}
+            component={RouterLink}
+            href={CONFIG.auth.redirectPath}
             underline="always"
             sx={{ gap: 0.5, alignItems: 'center', display: 'inline-flex' }}
           >
-            Get free version
-            <Iconify width={16} icon="eva:external-link-fill" />
+            Acessar o sistema
+            <Iconify width={16} icon="eva:arrow-forward-fill" />
           </Link>
         </Stack>
       </AnimatedDiv>
@@ -187,13 +159,12 @@ export function HomeHero({ sx, ...other }: BoxProps) {
           color="inherit"
           size="large"
           variant="outlined"
-          target="_blank"
-          rel="noopener"
-          href={paths.figmaUrl}
-          startIcon={<Iconify width={24} icon="solar:figma-outline" />}
+          component={RouterLink}
+          href={paths.about}
+          startIcon={<Iconify width={24} icon="solar:chat-round-dots-outline" />}
           sx={{ borderColor: 'text.primary' }}
         >
-          Figma preview
+          Conhecer o ProEduc
         </Button>
       </AnimatedDiv>
     </Box>
@@ -203,26 +174,26 @@ export function HomeHero({ sx, ...other }: BoxProps) {
     <Stack spacing={3} sx={{ textAlign: 'center' }}>
       <AnimatedDiv>
         <Typography variant="overline" sx={{ opacity: 0.4 }}>
-          Available For
+          Desenvolvido para
         </Typography>
       </AnimatedDiv>
 
       <Stack spacing={2.5} direction="row">
-        {['js', 'ts', 'nextjs', 'vite', 'figma'].map((platform) => (
+        {['Escolas', 'Gestão', 'Professores', 'Responsáveis', 'Alunos'].map((platform) => (
           <AnimatedDiv key={platform}>
-            {platform === 'nextjs' ? (
-              <SvgColor
-                src={`${CONFIG.assetsDir}/assets/icons/platforms/ic-${platform}.svg`}
-                sx={{ width: 24, height: 24 }}
-              />
-            ) : (
-              <Box
-                component="img"
-                alt={platform}
-                src={`${CONFIG.assetsDir}/assets/icons/platforms/ic-${platform}.svg`}
-                sx={{ width: 24, height: 24 }}
-              />
-            )}
+            <Box
+              component="span"
+              sx={{
+                px: 1.25,
+                py: 0.5,
+                borderRadius: 999,
+                typography: 'caption',
+                border: (t) => `1px solid ${t.vars.palette.divider}`,
+                bgcolor: (t) => t.vars.palette.background.paper,
+              }}
+            >
+              {platform}
+            </Box>
           </AnimatedDiv>
         ))}
       </Stack>

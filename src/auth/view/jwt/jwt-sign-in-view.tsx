@@ -28,12 +28,12 @@ import { signInWithPassword } from '../../context/jwt';
 const SignInSchema = zod.object({
   email: zod
     .string()
-    .min(1, { message: 'Email is required!' })
-    .email({ message: 'Email must be a valid email address!' }),
+    .min(1, { message: 'E-mail é obrigatório!' })
+    .email({ message: 'Informe um e-mail válido!' }),
   password: zod
     .string()
-    .min(1, { message: 'Password is required!' })
-    .min(6, { message: 'Password must be at least 6 characters!' }),
+    .min(1, { message: 'Senha é obrigatória!' })
+    .min(6, { message: 'A senha deve ter pelo menos 6 caracteres!' }),
 });
 type SignInSchemaType = zod.infer<typeof SignInSchema>;
 
@@ -78,12 +78,12 @@ export function JwtSignInView() {
   return (
     <>
       <FormHead
-        title="Sign in to your account"
+        title="Entrar na sua conta"
         description={
           <>
-            {`Don’t have an account? `}
+            {'Não tem uma conta? '}
             <Link component={RouterLink} href={paths.auth.jwt.signUp} variant="subtitle2">
-              Get started
+              Comece aqui
             </Link>
           </>
         }
@@ -98,7 +98,7 @@ export function JwtSignInView() {
 
       <Form methods={methods} onSubmit={onSubmit}>
         <Box gap={3} display="flex" flexDirection="column">
-          <Field.Text name="email" label="Email address" InputLabelProps={{ shrink: true }} />
+          <Field.Text name="email" label="Endereço de e-mail" InputLabelProps={{ shrink: true }} />
           <Box gap={1.5} display="flex" flexDirection="column">
             <Link
               component={RouterLink}
@@ -107,12 +107,12 @@ export function JwtSignInView() {
               color="inherit"
               sx={{ alignSelf: 'flex-end' }}
             >
-              Forgot password?
+              Esqueceu a senha?
             </Link>
             <Field.Text
               name="password"
-              label="Password"
-              placeholder="6+ characters"
+              label="Senha"
+              placeholder="6+ caracteres"
               type={password.value ? 'text' : 'password'}
               InputLabelProps={{ shrink: true }}
               InputProps={{
@@ -133,9 +133,9 @@ export function JwtSignInView() {
             type="submit"
             variant="contained"
             loading={isSubmitting}
-            loadingIndicator="Sign in..."
+            loadingIndicator="Entrando..."
           >
-            Sign in
+            Entrar
           </LoadingButton>
         </Box>
       </Form>

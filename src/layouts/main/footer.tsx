@@ -26,19 +26,20 @@ const LINKS = [
   {
     headline: 'ProEduc',
     children: [
-      { name: 'About us', href: paths.about },
-      { name: 'Contact us', href: paths.contact },
-      { name: 'FAQs', href: paths.faqs },
+      { name: 'Sobre', href: paths.about },
+      { name: 'Contato', href: paths.contact },
+      { name: 'Planos', href: paths.pricing },
+      { name: 'Dúvidas (FAQ)', href: paths.faqs },
     ],
   },
   {
     headline: 'Legal',
     children: [
-      { name: 'Terms and condition', href: '#' },
-      { name: 'Privacy policy', href: '#' },
+      { name: 'Termos e condições', href: '#' },
+      { name: 'Política de privacidade', href: '#' },
     ],
   },
-  { headline: 'Contact', children: [{ name: CONFIG.ui.supportEmail, href: `mailto:${CONFIG.ui.supportEmail}` }] },
+  { headline: 'Contato', children: [{ name: CONFIG.ui.supportEmail, href: `mailto:${CONFIG.ui.supportEmail}` }] },
 ];
 
 // ----------------------------------------------------------------------
