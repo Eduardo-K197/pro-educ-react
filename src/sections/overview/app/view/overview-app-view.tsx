@@ -76,7 +76,7 @@ export function OverviewAppView() {
         setError(null);
 
         const [schoolsRes, groupsRes, adminsRes] = await Promise.all([
-          SchoolService.list(),
+          SchoolService.list({ perPage: 1000 }),
           GroupService.getAll(),
           AdminService.list(),
         ]);

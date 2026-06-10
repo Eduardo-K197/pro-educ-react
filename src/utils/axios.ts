@@ -7,6 +7,8 @@ import { STORAGE_KEY as JWT_STORAGE_KEY } from 'src/auth/context/jwt/constant';
 
 export const STORAGE_KEYS = {
   schoolId: 'proeduc-school-id',
+  schoolMode: 'proeduc-school-mode',
+  user: 'proeduc-user',
 };
 
 if (!CONFIG.serverUrl || !/^https?:\/\//.test(CONFIG.serverUrl)) {
@@ -34,9 +36,25 @@ axiosInstance.interceptors.request.use((config) => {
 
   const schoolId =
     typeof window !== 'undefined' ? sessionStorage.getItem(STORAGE_KEYS.schoolId) : null;
+
   if (schoolId) {
-    // nomeie exatamente como o backend espera (school-id ou schoolId)
-    (config.headers as any)['school-id'] = schoolId; // ou 'schoolId' se esse for o esperado no middleware
+    // SuperAdmin fora do school-mode não deve filtrar por escola (recebe todas)
+    const schoolMode =
+      typeof window !== 'undefined' ? sessionStorage.getItem(STORAGE_KEYS.schoolMode) : null;
+
+    let isSuperAdmin = false;
+    try {
+      const storedUser =
+        typeof window !== 'undefined' ? sessionStorage.getItem(STORAGE_KEYS.user) : null;
+      const parsed = storedUser ? JSON.parse(storedUser) : null;
+      if (parsed?.user?.role === 'superAdmin') isSuperAdmin = true;
+    } catch {
+      // fall through with isSuperAdmin = false
+    }
+
+    if (!isSuperAdmin || schoolMode === 'true') {
+      (config.headers as any)['school-id'] = schoolId;
+    }
   }
 
   return config;

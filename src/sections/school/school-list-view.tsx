@@ -58,7 +58,7 @@ export function SchoolListView() {
       try {
         setLoading(true);
 
-        const res = await SchoolService.list();
+        const res = await SchoolService.list({ perPage: 1000 });
         const data = (res as SchoolsIndexResponse)?.schools ?? [];
 
         if (mounted) {
