@@ -10,16 +10,19 @@ import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
 import Collapse from '@mui/material/Collapse';
+import MenuList from '@mui/material/MenuList';
+import MenuItem from '@mui/material/MenuItem';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import ListItemText from '@mui/material/ListItemText';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
-import { usePopover } from 'src/components/custom-popover';
+import { usePopover, CustomPopover } from 'src/components/custom-popover';
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from '@/components/custom-dialog';
-import { Groups } from '@/lib/proeduc/api';
 
 interface GroupCardItemProps {
   group: any;
@@ -49,6 +52,13 @@ export function GroupCardItem({ group, onDeleteRow, onRefresh }: GroupCardItemPr
           flexDirection: 'column',
         }}
       >
+        {/* Menu de ações */}
+        <IconButton
+          onClick={popover.onOpen}
+          sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}
+        >
+          <Iconify icon="eva:more-vertical-fill" />
+        </IconButton>
 
         {/* Cabeçalho / título com Avatar */}
         <Box sx={{ p: 3, pb: 2 }}>
@@ -73,7 +83,7 @@ export function GroupCardItem({ group, onDeleteRow, onRefresh }: GroupCardItemPr
                   textOverflow: 'ellipsis',
                 }}
               >
-                {group?.name ?? '—'}
+                {group?.name ?? '-'}
               </Typography>
 
               <Stack direction="row" spacing={1}>
@@ -94,7 +104,7 @@ export function GroupCardItem({ group, onDeleteRow, onRefresh }: GroupCardItemPr
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        {/* Infos rápidas no grid, no estilo JobItem */}
+        {/* Infos rápidas */}
         <Box rowGap={1.5} display="grid" gridTemplateColumns="repeat(2, 1fr)" sx={{ p: 3, pt: 2 }}>
           {[
             {
@@ -128,7 +138,7 @@ export function GroupCardItem({ group, onDeleteRow, onRefresh }: GroupCardItemPr
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        {/* Ações principais (igual “botões grandes” do job) */}
+        {/* Ações principais */}
         <Stack spacing={1} sx={{ p: 3, pt: 2 }}>
           <Button
             variant="soft"
@@ -141,17 +151,14 @@ export function GroupCardItem({ group, onDeleteRow, onRefresh }: GroupCardItemPr
           </Button>
 
           <Button
-              variant="outlined"
-              size="small"
-              startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
-              color='error'
-              onClick={() => {
-                confirm.onTrue()
-                popover.onClose()
-              }}
-            >
-              Excluir grupo
-            </Button>          
+            variant="outlined"
+            size="small"
+            startIcon={<Iconify icon="solar:pen-bold" />}
+            component={RouterLink}
+            href={paths.dashboard.group.edit(group?.id)}
+          >
+            Editar
+          </Button>
 
           <Button
             size="small"
@@ -169,7 +176,7 @@ export function GroupCardItem({ group, onDeleteRow, onRefresh }: GroupCardItemPr
               <Stack spacing={0.5}>
                 {schoolList.map((gs: any, idx: number) => (
                   <Typography key={gs?.school?.id ?? idx} variant="body2">
-                    • {gs?.school?.name ?? 'Sem nome'}
+                    {`• ${gs?.school?.name ?? 'Sem nome'}`}
                   </Typography>
                 ))}
               </Stack>
@@ -182,21 +189,60 @@ export function GroupCardItem({ group, onDeleteRow, onRefresh }: GroupCardItemPr
         </Stack>
       </Card>
 
+      {/* Popover de acoes rapidas */}
+      <CustomPopover
+        open={popover.open}
+        anchorEl={popover.anchorEl}
+        onClose={popover.onClose}
+        slotProps={{ arrow: { placement: 'right-top' } }}
+      >
+        <MenuList>
+          <MenuItem
+            onClick={popover.onClose}
+            component={RouterLink}
+            href={paths.dashboard.group.details(group?.id)}
+          >
+            <Iconify icon="solar:eye-bold" />
+            <ListItemText primary="Ver detalhes" />
+          </MenuItem>
+
+          <MenuItem
+            onClick={popover.onClose}
+            component={RouterLink}
+            href={paths.dashboard.group.edit(group?.id)}
+          >
+            <Iconify icon="solar:pen-bold" />
+            <ListItemText primary="Editar grupo" />
+          </MenuItem>
+
+          <MenuItem
+            onClick={() => {
+              popover.onClose();
+              confirm.onTrue();
+            }}
+            sx={{ color: 'error.main' }}
+          >
+            <Iconify icon="solar:trash-bin-trash-bold" />
+            <ListItemText primary="Excluir grupo" />
+          </MenuItem>
+        </MenuList>
+      </CustomPopover>
+
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title="Excluir"
-        content={`Tem certeza que deseja deletar "${group?.name}" `}
+        title="Excluir grupo"
+        content={`Tem certeza que deseja excluir o grupo "${group?.name}"?`}
         action={
           <Button
-            variant='contained'
-            color='error'
+            variant="contained"
+            color="error"
             onClick={() => {
               onDeleteRow();
-              confirm.onFalse;
+              confirm.onFalse();
             }}
           >
-            Deletar
+            Excluir
           </Button>
         }
       />

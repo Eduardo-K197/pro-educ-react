@@ -104,8 +104,8 @@ export function ProfileFormLayout ({ children, isEdit, isSubmitting, disableStat
                 </Box>
 
                 <Stack alignItems="flex-end" sx={{ mt: 3 }}>
-                    <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
-                        {!isEdit ? 'Create admin' : 'Save changes'}
+                    <LoadingButton type="submit" variant="contained" color="primary" loading={isSubmitting}>
+                        {!isEdit ? 'Criar administrador' : 'Salvar alterações'}
                     </LoadingButton>
                 </Stack>
             </Card>

@@ -118,14 +118,16 @@ export function LessonNewEditForm({ currentLesson }: Props) {
           </Card>
         </Grid>
         <Grid xs={12} md={4}>
-          <Stack spacing={2}>
-            <Button fullWidth variant="outlined" onClick={() => router.push(paths.dashboard.lessons.root)}>
-              Cancelar
-            </Button>
-            <LoadingButton fullWidth type="submit" variant="contained" loading={isSubmitting}>
-              {isEdit ? 'Salvar' : 'Criar aula'}
-            </LoadingButton>
-          </Stack>
+          <Card sx={{ p: 3 }}>
+            <Stack spacing={1.5}>
+              <LoadingButton fullWidth type="submit" variant="contained" color="primary" loading={isSubmitting}>
+                {isEdit ? 'Salvar alterações' : 'Criar aula'}
+              </LoadingButton>
+              <Button fullWidth variant="outlined" color="inherit" onClick={() => router.push(paths.dashboard.lessons.root)}>
+                Cancelar
+              </Button>
+            </Stack>
+          </Card>
         </Grid>
       </Grid>
     </Form>

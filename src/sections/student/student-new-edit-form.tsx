@@ -212,26 +212,27 @@ export function StudentNewEditForm({ currentStudent }: Props) {
               <MenuItem value="inactive">Inativo</MenuItem>
               <MenuItem value="suspended">Suspenso</MenuItem>
             </Field.Select>
+
+            <Stack spacing={1.5} sx={{ mt: 3 }}>
+              <LoadingButton
+                fullWidth
+                type="submit"
+                variant="contained"
+                color="primary"
+                loading={isSubmitting}
+              >
+                {isEdit ? 'Salvar alterações' : 'Criar aluno'}
+              </LoadingButton>
+              <Button
+                fullWidth
+                variant="outlined"
+                color="inherit"
+                onClick={() => router.push(paths.dashboard.students.root)}
+              >
+                Cancelar
+              </Button>
+            </Stack>
           </Card>
-
-          <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => router.push(paths.dashboard.students.root)}
-            >
-              Cancelar
-            </Button>
-
-            <LoadingButton
-              fullWidth
-              type="submit"
-              variant="contained"
-              loading={isSubmitting}
-            >
-              {isEdit ? 'Salvar' : 'Criar aluno'}
-            </LoadingButton>
-          </Stack>
         </Grid>
       </Grid>
     </Form>

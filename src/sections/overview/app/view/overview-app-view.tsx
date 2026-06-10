@@ -26,7 +26,6 @@ import { SchoolService } from 'src/services/school';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 import { SeoIllustration } from 'src/assets/illustrations';
-import { _appFeatured } from 'src/_mock';
 
 import { svgColorClasses } from 'src/components/svg-color';
 import { useAuthContext } from 'src/auth/hooks';
@@ -34,7 +33,6 @@ import { RouterLink } from 'src/routes/components';
 
 import { AppWidget } from '../app-widget';
 import { AppWelcome } from '../app-welcome';
-import { AppFeatured } from '../app-featured';
 import { AppWidgetSummary } from '../app-widget-summary';
 import { AppCurrentDownload } from '../app-current-download';
 // import { AppNewInvoice } from '../app-new-invoice';
@@ -192,7 +190,7 @@ export function OverviewAppView() {
     <DashboardContent maxWidth="xl">
       <Grid container spacing={3}>
         {/* Boas-vindas */}
-        <Grid xs={12} md={8}>
+        <Grid xs={12}>
           <AppWelcome
             title={`Bem-vindo de volta 👋 \n ${user?.name ?? user?.email ?? 'Administrador'}`}
             description={welcomeDescription}
@@ -218,11 +216,6 @@ export function OverviewAppView() {
               </Box>
             }
           />
-        </Grid>
-
-        {/* Destaques (mock) */}
-        <Grid xs={12} md={4}>
-          <AppFeatured list={_appFeatured} />
         </Grid>
 
         {/* Loading / erro gerais */}

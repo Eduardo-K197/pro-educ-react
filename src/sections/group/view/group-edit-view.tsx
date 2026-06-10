@@ -64,16 +64,15 @@ export function GroupEditView({ id }: Props) {
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
-      <Stack spacing={3}>
-        {group && (
-          <GroupNewEditForm
-            initialValues={group}
-            isEdit
-            onSubmit={handleUpdate}
-            loading={loading}
-          />
-        )}
-      </Stack>
+      {group && (
+        <GroupNewEditForm
+          initialValues={group}
+          isEdit
+          onSubmit={handleUpdate}
+          loading={loading}
+          onCancel={() => { window.location.href = `${paths.dashboard.root}/groups`; }}
+        />
+      )}
     </DashboardContent>
   );
 }

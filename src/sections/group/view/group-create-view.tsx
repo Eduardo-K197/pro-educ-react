@@ -52,9 +52,11 @@ export function GroupCreateView() {
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
-      <Stack spacing={3}>
-        <GroupNewEditForm onSubmit={handleCreate} loading={loading} />
-      </Stack>
+      <GroupNewEditForm
+        onSubmit={handleCreate}
+        loading={loading}
+        onCancel={() => { window.location.href = `${paths.dashboard.root}/groups`; }}
+      />
     </DashboardContent>
   );
 }
