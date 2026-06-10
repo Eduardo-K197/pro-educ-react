@@ -1,11 +1,8 @@
 import { CONFIG } from 'src/config-global';
+import { SchoolOrAdminDashboard } from 'src/sections/overview/app/view/school-or-admin-dashboard';
 
-import { OverviewAppView } from 'src/sections/overview/app/view';
-
-// ----------------------------------------------------------------------
-
-export const metadata = { title: `Dashboard - ${CONFIG.appName}` };
+export const metadata = { title: `Painel — ${CONFIG.appName}` };
 
 export default function Page() {
-  return <OverviewAppView />;
+  return <SchoolOrAdminDashboard />;
 }

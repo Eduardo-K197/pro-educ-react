@@ -1,7 +1,7 @@
 import { CONFIG } from 'src/config-global';
-import { DashboardLayout } from 'src/layouts/dashboard';
 
 import { AuthGuard } from 'src/auth/guard';
+import { RoleAwareDashboardLayout } from 'src/layouts/dashboard/role-aware-layout';
 
 // ----------------------------------------------------------------------
 
@@ -11,12 +11,12 @@ type Props = {
 
 export default function Layout({ children }: Props) {
   if (CONFIG.auth.skip) {
-    return <DashboardLayout>{children}</DashboardLayout>;
+    return <RoleAwareDashboardLayout>{children}</RoleAwareDashboardLayout>;
   }
 
   return (
     <AuthGuard>
-      <DashboardLayout>{children}</DashboardLayout>
+      <RoleAwareDashboardLayout>{children}</RoleAwareDashboardLayout>
     </AuthGuard>
   );
 }

@@ -9,9 +9,7 @@ import { useTheme } from '@mui/material/styles';
 import { iconButtonClasses } from '@mui/material/IconButton';
 
 import { useBoolean } from 'src/hooks/use-boolean';
-
-import { allLangs } from 'src/locales';
-import { _contacts, _notifications } from 'src/_mock';
+import { useAuthContext } from 'src/auth/hooks';
 
 import { Logo } from 'src/components/logo';
 import { useSettingsContext } from 'src/components/settings';
@@ -21,20 +19,15 @@ import { NavMobile } from './nav-mobile';
 import { layoutClasses } from '../classes';
 import { NavVertical } from './nav-vertical';
 import { NavHorizontal } from './nav-horizontal';
-import { _account } from '../config-nav-account';
 import { Searchbar } from '../components/searchbar';
-import { _workspaces } from '../config-nav-workspace';
 import { MenuButton } from '../components/menu-button';
 import { LayoutSection } from '../core/layout-section';
 import { HeaderSection } from '../core/header-section';
 import { StyledDivider, useNavColorVars } from './styles';
 import { AccountDrawer } from '../components/account-drawer';
 import { SettingsButton } from '../components/settings-button';
-import { LanguagePopover } from '../components/language-popover';
-import { ContactsPopover } from '../components/contacts-popover';
-import { WorkspacesPopover } from '../components/workspaces-popover';
+import { SchoolSwitcher } from '../components/school-switcher';
 import { navData as dashboardNavData } from '../config-nav-dashboard';
-import { NotificationsDrawer } from '../components/notifications-drawer';
 
 // ----------------------------------------------------------------------
 
@@ -51,20 +44,21 @@ export type DashboardLayoutProps = {
 
 export function DashboardLayout({ sx, children, header, data }: DashboardLayoutProps) {
   const theme = useTheme();
+  const { user } = useAuthContext();
 
   const mobileNavOpen = useBoolean();
-
   const settings = useSettingsContext();
-
   const navColorVars = useNavColorVars(theme, settings);
 
   const layoutQuery: Breakpoint = 'lg';
-
   const navData = data?.nav ?? dashboardNavData;
 
   const isNavMini = settings.navLayout === 'mini';
   const isNavHorizontal = settings.navLayout === 'horizontal';
   const isNavVertical = isNavMini || settings.navLayout === 'vertical';
+
+  // SuperAdmin already has the school mode banner from RoleAwareDashboardLayout
+  const showSchoolSwitcher = user?.role !== 'superAdmin';
 
   return (
     <LayoutSection
@@ -127,7 +121,7 @@ export function DashboardLayout({ sx, children, header, data }: DashboardLayoutP
                   onClose={mobileNavOpen.onFalse}
                   cssVars={navColorVars.section}
                 />
-                {/* -- Logo -- */}
+                {/* -- Logo (horizontal nav only) -- */}
                 {isNavHorizontal && (
                   <Logo
                     sx={{
@@ -136,33 +130,30 @@ export function DashboardLayout({ sx, children, header, data }: DashboardLayoutP
                     }}
                   />
                 )}
-                {/* -- Divider -- */}
                 {isNavHorizontal && (
                   <StyledDivider
                     sx={{ [theme.breakpoints.up(layoutQuery)]: { display: 'flex' } }}
                   />
                 )}
-                {/* -- Workspace popover -- */}
-                <WorkspacesPopover
-                  data={_workspaces}
-                  sx={{ color: 'var(--layout-nav-text-primary-color)' }}
-                />
+                {/* -- School switcher (admins/teachers/employees with ≥1 school) -- */}
+                {showSchoolSwitcher && (
+                  <SchoolSwitcher
+                    sx={{
+                      display: 'none',
+                      [theme.breakpoints.up(layoutQuery)]: { display: 'flex' },
+                    }}
+                  />
+                )}
               </>
             ),
             rightArea: (
               <Box display="flex" alignItems="center" gap={{ xs: 0, sm: 0.75 }}>
                 {/* -- Searchbar -- */}
                 <Searchbar data={navData} />
-                {/* -- Language popover -- */}
-                <LanguagePopover data={allLangs} />
-                {/* -- Notifications popover -- */}
-                <NotificationsDrawer data={_notifications} />
-                {/* -- Contacts popover -- */}
-                <ContactsPopover data={_contacts} />
-                {/* -- Settings button -- */}
+                {/* -- Theme toggle -- */}
                 <SettingsButton />
-                {/* -- Account drawer -- */}
-                <AccountDrawer data={_account} />
+                {/* -- Account -- */}
+                <AccountDrawer />
               </Box>
             ),
           }}
