@@ -7,7 +7,6 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import { useTheme } from '@mui/material/styles';
 
-import { paths } from 'src/routes/paths';
 import { usePathname } from 'src/routes/hooks';
 
 import { CONFIG } from 'src/config-global';
@@ -105,21 +104,6 @@ export function MainLayout({ sx, data, children, header }: MainLayoutProps) {
                   <SettingsButton />
                   {/* -- Sign in button -- */}
                   <SignInButton />
-                  {/* -- Purchase button -- */}
-                  {CONFIG.ui.showTemplatePromo && (
-                    <Button
-                      variant="contained"
-                      rel="noopener"
-                      target="_blank"
-                      href={paths.minimalStore}
-                      sx={{
-                        display: 'none',
-                        [theme.breakpoints.up(layoutQuery)]: { display: 'inline-flex' },
-                      }}
-                    >
-                      Purchase
-                    </Button>
-                  )}
                 </Box>
               </>
             ),

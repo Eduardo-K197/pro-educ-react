@@ -10,7 +10,6 @@ import Grid from '@mui/material/Unstable_Grid2';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
-import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
 import { CONFIG } from 'src/config-global';
@@ -23,15 +22,6 @@ import { Logo } from 'src/components/logo';
 // ----------------------------------------------------------------------
 
 const LINKS = [
-  {
-    headline: 'ProEduc',
-    children: [
-      { name: 'Sobre', href: paths.about },
-      { name: 'Contato', href: paths.contact },
-      { name: 'Planos', href: paths.pricing },
-      { name: 'Dúvidas (FAQ)', href: paths.faqs },
-    ],
-  },
   {
     headline: 'Legal',
     children: [
