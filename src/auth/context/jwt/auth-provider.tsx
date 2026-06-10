@@ -21,6 +21,8 @@ export function AuthProvider({ children }: Props) {
     try {
       const accessToken = sessionStorage.getItem(STORAGE_KEY);
       if (!accessToken) {
+        // limpa escola selecionada para não contaminar próximo login
+        sessionStorage.removeItem(STORAGE_KEYS.schoolId);
         setState({ user: null, loading: false });
         return;
       }
@@ -40,7 +42,8 @@ export function AuthProvider({ children }: Props) {
 
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('proeduc-user', JSON.stringify(d));
-        if (activeSchoolId) {
+        // só define a escola na sessão se ainda não foi escolhida pelo usuário
+        if (activeSchoolId && !sessionStorage.getItem(STORAGE_KEYS.schoolId)) {
           sessionStorage.setItem(STORAGE_KEYS.schoolId, activeSchoolId);
         }
       }
