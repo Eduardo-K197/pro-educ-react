@@ -40,7 +40,7 @@ export function LessonListView() {
   const filters = useSetState<ILessonTableFilters>({ name: '' });
 
   useEffect(() => {
-    LessonService.list()
+    LessonService.list({ perPage: 1000 })
       .then((res) => setTableData((res as any).classes ?? res ?? []))
       .catch(() => toast.error('Erro ao carregar aulas'));
   }, []);

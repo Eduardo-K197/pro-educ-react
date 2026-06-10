@@ -37,7 +37,7 @@ export function CourseListView() {
   const filters = useSetState<ICourseTableFilters>({ name: '' });
 
   useEffect(() => {
-    CourseService.list()
+    CourseService.list({ perPage: 1000 })
       .then((res) => setTableData((res as any).courses ?? res ?? []))
       .catch(() => toast.error('Erro ao carregar cursos'));
   }, []);

@@ -46,7 +46,7 @@ export function TeacherListView() {
   const filters = useSetState<ITeacherTableFilters>({ name: '' });
 
   useEffect(() => {
-    TeacherService.list()
+    TeacherService.list({ perPage: 1000 })
       .then((res) => setTableData((res as any).teachers ?? res ?? []))
       .catch(() => toast.error('Erro ao carregar professores'));
   }, []);

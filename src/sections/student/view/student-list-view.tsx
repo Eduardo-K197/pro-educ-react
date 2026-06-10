@@ -70,7 +70,7 @@ export function StudentListView() {
   const loadStudents = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await StudentService.list();
+      const res = await StudentService.list({ perPage: 1000 });
       const students = (res as any).students ?? res ?? [];
       setTableData(students);
     } catch {

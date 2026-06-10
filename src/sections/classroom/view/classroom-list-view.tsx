@@ -38,7 +38,7 @@ export function ClassroomListView() {
   const filters = useSetState<IClassroomTableFilters>({ name: '' });
 
   useEffect(() => {
-    ClassroomService.list()
+    ClassroomService.list({ perPage: 1000 })
       .then((res) => setTableData((res as any).classrooms ?? res ?? []))
       .catch(() => toast.error('Erro ao carregar turmas'));
   }, []);
