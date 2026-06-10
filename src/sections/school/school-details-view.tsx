@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
-import { Card, Stack, Typography, Grid, Chip, Divider, Button } from '@mui/material';
+import { Card, Stack, Typography, Grid, Chip, Divider, Button, Alert, AlertTitle } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
@@ -12,12 +12,14 @@ import { paths } from 'src/routes/paths';
 
 import type { SchoolDetail } from 'src/types/services/school';
 import { SchoolService } from 'src/services/school';
+import { useSchoolMode } from 'src/hooks/use-school-mode';
 
 export function SchoolDetailsView() {
   const params = useParams();
   const id = (params as { id?: string }).id;
 
   const router = useRouter();
+  const { enterSchool } = useSchoolMode();
 
   const [school, setSchool] = useState<SchoolDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,13 +71,23 @@ export function SchoolDetailsView() {
           { name: school.name },
         ]}
         action={
-          <Button
-            variant="contained"
-            startIcon={<Iconify icon="eva:edit-2-fill" />}
-            onClick={() => router.push(paths.dashboard.schools.edit(school.id))}
-          >
-            Editar
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<Iconify icon="solar:login-bold-duotone" />}
+              onClick={() => enterSchool(school.id)}
+            >
+              Acessar escola
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<Iconify icon="eva:edit-2-fill" />}
+              onClick={() => router.push(paths.dashboard.schools.edit(school.id))}
+            >
+              Editar
+            </Button>
+          </Stack>
         }
         sx={{ mb: { xs: 3, md: 5 } }}
       />
@@ -85,39 +97,40 @@ export function SchoolDetailsView() {
           {/* Nome */}
           <Typography variant="h6">{school.name}</Typography>
 
-          {/* Linha com token / modos */}
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <Typography variant="subtitle2" gutterBottom>
-                Token do Asaas
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontFamily: 'monospace',
-                  wordBreak: 'break-all',
-                }}
-              >
-                {school.asaasToken || '-'}
-              </Typography>
+          {/* Provedor de pagamentos */}
+          {school.paymentProvider === 'cora' ? (
+            <Alert
+              severity={school.coraAccount?.clientId ? 'success' : 'warning'}
+              icon={<Iconify icon="mdi:bank" />}
+            >
+              <AlertTitle>
+                Banco Cora{school.coraAccount?.clientId ? ' — Configurada' : ' — Pendente de configuração'}
+              </AlertTitle>
+              {school.coraAccount?.clientId && (
+                <>
+                  Conta: <strong>{school.coraAccount.name}</strong> &bull;{' '}
+                  Ambiente: <strong>{school.coraAccount.environment === 'production' ? 'Produção' : 'Homologação'}</strong>
+                </>
+              )}
+            </Alert>
+          ) : (
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <Typography variant="subtitle2" gutterBottom>Token do Asaas</Typography>
+                <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                  {school.asaasToken || '-'}
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Typography variant="subtitle2" gutterBottom>Modo sandbox</Typography>
+                <Typography variant="body2">{school.asaasSandboxMode ? 'Ativado' : 'Desativado'}</Typography>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Typography variant="subtitle2" gutterBottom>Modo homologação</Typography>
+                <Typography variant="body2">{school.asaasHomologationMode ? 'Ativado' : 'Desativado'}</Typography>
+              </Grid>
             </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Typography variant="subtitle2" gutterBottom>
-                Modo sandbox
-              </Typography>
-              <Typography variant="body2">{school.asaasSandboxMode ? 'Ativado' : 'Desativado'}</Typography>
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Typography variant="subtitle2" gutterBottom>
-                Modo homologação
-              </Typography>
-              <Typography variant="body2">
-                {school.asaasHomologationMode ? 'Ativado' : 'Desativado'}
-              </Typography>
-            </Grid>
-          </Grid>
+          )}
 
           {/* Certificado, se existir */}
           {certificateValue && (

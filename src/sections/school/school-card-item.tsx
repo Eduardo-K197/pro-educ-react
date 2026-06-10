@@ -23,6 +23,7 @@ import { Label } from 'src/components/label';
 import { usePopover, CustomPopover } from 'src/components/custom-popover';
 
 import { fDateTime } from 'src/utils/format-time';
+import { useSchoolMode } from 'src/hooks/use-school-mode';
 
 import type { SchoolListItem } from 'src/types/services/school';
 
@@ -43,6 +44,7 @@ function getSchoolStatus(school: SchoolListItem): SchoolStatus {
 
 export function SchoolCardItem({ school }: SchoolCardItemProps) {
   const popover = usePopover();
+  const { enterSchool } = useSchoolMode();
 
   const status = useMemo(() => getSchoolStatus(school), [school]);
 
@@ -111,15 +113,25 @@ export function SchoolCardItem({ school }: SchoolCardItemProps) {
                   {statusConfig.label}
                 </Label>
 
-                <Chip
-                  size="small"
-                  color={asaasConfigured ? 'primary' : 'default'}
-                  variant={asaasConfigured ? 'filled' : 'outlined'}
-                  label={asaasConfigured ? 'Asaas configurado' : 'Asaas pendente'}
-                />
+                {school.paymentProvider === 'cora' ? (
+                  <Chip
+                    size="small"
+                    color={school.coraAccount?.clientId ? 'primary' : 'warning'}
+                    variant="filled"
+                    label={school.coraAccount?.clientId ? 'Cora ativa' : 'Cora pendente'}
+                    icon={<Iconify icon="mdi:bank" width={14} />}
+                  />
+                ) : (
+                  <Chip
+                    size="small"
+                    color={asaasConfigured ? 'info' : 'default'}
+                    variant={asaasConfigured ? 'filled' : 'outlined'}
+                    label={asaasConfigured ? 'Asaas configurado' : 'Asaas pendente'}
+                  />
+                )}
 
                 {school.asaasHomologationMode && (
-                  <Chip size="small" color="warning" variant="outlined" label="Modo homologação" />
+                  <Chip size="small" color="warning" variant="outlined" label="Homologação" />
                 )}
               </Stack>
             </Stack>
@@ -185,24 +197,38 @@ export function SchoolCardItem({ school }: SchoolCardItemProps) {
         {/* Ações principais */}
         <Stack spacing={1} sx={{ p: 3, pt: 2 }}>
           <Button
-            variant="soft"
+            variant="contained"
             size="small"
-            startIcon={<Iconify icon="solar:eye-bold" />}
-            component={RouterLink}
-            href={paths.dashboard.schools.details(school.id)}
+            color="primary"
+            startIcon={<Iconify icon="solar:login-bold-duotone" />}
+            onClick={() => enterSchool(school.id)}
           >
-            Ver detalhes
+            Acessar escola
           </Button>
 
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<Iconify icon="solar:pen-bold" />}
-            component={RouterLink}
-            href={paths.dashboard.schools.edit(school.id)}
-          >
-            Editar escola
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button
+              fullWidth
+              variant="soft"
+              size="small"
+              startIcon={<Iconify icon="solar:eye-bold" />}
+              component={RouterLink}
+              href={paths.dashboard.schools.details(school.id)}
+            >
+              Detalhes
+            </Button>
+
+            <Button
+              fullWidth
+              variant="outlined"
+              size="small"
+              startIcon={<Iconify icon="solar:pen-bold" />}
+              component={RouterLink}
+              href={paths.dashboard.schools.edit(school.id)}
+            >
+              Editar
+            </Button>
+          </Stack>
         </Stack>
       </Card>
 

@@ -1,11 +1,22 @@
+export type PaymentProvider = 'asaas' | 'cora';
+
+export interface CoraAccountInfo {
+  id?: string;
+  name?: string;
+  clientId?: string;
+  environment?: 'homolog' | 'production';
+}
+
 export interface SchoolListItem {
   id: string;
   name: string;
   createdAt: string;
+  paymentProvider?: PaymentProvider;
   asaasToken?: string | null;
   asaasHomologationMode?: boolean;
   _certificateFilename?: string | null;
   certificateUrl?: string | null;
+  coraAccount?: CoraAccountInfo | null;
   studentCount: number;
   courseCount: number;
   classCount: number;
@@ -70,11 +81,14 @@ export interface SchoolGroup {
 export interface SchoolDetail {
   id: string;
   name: string;
+  paymentProvider?: PaymentProvider;
   asaasToken?: string | null;
   asaasSandboxMode?: boolean;
   asaasHomologationMode?: boolean;
   _certificateFilename?: string | null;
+  certificateUrl?: string | null;
   createdAt?: string;
+  coraAccount?: CoraAccountInfo | null;
 
   employees?: SchoolEmployee[];
   categories?: SchoolCategory[];
