@@ -30,6 +30,18 @@ import { StudentService } from 'src/services/student';
 
 // ----------------------------------------------------------------------
 
+function safeStr(val: unknown): string | undefined {
+  if (val === null || val === undefined) return undefined;
+  if (typeof val === 'string') return val || undefined;
+  if (typeof val === 'object') {
+    const parts = Object.values(val as Record<string, unknown>)
+      .filter((v) => v !== null && v !== undefined && v !== '')
+      .map(String);
+    return parts.length ? parts.join(', ') : undefined;
+  }
+  return String(val) || undefined;
+}
+
 type Props = { id: string };
 
 export function StudentDetailsView({ id }: Props) {
@@ -127,12 +139,12 @@ export function StudentDetailsView({ id }: Props) {
                 <Table size="small">
                   <TableBody>
                     {[
-                      { label: 'Telefone', value: student.phone },
+                      { label: 'Telefone', value: safeStr(student.phone) },
                       { label: 'Data de nascimento', value: student.birthDate ? fDate(student.birthDate) : undefined },
-                      { label: 'Gênero', value: student.gender },
-                      { label: 'CPF', value: student.cpf },
-                      { label: 'RG', value: student.rg },
-                      { label: 'Endereço', value: student.address },
+                      { label: 'Gênero', value: safeStr(student.gender) },
+                      { label: 'CPF', value: safeStr(student.cpf) },
+                      { label: 'RG', value: safeStr(student.rg) },
+                      { label: 'Endereço', value: safeStr(student.address) },
                     ].map((item) => (
                       <TableRow key={item.label}>
                         <TableCell sx={{ color: 'text.secondary', width: 180, border: 0, py: 1 }}>

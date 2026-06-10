@@ -63,7 +63,9 @@ export function StudentNewEditForm({ currentStudent }: Props) {
       gender: currentStudent?.gender ?? '',
       cpf: currentStudent?.cpf ?? '',
       rg: currentStudent?.rg ?? '',
-      address: currentStudent?.address ?? '',
+      address: typeof currentStudent?.address === 'object' && currentStudent?.address !== null
+        ? Object.values(currentStudent.address as Record<string, unknown>).filter(Boolean).join(', ')
+        : (currentStudent?.address ?? ''),
       status: currentStudent?.status ?? 'active',
       guardianName: currentStudent?.guardian?.name ?? '',
       guardianPhone: currentStudent?.guardian?.phone ?? '',
