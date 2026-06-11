@@ -66,7 +66,7 @@ const YEAR_OPTIONS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - i);
 // ----------------------------------------------------------------------
 
 export function FinancialListView() {
-  const table = useTable({ defaultOrderBy: 'dueDate' });
+  const table = useTable({ defaultOrderBy: 'dueDate', defaultRowsPerPage: 10 });
   const confirm = useBoolean();
   const { canCreateFinancial, canDeleteFinancial } = useRolePermissions();
 

@@ -46,7 +46,7 @@ const TABLE_HEAD = [
 // ----------------------------------------------------------------------
 
 export function AdminListView() {
-  const table = useTable({ defaultOrderBy: 'name' });
+  const table = useTable({ defaultOrderBy: 'name', defaultRowsPerPage: 10 });
   const router = useRouter();
   const confirm = useBoolean();
 

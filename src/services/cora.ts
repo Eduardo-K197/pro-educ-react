@@ -15,6 +15,16 @@ export interface CoraSetupPayload {
 }
 
 export class CoraService {
+  static async pollAll(config?: AxiosRequestConfig): Promise<any> {
+    const { data } = await axiosInstance.post('/cora/polling/all', {}, config);
+    return data;
+  }
+
+  static async pollSchool(schoolId: string, config?: AxiosRequestConfig): Promise<any> {
+    const { data } = await axiosInstance.post(`/cora/polling/school/${schoolId}`, {}, config);
+    return data;
+  }
+
   static async setup(payload: CoraSetupPayload, config?: AxiosRequestConfig): Promise<any> {
     const form = new FormData();
 

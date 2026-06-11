@@ -202,10 +202,12 @@ export function CustomTable({
           )}
 
           {!loading && paginationCount > 0 && (
-            <Typography variant="caption" color="text.disabled">
+            <Typography variant="caption" color="text.secondary">
               Exibindo{' '}
               <Chip
                 size="small"
+                color="primary"
+                variant="soft"
                 label={`${from}–${to}`}
                 sx={{ height: 18, fontSize: 11, fontWeight: 600, px: 0.25 }}
               />{' '}
