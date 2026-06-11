@@ -53,7 +53,7 @@ const TABLE_HEAD = [
 // ----------------------------------------------------------------------
 
 export function StudentListView() {
-  const table = useTable({ defaultOrderBy: 'name' });
+  const table = useTable({ defaultOrderBy: 'name', defaultRowsPerPage: 10 });
   const confirm = useBoolean();
   const { canCreateStudent, canDeleteStudent } = useRolePermissions();
 

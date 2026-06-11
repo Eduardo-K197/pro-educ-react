@@ -32,7 +32,7 @@ const TABLE_HEAD = [
 ];
 
 export function ClassroomListView() {
-  const table = useTable({ defaultOrderBy: 'name' });
+  const table = useTable({ defaultOrderBy: 'name', defaultRowsPerPage: 10 });
 
   const [tableData, setTableData] = useState<ClassroomListItem[]>([]);
   const [total, setTotal] = useState(0);

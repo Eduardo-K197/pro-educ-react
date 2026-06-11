@@ -41,9 +41,12 @@ export function LessonTableRow({ row, selected, onSelectRow, onDeleteRow }: Prop
         </TableCell>
 
         {/* Aula / Descrição */}
-        <TableCell sx={{ minWidth: 160 }}>
+        <TableCell
+          sx={{ minWidth: 160, cursor: 'pointer' }}
+          onClick={() => router.push(paths.dashboard.lessons.details(row.id))}
+        >
           <Stack spacing={0.25}>
-            <Typography variant="body2" fontWeight={600} noWrap>
+            <Typography variant="body2" fontWeight={600} noWrap sx={{ '&:hover': { color: 'primary.main' } }}>
               {row.details ?? `Aula — ${row.course?.name ?? ''}`}
             </Typography>
           </Stack>
@@ -91,6 +94,10 @@ export function LessonTableRow({ row, selected, onSelectRow, onDeleteRow }: Prop
 
       <CustomPopover open={popover.open} anchorEl={popover.anchorEl} onClose={popover.onClose} slotProps={{ arrow: { placement: 'right-top' } }}>
         <MenuList>
+          <MenuItem onClick={() => { router.push(paths.dashboard.lessons.details(row.id)); popover.onClose(); }}>
+            <Iconify icon="solar:eye-bold" />
+            Ver / Chamada
+          </MenuItem>
           <MenuItem onClick={() => { router.push(paths.dashboard.lessons.edit(row.id)); popover.onClose(); }}>
             <Iconify icon="solar:pen-bold" />
             Editar

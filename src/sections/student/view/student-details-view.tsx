@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import Grid from '@mui/material/Unstable_Grid2';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import Table from '@mui/material/Table';
@@ -28,6 +29,11 @@ import { fDate } from 'src/utils/format-time';
 import type { StudentDetail } from 'src/types/services/student';
 import { StudentService } from 'src/services/student';
 
+import { StudentGradesTab } from '../student-grades-tab';
+import { StudentTurmasTab } from '../student-turmas-tab';
+import { StudentPagamentosTab } from '../student-pagamentos-tab';
+import { StudentDesempenhoTab } from '../student-desempenho-tab';
+
 // ----------------------------------------------------------------------
 
 function safeStr(val: unknown): string | undefined {
@@ -47,6 +53,7 @@ type Props = { id: string };
 export function StudentDetailsView({ id }: Props) {
   const [student, setStudent] = useState<StudentDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     StudentService.getById(id)
@@ -89,88 +96,75 @@ export function StudentDetailsView({ id }: Props) {
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
-      <Grid container spacing={3}>
-        <Grid xs={12} md={4}>
-          <Card sx={{ p: 3, textAlign: 'center' }}>
-            <Stack alignItems="center" spacing={2}>
-              <Stack
-                sx={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: '50%',
-                  bgcolor: 'primary.lighter',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Typography variant="h3" color="primary.main">
-                  {student.name.charAt(0).toUpperCase()}
-                </Typography>
+      <Tabs
+        value={activeTab}
+        onChange={(_, v) => setActiveTab(v)}
+        sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
+      >
+        <Tab label="Detalhes" />
+        <Tab label="Turmas" />
+        <Tab label="Notas" />
+        <Tab label="Pagamentos" />
+        <Tab label="Desempenho" />
+      </Tabs>
+
+      {activeTab === 0 && (
+        <Grid container spacing={3}>
+          <Grid xs={12} md={4}>
+            <Card sx={{ p: 3, textAlign: 'center' }}>
+              <Stack alignItems="center" spacing={2}>
+                <Stack
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: '50%',
+                    bgcolor: 'primary.lighter',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Typography variant="h3" color="primary.main">
+                    {student.name.charAt(0).toUpperCase()}
+                  </Typography>
+                </Stack>
+
+                <Stack spacing={0.5}>
+                  <Typography variant="subtitle1">{student.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {student.email ?? '-'}
+                  </Typography>
+                </Stack>
+
+                <Label
+                  variant="soft"
+                  color={
+                    student.status === 'active' || student.status === 'ativo'
+                      ? 'success'
+                      : 'default'
+                  }
+                >
+                  {student.status ?? 'ativo'}
+                </Label>
               </Stack>
-
-              <Stack spacing={0.5}>
-                <Typography variant="subtitle1">{student.name}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {student.email ?? '-'}
-                </Typography>
-              </Stack>
-
-              <Label
-                variant="soft"
-                color={
-                  student.status === 'active' || student.status === 'ativo'
-                    ? 'success'
-                    : 'default'
-                }
-              >
-                {student.status ?? 'ativo'}
-              </Label>
-            </Stack>
-          </Card>
-        </Grid>
-
-        <Grid xs={12} md={8}>
-          <Stack spacing={3}>
-            <Card sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                Informações pessoais
-              </Typography>
-              <TableContainer>
-                <Table size="small">
-                  <TableBody>
-                    {[
-                      { label: 'Telefone', value: safeStr(student.phone) },
-                      { label: 'Data de nascimento', value: student.birthDate ? fDate(student.birthDate) : undefined },
-                      { label: 'Gênero', value: safeStr(student.gender) },
-                      { label: 'CPF', value: safeStr(student.cpf) },
-                      { label: 'RG', value: safeStr(student.rg) },
-                      { label: 'Endereço', value: safeStr(student.address) },
-                    ].map((item) => (
-                      <TableRow key={item.label}>
-                        <TableCell sx={{ color: 'text.secondary', width: 180, border: 0, py: 1 }}>
-                          {item.label}
-                        </TableCell>
-                        <TableCell sx={{ border: 0, py: 1 }}>{item.value ?? '-'}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
             </Card>
+          </Grid>
 
-            {student.guardian && (
+          <Grid xs={12} md={8}>
+            <Stack spacing={3}>
               <Card sx={{ p: 3 }}>
                 <Typography variant="h6" sx={{ mb: 2 }}>
-                  Responsável
+                  Informações pessoais
                 </Typography>
                 <TableContainer>
                   <Table size="small">
                     <TableBody>
                       {[
-                        { label: 'Nome', value: student.guardian.name },
-                        { label: 'Telefone', value: student.guardian.phone },
-                        { label: 'E-mail', value: student.guardian.email },
-                        { label: 'Parentesco', value: student.guardian.relationship },
+                        { label: 'Telefone', value: safeStr(student.phone) },
+                        { label: 'Data de nascimento', value: student.birthDate ? fDate(student.birthDate) : undefined },
+                        { label: 'Gênero', value: safeStr(student.gender) },
+                        { label: 'CPF', value: safeStr(student.cpf) },
+                        { label: 'RG', value: safeStr(student.rg) },
+                        { label: 'Endereço', value: safeStr(student.address) },
                       ].map((item) => (
                         <TableRow key={item.label}>
                           <TableCell sx={{ color: 'text.secondary', width: 180, border: 0, py: 1 }}>
@@ -183,33 +177,70 @@ export function StudentDetailsView({ id }: Props) {
                   </Table>
                 </TableContainer>
               </Card>
-            )}
 
-            {student.subscriptions && student.subscriptions.length > 0 && (
-              <Card sx={{ p: 3 }}>
-                <Typography variant="h6" sx={{ mb: 2 }}>
-                  Turmas matriculadas
-                </Typography>
-                <Stack spacing={1}>
-                  {student.subscriptions.map((sub) => (
-                    <Stack key={sub.id} direction="row" spacing={2} alignItems="center">
-                      <Iconify icon="solar:calendar-mark-bold-duotone" width={18} />
-                      <Typography variant="body2">
-                        {sub.classroom?.name ?? '-'} — {sub.course?.name ?? '-'}
-                      </Typography>
-                      {sub.status && (
-                        <Label variant="soft" color="success">
-                          {sub.status}
-                        </Label>
-                      )}
-                    </Stack>
-                  ))}
-                </Stack>
-              </Card>
-            )}
-          </Stack>
+              {student.guardian && (
+                <Card sx={{ p: 3 }}>
+                  <Typography variant="h6" sx={{ mb: 2 }}>
+                    Responsável
+                  </Typography>
+                  <TableContainer>
+                    <Table size="small">
+                      <TableBody>
+                        {[
+                          { label: 'Nome', value: student.guardian.name },
+                          { label: 'Telefone', value: student.guardian.phone },
+                          { label: 'E-mail', value: student.guardian.email },
+                          { label: 'Parentesco', value: student.guardian.relationship },
+                        ].map((item) => (
+                          <TableRow key={item.label}>
+                            <TableCell sx={{ color: 'text.secondary', width: 180, border: 0, py: 1 }}>
+                              {item.label}
+                            </TableCell>
+                            <TableCell sx={{ border: 0, py: 1 }}>{item.value ?? '-'}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Card>
+              )}
+
+              {student.subscriptions && student.subscriptions.length > 0 && (
+                <Card sx={{ p: 3 }}>
+                  <Typography variant="h6" sx={{ mb: 2 }}>
+                    Turmas matriculadas
+                  </Typography>
+                  <Stack spacing={1}>
+                    {student.subscriptions.map((sub) => (
+                      <Stack key={sub.id} direction="row" spacing={2} alignItems="center">
+                        <Iconify icon="solar:calendar-mark-bold-duotone" width={18} />
+                        <Typography variant="body2">
+                          {sub.classroom?.name ?? '-'} — {sub.course?.name ?? '-'}
+                        </Typography>
+                        {sub.status && (
+                          <Label variant="soft" color="success">
+                            {sub.status}
+                          </Label>
+                        )}
+                      </Stack>
+                    ))}
+                  </Stack>
+                </Card>
+              )}
+            </Stack>
+          </Grid>
         </Grid>
-      </Grid>
+      )}
+
+      {activeTab === 1 && <StudentTurmasTab studentId={student.id} />}
+
+      {activeTab === 2 && (
+        <StudentGradesTab studentId={student.id} subscriptions={student.subscriptions} />
+      )}
+
+      {activeTab === 3 && <StudentPagamentosTab studentId={student.id} />}
+
+      {activeTab === 4 && <StudentDesempenhoTab studentId={student.id} />}
     </DashboardContent>
   );
 }

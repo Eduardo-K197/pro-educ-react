@@ -38,7 +38,7 @@ const TABLE_HEAD = [
 // ----------------------------------------------------------------------
 
 export function TeacherListView() {
-  const table = useTable({ defaultOrderBy: 'name' });
+  const table = useTable({ defaultOrderBy: 'name', defaultRowsPerPage: 10 });
   const confirm = useBoolean();
 
   const [tableData, setTableData] = useState<TeacherListItem[]>([]);

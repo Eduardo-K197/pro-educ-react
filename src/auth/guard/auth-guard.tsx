@@ -55,7 +55,7 @@ export function AuthGuard({ children }: Props) {
     if (typeof window !== 'undefined') {
       const mustChange = sessionStorage.getItem(STORAGE_KEYS.mustChangePassword);
       if (mustChange === 'true') {
-        router.replace(paths.auth.jwt.changePassword);
+        router.replace(paths.auth.jwt.signIn);
         return;
       }
     }

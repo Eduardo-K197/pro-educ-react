@@ -11,8 +11,30 @@ export interface LessonListItem {
   createdAt?: string;
 }
 
+export interface LessonPresence {
+  id: string;
+  status: 'present' | 'absent' | 'justified';
+  subscription?: {
+    id: string;
+    student?: { id: number; name: string };
+  };
+}
+
+export interface LessonSubscription {
+  id: string;
+  deletedAt?: string | null;
+  startAt?: string;
+  student?: { id: number; name: string };
+}
+
 export interface LessonDetail extends LessonListItem {
-  presences?: { studentId: number; studentName: string; present: boolean }[];
+  teacher?: { id: string; name: string };
+  classroom?: {
+    id: string;
+    name: string;
+    subscriptions?: LessonSubscription[];
+  };
+  presences?: LessonPresence[];
 }
 
 export interface LessonsIndexResponse {

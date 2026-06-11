@@ -40,6 +40,7 @@ type Props = {
   loading?: boolean;
   onDeleteRows?: VoidFunction;
   totalCount?: number;
+  rowsPerPageOptions?: number[];
 };
 
 export function CustomTable({
@@ -52,6 +53,7 @@ export function CustomTable({
   loading,
   onDeleteRows,
   totalCount,
+  rowsPerPageOptions = [10, 25, 50],
 }: Props) {
   const {
     dense,
@@ -218,7 +220,7 @@ export function CustomTable({
           rowsPerPage={rowsPerPage}
           onPageChange={onChangePage}
           onRowsPerPageChange={onChangeRowsPerPage}
-          rowsPerPageOptions={[10, 25, 50]}
+          rowsPerPageOptions={rowsPerPageOptions}
         />
       </Stack>
     </Card>

@@ -33,7 +33,7 @@ const TABLE_HEAD = [
 ];
 
 export function LessonListView() {
-  const table = useTable({ defaultOrderBy: 'date' });
+  const table = useTable({ defaultOrderBy: 'date', defaultRowsPerPage: 10 });
 
   const [tableData, setTableData] = useState<LessonListItem[]>([]);
   const [total, setTotal] = useState(0);
