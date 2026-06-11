@@ -25,6 +25,7 @@ import { TeacherService } from 'src/services/teacher';
 const TeacherSchema = zod.object({
   name: zod.string().min(2, 'Nome obrigatório'),
   email: zod.string().email('E-mail inválido'),
+  phoneNumber: zod.string().min(1, 'Telefone obrigatório'),
   password: zod.string().min(6, 'Senha mínima 6 caracteres').optional().or(zod.literal('')),
   birthDate: zod.string().optional(),
   hourlyProfit: zod.coerce.number().min(0).optional(),
@@ -42,6 +43,7 @@ export function TeacherNewEditForm({ currentTeacher }: Props) {
     () => ({
       name: currentTeacher?.name ?? '',
       email: currentTeacher?.email ?? '',
+      phoneNumber: currentTeacher?.phoneNumber ?? '',
       password: '',
       birthDate: currentTeacher?.birthDate ? currentTeacher.birthDate.substring(0, 10) : '',
       hourlyProfit: currentTeacher?.hourlyProfit ?? 0,
@@ -62,6 +64,7 @@ export function TeacherNewEditForm({ currentTeacher }: Props) {
         await TeacherService.update(currentTeacher.id, {
           name: data.name,
           email: data.email,
+          phoneNumber: data.phoneNumber,
           birthDate: data.birthDate || undefined,
           hourlyProfit: data.hourlyProfit,
           password: data.password || undefined,
@@ -71,9 +74,10 @@ export function TeacherNewEditForm({ currentTeacher }: Props) {
         const payload: TeacherCreatePayload = {
           name: data.name,
           email: data.email,
-          password: data.password!,
+          phoneNumber: data.phoneNumber,
           birthDate: data.birthDate || undefined,
           hourlyProfit: data.hourlyProfit,
+          password: data.password || undefined,
         };
         await TeacherService.create(payload);
         toast.success('Professor criado!');
@@ -90,20 +94,18 @@ export function TeacherNewEditForm({ currentTeacher }: Props) {
         <Grid xs={12} md={8}>
           <Card sx={{ p: 3 }}>
             <Typography variant="h6" sx={{ mb: 3 }}>Dados do professor</Typography>
-            <Stack spacing={2}>
+            <Stack spacing={2.5}>
               <Field.Text name="name" label="Nome completo *" />
+
               <Grid container spacing={2}>
                 <Grid xs={12} sm={6}>
                   <Field.Text name="email" label="E-mail *" type="email" />
                 </Grid>
                 <Grid xs={12} sm={6}>
-                  <Field.Text
-                    name="password"
-                    label={isEdit ? 'Nova senha (deixe em branco para não alterar)' : 'Senha *'}
-                    type="password"
-                  />
+                  <Field.Text name="phoneNumber" label="Telefone *" />
                 </Grid>
               </Grid>
+
               <Grid container spacing={2}>
                 <Grid xs={12} sm={6}>
                   <Field.Text name="birthDate" label="Data de nascimento" type="date" InputLabelProps={{ shrink: true }} />
@@ -112,6 +114,12 @@ export function TeacherNewEditForm({ currentTeacher }: Props) {
                   <Field.Text name="hourlyProfit" label="Valor hora/aula (R$)" type="number" />
                 </Grid>
               </Grid>
+
+              <Field.Text
+                name="password"
+                label={isEdit ? 'Nova senha (deixe em branco para não alterar)' : 'Senha inicial (opcional)'}
+                type="password"
+              />
             </Stack>
           </Card>
         </Grid>

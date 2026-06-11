@@ -14,6 +14,7 @@ export const paths = {
     jwt: {
       signIn: `${ROOTS.AUTH}/jwt/sign-in`,
       signUp: `${ROOTS.AUTH}/jwt/sign-up`,
+      changePassword: `${ROOTS.AUTH}/jwt/change-password`,
     },
   },
   // DASHBOARD
@@ -73,6 +74,9 @@ export const paths = {
       new: `${ROOTS.DASHBOARD}/financial/new`,
       details: (id: string) => `${ROOTS.DASHBOARD}/financial/${id}`,
       edit: (id: string) => `${ROOTS.DASHBOARD}/financial/${id}/edit`,
+    },
+    curriculum: {
+      root: `${ROOTS.DASHBOARD}/curriculum`,
     },
   },
 };

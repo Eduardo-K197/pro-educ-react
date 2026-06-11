@@ -9,6 +9,7 @@ export const STORAGE_KEYS = {
   schoolId: 'proeduc-school-id',
   schoolMode: 'proeduc-school-mode',
   user: 'proeduc-user',
+  mustChangePassword: 'proeduc-must-change-password',
 };
 
 if (!CONFIG.serverUrl || !/^https?:\/\//.test(CONFIG.serverUrl)) {

@@ -44,7 +44,7 @@ export function LessonTableRow({ row, selected, onSelectRow, onDeleteRow }: Prop
         <TableCell sx={{ minWidth: 160 }}>
           <Stack spacing={0.25}>
             <Typography variant="body2" fontWeight={600} noWrap>
-              {row.name ?? row.details ?? `Aula — ${row.course?.name ?? ''}`}
+              {row.details ?? `Aula — ${row.course?.name ?? ''}`}
             </Typography>
           </Stack>
         </TableCell>
@@ -61,11 +61,6 @@ export function LessonTableRow({ row, selected, onSelectRow, onDeleteRow }: Prop
           {row.teacher ? <Chip label={row.teacher.name} size="small" /> : '-'}
         </TableCell>
 
-        {/* Curso */}
-        <TableCell>
-          {row.course ? <Chip label={row.course.name} size="small" variant="outlined" /> : '-'}
-        </TableCell>
-
         {/* Data */}
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
           {row.date ? fDate(row.date) : '-'}
@@ -75,8 +70,7 @@ export function LessonTableRow({ row, selected, onSelectRow, onDeleteRow }: Prop
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
           {row.startTime || row.endTime ? (
             <Typography variant="body2" color="text.secondary">
-              {row.startTime ? fDate(row.startTime, 'HH:mm') : '?'}
-              {row.endTime ? ` – ${fDate(row.endTime, 'HH:mm')}` : ''}
+              {row.startTime ?? '?'}{row.endTime ? ` – ${row.endTime}` : ''}
             </Typography>
           ) : '—'}
         </TableCell>

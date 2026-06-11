@@ -1,24 +1,23 @@
 'use client';
 
-import type { CourseListItem, ICourseTableFilters } from 'src/types/services/course';
+import type { CourseListItem } from 'src/types/services/course';
 
 import { useState, useCallback, useEffect } from 'react';
 
-import Button from '@mui/material/Button';
-import InputAdornment from '@mui/material/InputAdornment';
-import TextField from '@mui/material/TextField';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
-import { useSetState } from 'src/hooks/use-set-state';
 
 import { CourseService } from 'src/services/course';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import { useTable, rowInPage } from 'src/components/table';
+import { useTable } from 'src/components/table';
 import { CustomTable } from 'src/components/list-table/list-table';
 
 import { CourseTableRow } from '../course-table-row';
@@ -33,49 +32,64 @@ const TABLE_HEAD = [
 
 export function CourseListView() {
   const table = useTable({ defaultOrderBy: 'name' });
+
   const [tableData, setTableData] = useState<CourseListItem[]>([]);
-  const filters = useSetState<ICourseTableFilters>({ name: '' });
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
-    CourseService.list({ perPage: 1000 })
-      .then((res) => setTableData((res as any).courses ?? res ?? []))
-      .catch(() => toast.error('Erro ao carregar cursos'));
-  }, []);
+    let cancelled = false;
+    setLoading(true);
 
-  const dataFiltered = (() => {
-    let data = [...tableData];
-    if (filters.state.name) {
-      data = data.filter((c) => c.name.toLowerCase().includes(filters.state.name.toLowerCase()));
-    }
-    return data;
-  })();
+    const params: Record<string, any> = { page: table.page + 1, perPage: table.rowsPerPage };
+    if (search) params.search = search;
 
-  const dataInPage = rowInPage(dataFiltered, table.page, table.rowsPerPage);
+    CourseService.list(params)
+      .then((res) => {
+        if (cancelled) return;
+        setTableData((res as any).courses ?? []);
+        setTotal((res as any).count ?? 0);
+      })
+      .catch(() => { if (!cancelled) toast.error('Erro ao carregar cursos'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [table.page, table.rowsPerPage, search, refreshKey]);
+
+  const reload = useCallback(() => setRefreshKey((k) => k + 1), []);
+
+  const handleSearch = useCallback(
+    (value: string) => { table.onResetPage(); setSearch(value); },
+    [table]
+  );
 
   const handleDeleteRow = useCallback(
     async (id: string) => {
       try {
         await CourseService.delete(id);
-        setTableData((prev) => prev.filter((r) => r.id !== id));
         toast.success('Curso excluído');
-        table.onUpdatePageDeleteRow(dataInPage.length);
+        reload();
       } catch {
         toast.error('Erro ao excluir curso');
       }
     },
-    [dataInPage.length, table]
+    [reload]
   );
 
   const handleDeleteRows = useCallback(async () => {
     try {
       await Promise.all(table.selected.map((id) => CourseService.delete(id)));
-      setTableData((prev) => prev.filter((r) => !table.selected.includes(r.id)));
       toast.success('Cursos excluídos');
-      table.onUpdatePageDeleteRows({ totalRowsInPage: dataInPage.length, totalRowsFiltered: dataFiltered.length });
+      table.onSelectAllRows(false, []);
+      reload();
     } catch {
       toast.error('Erro ao excluir');
     }
-  }, [dataFiltered.length, dataInPage.length, table]);
+  }, [table, reload]);
+
+  const notFound = !loading && tableData.length === 0;
 
   return (
     <DashboardContent>
@@ -96,16 +110,18 @@ export function CourseListView() {
 
       <CustomTable
         table={table}
-        dataFiltered={dataFiltered}
+        dataFiltered={tableData}
         tableHead={TABLE_HEAD}
-        notFound={!dataFiltered.length}
+        notFound={notFound}
+        loading={loading}
+        totalCount={total}
         onDeleteRows={handleDeleteRows}
         filters={
           <Stack sx={{ p: 2.5 }}>
             <TextField
               size="small"
-              value={filters.state.name}
-              onChange={(e) => { table.onResetPage(); filters.setState({ name: e.target.value }); }}
+              value={search}
+              onChange={(e) => handleSearch(e.target.value)}
               placeholder="Buscar curso..."
               InputProps={{
                 startAdornment: (
@@ -119,17 +135,15 @@ export function CourseListView() {
           </Stack>
         }
       >
-        {dataFiltered
-          .slice(table.page * table.rowsPerPage, table.page * table.rowsPerPage + table.rowsPerPage)
-          .map((row) => (
-            <CourseTableRow
-              key={row.id}
-              row={row}
-              selected={table.selected.includes(row.id)}
-              onSelectRow={() => table.onSelectRow(row.id)}
-              onDeleteRow={() => handleDeleteRow(row.id)}
-            />
-          ))}
+        {tableData.map((row) => (
+          <CourseTableRow
+            key={row.id}
+            row={row}
+            selected={table.selected.includes(row.id)}
+            onSelectRow={() => table.onSelectRow(row.id)}
+            onDeleteRow={() => handleDeleteRow(row.id)}
+          />
+        ))}
       </CustomTable>
     </DashboardContent>
   );

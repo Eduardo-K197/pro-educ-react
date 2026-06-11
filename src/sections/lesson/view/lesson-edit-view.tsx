@@ -43,7 +43,7 @@ export function LessonEditView({ id }: Props) {
         links={[
           { name: 'Painel', href: paths.dashboard.root },
           { name: 'Aulas', href: paths.dashboard.lessons.root },
-          { name: lesson?.name ?? 'Editar' },
+          { name: lesson?.details ?? 'Editar' },
         ]}
         sx={{ mb: { xs: 3, md: 5 } }}
       />

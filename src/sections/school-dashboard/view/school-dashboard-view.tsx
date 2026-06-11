@@ -17,12 +17,14 @@ import { Iconify } from 'src/components/iconify';
 import { Label } from 'src/components/label';
 import { fCurrency } from 'src/utils/format-number';
 
+import { STORAGE_KEYS } from 'src/utils/axios';
+
 import { DashboardService } from 'src/services/dashboard';
 import type { DashboardStats } from 'src/types/services/dashboard-stats';
 
 const EMPTY_STATS: DashboardStats = {
   studentCount: 0, teacherCount: 0, courseCount: 0, classroomCount: 0,
-  totalPending: 0, totalOverdue: 0, totalReceived: 0, months: [],
+  totalPending: 0, totalOverdue: 0, totalReceived: 0,
 };
 
 // ----------------------------------------------------------------------
@@ -84,6 +86,14 @@ export function SchoolDashboardView() {
   const { user } = useAuthContext();
   const [stats, setStats] = useState<DashboardStats>(EMPTY_STATS);
   const [loading, setLoading] = useState(true);
+  const [activeSchoolId, setActiveSchoolId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem(STORAGE_KEYS.schoolId);
+      setActiveSchoolId(stored ?? (user?.schools as any[])?.[0]?.id ?? null);
+    }
+  }, [user]);
 
   useEffect(() => {
     DashboardService.getStats()
@@ -102,9 +112,11 @@ export function SchoolDashboardView() {
     );
   }
 
-  const schoolName = (user?.schools as any[])?.find(
-    (s: any) => s.id === user?.activeSchoolId
-  )?.name ?? 'Escola';
+  const schools = (user?.schools as any[]) ?? [];
+  const schoolName =
+    schools.find((s: any) => s.id === activeSchoolId)?.name ??
+    schools[0]?.name ??
+    'Escola';
 
   return (
     <DashboardContent>

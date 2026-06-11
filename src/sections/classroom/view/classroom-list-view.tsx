@@ -1,24 +1,23 @@
 'use client';
 
-import type { ClassroomListItem, IClassroomTableFilters } from 'src/types/services/classroom';
+import type { ClassroomListItem } from 'src/types/services/classroom';
 
 import { useState, useCallback, useEffect } from 'react';
 
-import Button from '@mui/material/Button';
-import InputAdornment from '@mui/material/InputAdornment';
-import TextField from '@mui/material/TextField';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
-import { useSetState } from 'src/hooks/use-set-state';
 
 import { ClassroomService } from 'src/services/classroom';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import { useTable, rowInPage } from 'src/components/table';
+import { useTable } from 'src/components/table';
 import { CustomTable } from 'src/components/list-table/list-table';
 
 import { ClassroomTableRow } from '../classroom-table-row';
@@ -34,47 +33,67 @@ const TABLE_HEAD = [
 
 export function ClassroomListView() {
   const table = useTable({ defaultOrderBy: 'name' });
+
   const [tableData, setTableData] = useState<ClassroomListItem[]>([]);
-  const filters = useSetState<IClassroomTableFilters>({ name: '' });
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
-    ClassroomService.list({ perPage: 1000 })
-      .then((res) => setTableData((res as any).classrooms ?? res ?? []))
-      .catch(() => toast.error('Erro ao carregar turmas'));
-  }, []);
+    let cancelled = false;
+    setLoading(true);
 
-  const dataFiltered = (() => {
-    let data = [...tableData];
-    if (filters.state.name) data = data.filter((c) => c.name.toLowerCase().includes(filters.state.name.toLowerCase()));
-    return data;
-  })();
+    const params: Record<string, any> = {
+      page: table.page + 1,
+      perPage: table.rowsPerPage,
+    };
+    if (search) params.search = search;
 
-  const dataInPage = rowInPage(dataFiltered, table.page, table.rowsPerPage);
+    ClassroomService.list(params)
+      .then((res) => {
+        if (cancelled) return;
+        setTableData((res as any).classrooms ?? []);
+        setTotal((res as any).count ?? 0);
+      })
+      .catch(() => { if (!cancelled) toast.error('Erro ao carregar turmas'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [table.page, table.rowsPerPage, search, refreshKey]);
+
+  const reload = useCallback(() => setRefreshKey((k) => k + 1), []);
+
+  const handleSearch = useCallback(
+    (value: string) => { table.onResetPage(); setSearch(value); },
+    [table]
+  );
 
   const handleDeleteRow = useCallback(
     async (id: string) => {
       try {
         await ClassroomService.delete(id);
-        setTableData((prev) => prev.filter((r) => r.id !== id));
         toast.success('Turma excluída');
-        table.onUpdatePageDeleteRow(dataInPage.length);
+        reload();
       } catch {
         toast.error('Erro ao excluir turma');
       }
     },
-    [dataInPage.length, table]
+    [reload]
   );
 
   const handleDeleteRows = useCallback(async () => {
     try {
       await Promise.all(table.selected.map((id) => ClassroomService.delete(id)));
-      setTableData((prev) => prev.filter((r) => !table.selected.includes(r.id)));
       toast.success('Turmas excluídas');
-      table.onUpdatePageDeleteRows({ totalRowsInPage: dataInPage.length, totalRowsFiltered: dataFiltered.length });
+      table.onSelectAllRows(false, []);
+      reload();
     } catch {
       toast.error('Erro ao excluir');
     }
-  }, [dataFiltered.length, dataInPage.length, table]);
+  }, [table, reload]);
+
+  const notFound = !loading && tableData.length === 0;
 
   return (
     <DashboardContent>
@@ -95,16 +114,18 @@ export function ClassroomListView() {
 
       <CustomTable
         table={table}
-        dataFiltered={dataFiltered}
+        dataFiltered={tableData}
         tableHead={TABLE_HEAD}
-        notFound={!dataFiltered.length}
+        notFound={notFound}
+        loading={loading}
+        totalCount={total}
         onDeleteRows={handleDeleteRows}
         filters={
           <Stack sx={{ p: 2.5 }}>
             <TextField
               size="small"
-              value={filters.state.name}
-              onChange={(e) => { table.onResetPage(); filters.setState({ name: e.target.value }); }}
+              value={search}
+              onChange={(e) => handleSearch(e.target.value)}
               placeholder="Buscar turma..."
               InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="eva:search-fill" width={18} sx={{ color: 'text.disabled' }} /></InputAdornment> }}
               sx={{ maxWidth: 400 }}
@@ -112,17 +133,15 @@ export function ClassroomListView() {
           </Stack>
         }
       >
-        {dataFiltered
-          .slice(table.page * table.rowsPerPage, table.page * table.rowsPerPage + table.rowsPerPage)
-          .map((row) => (
-            <ClassroomTableRow
-              key={row.id}
-              row={row}
-              selected={table.selected.includes(row.id)}
-              onSelectRow={() => table.onSelectRow(row.id)}
-              onDeleteRow={() => handleDeleteRow(row.id)}
-            />
-          ))}
+        {tableData.map((row) => (
+          <ClassroomTableRow
+            key={row.id}
+            row={row}
+            selected={table.selected.includes(row.id)}
+            onSelectRow={() => table.onSelectRow(row.id)}
+            onDeleteRow={() => handleDeleteRow(row.id)}
+          />
+        ))}
       </CustomTable>
     </DashboardContent>
   );

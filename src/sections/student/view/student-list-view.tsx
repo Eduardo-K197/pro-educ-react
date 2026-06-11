@@ -1,18 +1,19 @@
 'use client';
 
-import type { StudentListItem, IStudentTableFilters } from 'src/types/services/student';
+import type { StudentListItem } from 'src/types/services/student';
 
 import { useState, useCallback, useEffect } from 'react';
 
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
 
 import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 import { useBoolean } from 'src/hooks/use-boolean';
-import { useSetState } from 'src/hooks/use-set-state';
 import { useRolePermissions } from 'src/hooks/use-role-permissions';
 
 import { varAlpha } from 'src/theme/styles';
@@ -20,24 +21,24 @@ import { varAlpha } from 'src/theme/styles';
 import { StudentService } from 'src/services/student';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import { useTable, getComparator, rowInPage } from 'src/components/table';
+import { useTable } from 'src/components/table';
 import { CustomTable } from 'src/components/list-table/list-table';
 
 import { StudentTableRow } from '../student-table-row';
-import { StudentTableToolbar } from '../student-table-toolbar';
 
 // ----------------------------------------------------------------------
 
+// Valores exatos do enum StudentStatus no backend (português)
 const STATUS_OPTIONS = [
   { value: 'all', label: 'Todos' },
-  { value: 'active', label: 'Ativos' },
-  { value: 'inactive', label: 'Inativos' },
-  { value: 'suspended', label: 'Suspensos' },
+  { value: 'Ativo', label: 'Ativos' },
+  { value: 'Inativo', label: 'Inativos' },
+  { value: 'Interessado', label: 'Interessados' },
+  { value: 'Cancelado', label: 'Cancelados' },
 ];
 
 const TABLE_HEAD = [
@@ -53,74 +54,77 @@ const TABLE_HEAD = [
 
 export function StudentListView() {
   const table = useTable({ defaultOrderBy: 'name' });
-  const router = useRouter();
   const confirm = useBoolean();
   const { canCreateStudent, canDeleteStudent } = useRolePermissions();
 
   const [tableData, setTableData] = useState<StudentListItem[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const filters = useSetState<IStudentTableFilters>({
-    name: '',
-    status: 'all',
-    startDate: null,
-    endDate: null,
-  });
-
-  const loadStudents = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await StudentService.list({ perPage: 1000 });
-      const students = (res as any).students ?? res ?? [];
-      setTableData(students);
-    } catch {
-      toast.error('Erro ao carregar alunos');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('Ativo');
 
   useEffect(() => {
-    loadStudents();
-  }, [loadStudents]);
+    let cancelled = false;
+    setLoading(true);
 
-  const dataFiltered = applyFilter({
-    inputData: tableData,
-    comparator: getComparator(table.order, table.orderBy),
-    filters: filters.state,
-  });
+    const params: Record<string, any> = {
+      page: table.page + 1,
+      perPage: table.rowsPerPage,
+    };
+    if (search) params.search = search;
+    if (status !== 'all') params.status = status;
 
-  const dataInPage = rowInPage(dataFiltered, table.page, table.rowsPerPage);
-  const canReset = !!filters.state.name || filters.state.status !== 'all';
-  const notFound = !dataFiltered.length;
+    StudentService.list(params)
+      .then((res) => {
+        if (cancelled) return;
+        setTableData((res as any).students ?? []);
+        setTotal((res as any).count ?? 0);
+      })
+      .catch(() => { if (!cancelled) toast.error('Erro ao carregar alunos'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [table.page, table.rowsPerPage, search, status, refreshKey]);
+
+  const reload = useCallback(() => setRefreshKey((k) => k + 1), []);
+
+  const handleSearch = useCallback(
+    (value: string) => { table.onResetPage(); setSearch(value); },
+    [table]
+  );
+
+  const handleStatusChange = useCallback(
+    (_: React.SyntheticEvent, value: string) => { table.onResetPage(); setStatus(value); },
+    [table]
+  );
 
   const handleDeleteRow = useCallback(
     async (id: string) => {
       try {
         await StudentService.delete(id);
-        setTableData((prev) => prev.filter((r) => String(r.id) !== id));
         toast.success('Aluno excluído');
-        table.onUpdatePageDeleteRow(dataInPage.length);
+        reload();
       } catch {
         toast.error('Erro ao excluir aluno');
       }
     },
-    [dataInPage.length, table]
+    [reload]
   );
 
   const handleDeleteRows = useCallback(async () => {
     try {
       await Promise.all(table.selected.map((id) => StudentService.delete(id)));
-      setTableData((prev) => prev.filter((r) => !table.selected.includes(String(r.id))));
       toast.success('Alunos excluídos');
-      table.onUpdatePageDeleteRows({
-        totalRowsInPage: dataInPage.length,
-        totalRowsFiltered: dataFiltered.length,
-      });
+      table.onSelectAllRows(false, []);
+      reload();
     } catch {
       toast.error('Erro ao excluir alunos');
     }
-  }, [dataFiltered.length, dataInPage.length, table]);
+  }, [table, reload]);
+
+  const notFound = !loading && tableData.length === 0;
 
   return (
     <DashboardContent>
@@ -132,34 +136,64 @@ export function StudentListView() {
           { name: 'Listagem' },
         ]}
         action={
-          canCreateStudent && (
+          <Stack direction="row" spacing={1}>
             <Button
-              component={RouterLink}
-              href={paths.dashboard.students.new}
-              variant="contained"
-              startIcon={<Iconify icon="mingcute:add-line" />}
+              variant="soft"
+              color="inherit"
+              startIcon={<Iconify icon="solar:export-bold" />}
+              onClick={() => {
+                if (!tableData.length) return;
+                const rows = tableData.map((s) => ({
+                  Nome: s.name ?? '',
+                  Email: s.email ?? '',
+                  Telefone: s.phone ?? s.phoneNumber ?? '',
+                  Nascimento: s.birthDate ? s.birthDate.substring(0, 10) : '',
+                  Status: s.status ?? '',
+                }));
+                const headers = Object.keys(rows[0]);
+                const csv = [
+                  headers.join(';'),
+                  ...rows.map((r) => headers.map((h) => `"${(r as any)[h]}"`).join(';')),
+                ].join('\n');
+                const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'alunos.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
             >
-              Novo aluno
+              Exportar CSV
             </Button>
-          )
+            {canCreateStudent && (
+              <Button
+                component={RouterLink}
+                href={paths.dashboard.students.new}
+                variant="contained"
+                startIcon={<Iconify icon="mingcute:add-line" />}
+              >
+                Novo aluno
+              </Button>
+            )}
+          </Stack>
         }
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
       <CustomTable
         table={table}
-        dataFiltered={dataFiltered}
+        dataFiltered={tableData}
         tableHead={TABLE_HEAD}
         notFound={notFound}
+        loading={loading}
+        totalCount={total}
         onDeleteRows={canDeleteStudent ? handleDeleteRows : undefined}
         filters={
           <>
             <Tabs
-              value={filters.state.status}
-              onChange={(_, v) => {
-                table.onResetPage();
-                filters.setState({ status: v });
-              }}
+              value={status}
+              onChange={handleStatusChange}
               sx={{
                 px: 2.5,
                 boxShadow: (theme) =>
@@ -167,50 +201,39 @@ export function StudentListView() {
               }}
             >
               {STATUS_OPTIONS.map((tab) => (
-                <Tab
-                  key={tab.value}
-                  value={tab.value}
-                  label={tab.label}
-                  iconPosition="end"
-                  icon={
-                    <Label
-                      variant={
-                        tab.value === 'all' || tab.value === filters.state.status
-                          ? 'filled'
-                          : 'soft'
-                      }
-                      color={
-                        (tab.value === 'active' && 'success') ||
-                        (tab.value === 'inactive' && 'default') ||
-                        (tab.value === 'suspended' && 'error') ||
-                        'default'
-                      }
-                    >
-                      {tab.value === 'all'
-                        ? tableData.length
-                        : tableData.filter((s) => s.status === tab.value).length}
-                    </Label>
-                  }
-                />
+                <Tab key={tab.value} value={tab.value} label={tab.label} />
               ))}
             </Tabs>
 
-            <StudentTableToolbar filters={filters} onResetPage={table.onResetPage} />
+            <Stack sx={{ p: 2.5 }}>
+              <TextField
+                size="small"
+                value={search}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Buscar aluno..."
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Iconify icon="eva:search-fill" width={18} sx={{ color: 'text.disabled' }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ maxWidth: 400 }}
+              />
+            </Stack>
           </>
         }
       >
-        {dataFiltered
-          .slice(table.page * table.rowsPerPage, table.page * table.rowsPerPage + table.rowsPerPage)
-          .map((row) => (
-            <StudentTableRow
-              key={row.id}
-              row={row}
-              selected={table.selected.includes(String(row.id))}
-              onSelectRow={() => table.onSelectRow(String(row.id))}
-              onDeleteRow={() => handleDeleteRow(String(row.id))}
-              canDelete={canDeleteStudent}
-            />
-          ))}
+        {tableData.map((row) => (
+          <StudentTableRow
+            key={row.id}
+            row={row}
+            selected={table.selected.includes(String(row.id))}
+            onSelectRow={() => table.onSelectRow(String(row.id))}
+            onDeleteRow={() => handleDeleteRow(String(row.id))}
+            canDelete={canDeleteStudent}
+          />
+        ))}
       </CustomTable>
 
       <ConfirmDialog
@@ -226,37 +249,4 @@ export function StudentListView() {
       />
     </DashboardContent>
   );
-}
-
-// ----------------------------------------------------------------------
-
-type ApplyFilterProps = {
-  inputData: StudentListItem[];
-  filters: IStudentTableFilters;
-  comparator: (a: any, b: any) => number;
-};
-
-function applyFilter({ inputData, comparator, filters }: ApplyFilterProps) {
-  const { name, status } = filters;
-
-  const stabilized = inputData.map((el, index) => [el, index] as const);
-  stabilized.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    return order !== 0 ? order : a[1] - b[1];
-  });
-  inputData = stabilized.map((el) => el[0]);
-
-  if (name) {
-    inputData = inputData.filter(
-      (s) =>
-        s.name.toLowerCase().includes(name.toLowerCase()) ||
-        (s.email ?? '').toLowerCase().includes(name.toLowerCase())
-    );
-  }
-
-  if (status !== 'all') {
-    inputData = inputData.filter((s) => (s.status ?? 'active') === status);
-  }
-
-  return inputData;
 }

@@ -1,6 +1,5 @@
 export interface LessonListItem {
   id: string;
-  name?: string;
   date?: string;
   startTime?: string;
   endTime?: string;
@@ -18,15 +17,19 @@ export interface LessonDetail extends LessonListItem {
 
 export interface LessonsIndexResponse {
   classes: LessonListItem[];
+  count?: number;
   total?: number;
 }
 
+// Campos exatos aceitos pela API (ClassController)
 export interface LessonCreatePayload {
-  courseId: string;
-  teacherId: string;
-  classroomId?: string;
-  date?: string;
-  name?: string;
+  classroom: string;   // classroom ID
+  teacher: string;     // teacher ID
+  date: string;        // required
+  startTime: string;   // required, formato HH:MM
+  endTime: string;     // required, formato HH:MM
+  status: string;      // required
+  details?: string;    // opcional
 }
 
 export interface LessonUpdatePayload extends Partial<LessonCreatePayload> {}

@@ -92,6 +92,11 @@ export const navAdmin = [
         path: paths.dashboard.lessons.root,
         icon: <Iconify icon="solar:notebook-bold-duotone" />,
       },
+      {
+        title: 'Grade Curricular',
+        path: paths.dashboard.curriculum.root,
+        icon: <Iconify icon="solar:clipboard-list-bold-duotone" />,
+      },
     ],
   },
   {

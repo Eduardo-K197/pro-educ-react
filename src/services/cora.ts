@@ -4,6 +4,7 @@ import axiosInstance from 'src/utils/axios';
 
 export interface CoraSetupPayload {
   schoolId?: string;
+  schoolName?: string;
   clientId: string;
   environment: 'homolog' | 'production';
   accountName: string;
@@ -25,6 +26,8 @@ export class CoraService {
 
     if (payload.schoolId) {
       form.append('schoolId', payload.schoolId);
+    } else if (payload.schoolName) {
+      form.append('schoolName', payload.schoolName);
     }
 
     if (payload.categories?.length) {

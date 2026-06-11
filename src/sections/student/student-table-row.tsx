@@ -28,11 +28,10 @@ import { usePopover, CustomPopover } from 'src/components/custom-popover';
 // ----------------------------------------------------------------------
 
 const STATUS_COLOR: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
-  active: 'success',
-  ativo: 'success',
-  inactive: 'default',
-  inativo: 'default',
-  suspended: 'error',
+  Ativo: 'success',
+  Inativo: 'default',
+  Interessado: 'warning',
+  Cancelado: 'error',
 };
 
 type Props = {
@@ -106,7 +105,7 @@ export function StudentTableRow({ row, selected, onSelectRow, onDeleteRow, canDe
 
         <TableCell>
           <Label variant="soft" color={statusColor}>
-            {row.status ?? 'ativo'}
+            {row.status ?? '—'}
           </Label>
         </TableCell>
 

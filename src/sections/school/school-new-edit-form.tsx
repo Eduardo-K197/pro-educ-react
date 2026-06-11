@@ -186,15 +186,23 @@ export function SchoolNewEditForm({ currentSchool }: Props) {
       return;
     }
 
+    const schoolId = currentSchool?.id;
+    const schoolName = watch('name')?.trim();
+
+    if (!schoolId && !schoolName) {
+      toast.error('Preencha o nome da escola antes de configurar a Cora');
+      return;
+    }
+
     try {
       setCoraLoading(true);
 
-      const schoolId = currentSchool?.id;
       const materialNames = parseUniqueLines(watch('materialsText') ?? '');
       const categoryNames = parseUniqueLines(watch('categoriesText') ?? '');
 
       await CoraService.setup({
         schoolId,
+        schoolName: schoolId ? undefined : schoolName,
         clientId: coraClientId,
         environment: coraEnvironment,
         accountName: coraAccountName,

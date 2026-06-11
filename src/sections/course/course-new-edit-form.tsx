@@ -22,8 +22,8 @@ import { CourseService } from 'src/services/course';
 
 const CourseSchema = zod.object({
   name: zod.string().min(2, 'Nome obrigatório'),
-  description: zod.string().optional(),
-  workload: zod.coerce.number().min(0).optional(),
+  description: zod.string().min(1, 'Descrição obrigatória'),
+  workload: zod.coerce.number().positive('Carga horária obrigatória'),
 });
 
 type CourseFormValues = zod.infer<typeof CourseSchema>;

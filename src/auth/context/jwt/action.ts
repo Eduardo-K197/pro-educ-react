@@ -1,14 +1,18 @@
 'use client';
 
-import axios from 'src/utils/axios';
+import axios, { STORAGE_KEYS } from 'src/utils/axios';
 
 import { setSession } from './utils';
 
 export type SignInParams = { email: string; password: string };
 export type SignUpParams = { email: string; password: string; firstName: string; lastName: string };
+export type SignInResult = { mustChangePassword: boolean };
 
-/** Login -> POST /sign-in (pega o token e só) */
-export const signInWithPassword = async ({ email, password }: SignInParams): Promise<void> => {
+/** Login -> POST /sign-in */
+export const signInWithPassword = async ({
+  email,
+  password,
+}: SignInParams): Promise<SignInResult> => {
   try {
     const res = await axios.post('/sign-in', { email, password });
     const d: any = (res && (res as any).data !== undefined ? (res as any).data : res) || {};
@@ -24,7 +28,18 @@ export const signInWithPassword = async ({ email, password }: SignInParams): Pro
       throw new Error('Invalid access token!');
     }
 
-    await setSession(token); // injeta Authorization no axios + salva em sessionStorage
+    await setSession(token);
+
+    const mustChangePassword = !!d.mustChangePassword;
+    if (typeof window !== 'undefined') {
+      if (mustChangePassword) {
+        sessionStorage.setItem(STORAGE_KEYS.mustChangePassword, 'true');
+      } else {
+        sessionStorage.removeItem(STORAGE_KEYS.mustChangePassword);
+      }
+    }
+
+    return { mustChangePassword };
   } catch (err: any) {
     const msg = err?.response?.data?.message || err?.message || String(err);
     throw new Error(msg.startsWith('<') ? '  Falha no login. Verifique a URL da API.' : msg);

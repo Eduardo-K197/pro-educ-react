@@ -66,9 +66,16 @@ export function JwtSignInView() {
   const onSubmit = handleSubmit(async (data) => {
     setErrorMsg('');
     try {
-      await signInWithPassword({ email: data.email, password: data.password });
+      const { mustChangePassword } = await signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
       await checkUserSession?.();
-      router.push(returnTo || '/proeduc');
+      if (mustChangePassword) {
+        router.push(paths.auth.jwt.changePassword);
+      } else {
+        router.push(returnTo || '/proeduc');
+      }
     } catch (err: any) {
       const raw = err?.message || String(err);
       setErrorMsg(raw.startsWith('<') ? stripHtml(raw).slice(0, 240) : raw);

@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { paths } from 'src/routes/paths';
 import { useRouter, usePathname, useSearchParams } from 'src/routes/hooks';
 
+import { STORAGE_KEYS } from 'src/utils/axios';
 
 import { SplashScreen } from 'src/components/loading-screen';
 
@@ -49,6 +50,14 @@ export function AuthGuard({ children }: Props) {
 
       router.replace(href);
       return;
+    }
+
+    if (typeof window !== 'undefined') {
+      const mustChange = sessionStorage.getItem(STORAGE_KEYS.mustChangePassword);
+      if (mustChange === 'true') {
+        router.replace(paths.auth.jwt.changePassword);
+        return;
+      }
     }
 
     setIsChecking(false);

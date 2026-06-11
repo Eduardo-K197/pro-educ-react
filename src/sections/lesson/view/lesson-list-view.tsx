@@ -1,24 +1,23 @@
 'use client';
 
-import type { LessonListItem, ILessonTableFilters } from 'src/types/services/lesson';
+import type { LessonListItem } from 'src/types/services/lesson';
 
 import { useState, useCallback, useEffect } from 'react';
 
-import Button from '@mui/material/Button';
-import InputAdornment from '@mui/material/InputAdornment';
-import TextField from '@mui/material/TextField';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
-import { useSetState } from 'src/hooks/use-set-state';
 
 import { LessonService } from 'src/services/lesson';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import { useTable, rowInPage } from 'src/components/table';
+import { useTable } from 'src/components/table';
 import { CustomTable } from 'src/components/list-table/list-table';
 
 import { LessonTableRow } from '../lesson-table-row';
@@ -27,7 +26,6 @@ const TABLE_HEAD = [
   { id: 'name', label: 'Aula / Descrição' },
   { id: 'classroom', label: 'Turma', width: 160 },
   { id: 'teacher', label: 'Professor', width: 160 },
-  { id: 'course', label: 'Curso', width: 160 },
   { id: 'date', label: 'Data', width: 110 },
   { id: 'time', label: 'Horário', width: 120 },
   { id: 'status', label: 'Status', width: 100 },
@@ -36,49 +34,67 @@ const TABLE_HEAD = [
 
 export function LessonListView() {
   const table = useTable({ defaultOrderBy: 'date' });
+
   const [tableData, setTableData] = useState<LessonListItem[]>([]);
-  const filters = useSetState<ILessonTableFilters>({ name: '' });
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
-    LessonService.list({ perPage: 1000 })
-      .then((res) => setTableData((res as any).classes ?? res ?? []))
-      .catch(() => toast.error('Erro ao carregar aulas'));
-  }, []);
+    let cancelled = false;
+    setLoading(true);
 
-  const dataFiltered = (() => {
-    let data = [...tableData];
-    if (filters.state.name) {
-      data = data.filter((l) => (l.name ?? l.course?.name ?? '').toLowerCase().includes(filters.state.name.toLowerCase()));
-    }
-    return data;
-  })();
+    const params: Record<string, any> = {
+      page: table.page + 1,
+      perPage: table.rowsPerPage,
+    };
+    if (search) params.search = search;
 
-  const dataInPage = rowInPage(dataFiltered, table.page, table.rowsPerPage);
+    LessonService.list(params)
+      .then((res) => {
+        if (cancelled) return;
+        setTableData((res as any).classes ?? []);
+        setTotal((res as any).count ?? 0);
+      })
+      .catch(() => { if (!cancelled) toast.error('Erro ao carregar aulas'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [table.page, table.rowsPerPage, search, refreshKey]);
+
+  const reload = useCallback(() => setRefreshKey((k) => k + 1), []);
+
+  const handleSearch = useCallback(
+    (value: string) => { table.onResetPage(); setSearch(value); },
+    [table]
+  );
 
   const handleDeleteRow = useCallback(
     async (id: string) => {
       try {
         await LessonService.delete(id);
-        setTableData((prev) => prev.filter((r) => r.id !== id));
         toast.success('Aula excluída');
-        table.onUpdatePageDeleteRow(dataInPage.length);
+        reload();
       } catch {
         toast.error('Erro ao excluir aula');
       }
     },
-    [dataInPage.length, table]
+    [reload]
   );
 
   const handleDeleteRows = useCallback(async () => {
     try {
       await Promise.all(table.selected.map((id) => LessonService.delete(id)));
-      setTableData((prev) => prev.filter((r) => !table.selected.includes(r.id)));
       toast.success('Aulas excluídas');
-      table.onUpdatePageDeleteRows({ totalRowsInPage: dataInPage.length, totalRowsFiltered: dataFiltered.length });
+      table.onSelectAllRows(false, []);
+      reload();
     } catch {
       toast.error('Erro ao excluir');
     }
-  }, [dataFiltered.length, dataInPage.length, table]);
+  }, [table, reload]);
+
+  const notFound = !loading && tableData.length === 0;
 
   return (
     <DashboardContent>
@@ -99,16 +115,18 @@ export function LessonListView() {
 
       <CustomTable
         table={table}
-        dataFiltered={dataFiltered}
+        dataFiltered={tableData}
         tableHead={TABLE_HEAD}
-        notFound={!dataFiltered.length}
+        notFound={notFound}
+        loading={loading}
+        totalCount={total}
         onDeleteRows={handleDeleteRows}
         filters={
           <Stack sx={{ p: 2.5 }}>
             <TextField
               size="small"
-              value={filters.state.name}
-              onChange={(e) => { table.onResetPage(); filters.setState({ name: e.target.value }); }}
+              value={search}
+              onChange={(e) => handleSearch(e.target.value)}
               placeholder="Buscar aula..."
               InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="eva:search-fill" width={18} sx={{ color: 'text.disabled' }} /></InputAdornment> }}
               sx={{ maxWidth: 400 }}
@@ -116,17 +134,15 @@ export function LessonListView() {
           </Stack>
         }
       >
-        {dataFiltered
-          .slice(table.page * table.rowsPerPage, table.page * table.rowsPerPage + table.rowsPerPage)
-          .map((row) => (
-            <LessonTableRow
-              key={row.id}
-              row={row}
-              selected={table.selected.includes(row.id)}
-              onSelectRow={() => table.onSelectRow(row.id)}
-              onDeleteRow={() => handleDeleteRow(row.id)}
-            />
-          ))}
+        {tableData.map((row) => (
+          <LessonTableRow
+            key={row.id}
+            row={row}
+            selected={table.selected.includes(row.id)}
+            onSelectRow={() => table.onSelectRow(row.id)}
+            onDeleteRow={() => handleDeleteRow(row.id)}
+          />
+        ))}
       </CustomTable>
     </DashboardContent>
   );
