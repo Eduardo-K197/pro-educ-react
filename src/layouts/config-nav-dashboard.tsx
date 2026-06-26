@@ -39,7 +39,7 @@ export const navSuperAdmin = [
         icon: <Iconify icon="mdi:school" />,
       },
       {
-        title: 'Admins',
+        title: 'Usuários',
         path: paths.dashboard.admins.root,
         icon: ICONS.user,
       },

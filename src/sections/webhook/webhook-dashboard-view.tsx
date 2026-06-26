@@ -261,6 +261,14 @@ function SchoolCard({
 
       {school.webhooks.length === 0 && (
         <Box sx={{ px: 2.5, pb: 2 }}>
+          {school.status === 'UNCONFIGURED' && (
+            <Chip
+              size="small"
+              variant="outlined"
+              label="Escola usa Cora ou Sicredi — sem webhook Asaas"
+              sx={{ mb: 1, fontSize: 11 }}
+            />
+          )}
           <Typography variant="body2" color="text.disabled">
             Nenhum webhook encontrado para esta escola.
           </Typography>
@@ -327,7 +335,7 @@ export function WebhookDashboardView() {
     );
   }
 
-  const summaryEntries = Object.entries(data?.summary ?? {}).filter(([, v]) => v > 0);
+  const summaryEntries = Object.entries(data?.summary ?? {}).filter(([, v]) => (v ?? 0) > 0);
 
   return (
     <DashboardContent>

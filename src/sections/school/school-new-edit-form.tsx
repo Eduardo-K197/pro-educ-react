@@ -39,12 +39,13 @@ import { Iconify } from 'src/components/iconify';
 
 import { SchoolService } from 'src/services/school';
 import { CoraService } from 'src/services/cora';
+import axiosInstance from 'src/utils/axios';
 
 // ----------------------------------------------------------------------
 
 const SchoolSchema = zod.object({
   name: zod.string().min(2, 'Nome obrigatório'),
-  paymentProvider: zod.enum(['asaas', 'cora']),
+  paymentProvider: zod.enum(['asaas', 'cora', 'sicredi']),
   asaasToken: zod.string().optional(),
   asaasSandboxMode: zod.boolean().optional(),
   asaasHomologationMode: zod.boolean().optional(),
@@ -93,9 +94,22 @@ export function SchoolNewEditForm({ currentSchool }: Props) {
   const certRef = useRef<HTMLInputElement>(null);
   const keyRef = useRef<HTMLInputElement>(null);
 
+  // Sicredi setup local state
+  const [sicrediSetupOpen, setSicrediSetupOpen] = useState(false);
+  const [sicrediLoading, setSicrediLoading] = useState(false);
+  const [sicrediClientId, setSicrediClientId] = useState('');
+  const [sicrediClientSecret, setSicrediClientSecret] = useState('');
+  const [sicrediUsername, setSicrediUsername] = useState('');
+  const [sicrediCooperativa, setSicrediCooperativa] = useState('');
+  const [sicrediPosto, setSicrediPosto] = useState('');
+  const [sicrediCodigoBeneficiario, setSicrediCodigoBeneficiario] = useState('');
+  const [sicrediAccountName, setSicrediAccountName] = useState('');
+  const [sicrediEnvironment, setSicrediEnvironment] = useState<'homolog' | 'production'>('production');
+
   const currentProvider: PaymentProvider =
     currentSchool?.paymentProvider ?? 'asaas';
   const coraConfigured = !!currentSchool?.coraAccount?.clientId;
+  const sicrediConfigured = !!currentSchool?.sicrediAccount?.clientId;
 
   const defaultValues = useMemo<SchoolFormValues>(
     () => ({
@@ -125,14 +139,12 @@ export function SchoolNewEditForm({ currentSchool }: Props) {
   } = methods;
 
   const provider = watch('paymentProvider');
-  const sandbox = watch('asaasSandboxMode') ?? false;
-  const homolog = watch('asaasHomologationMode') ?? false;
 
   useEffect(() => {
     if (currentSchool) reset(defaultValues);
   }, [currentSchool, defaultValues, reset]);
 
-  // ── Salvar escola (Asaas) ──────────────────────────────────────────────
+  // ── Salvar escola (Asaas / campos base) ───────────────────────────────
   const onSubmit = handleSubmit(async (values) => {
     const materialNames = parseUniqueLines(values.materialsText ?? '');
     const categoryNames = parseUniqueLines(values.categoriesText ?? '');
@@ -221,6 +233,50 @@ export function SchoolNewEditForm({ currentSchool }: Props) {
     }
   };
 
+  // ── Configurar Sicredi ────────────────────────────────────────────────
+  const handleSicrediSetup = async () => {
+    if (!sicrediClientId || !sicrediClientSecret || !sicrediUsername || !sicrediCooperativa || !sicrediPosto || !sicrediCodigoBeneficiario) {
+      toast.error('Preencha todos os campos obrigatórios do Sicredi');
+      return;
+    }
+
+    const schoolId = currentSchool?.id;
+    const schoolName = watch('name')?.trim();
+
+    if (!schoolId && !schoolName) {
+      toast.error('Preencha o nome da escola antes de configurar o Sicredi');
+      return;
+    }
+
+    try {
+      setSicrediLoading(true);
+
+      const materialNames = parseUniqueLines(watch('materialsText') ?? '');
+      const categoryNames = parseUniqueLines(watch('categoriesText') ?? '');
+
+      await axiosInstance.post('/sicredi/setup', {
+        schoolId,
+        name: sicrediAccountName || schoolName,
+        clientId: sicrediClientId,
+        clientSecret: sicrediClientSecret,
+        username: sicrediUsername,
+        cooperativa: sicrediCooperativa,
+        posto: sicrediPosto,
+        codigoBeneficiario: sicrediCodigoBeneficiario,
+        environment: sicrediEnvironment,
+        categories: categoryNames.map((n: string) => ({ name: n })),
+        defaultMaterials: materialNames.map((n: string) => ({ name: n })),
+      });
+
+      toast.success('Sicredi configurado com sucesso!');
+      router.push(paths.dashboard.schools.root);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message ?? error?.message ?? 'Erro ao configurar Sicredi');
+    } finally {
+      setSicrediLoading(false);
+    }
+  };
+
   // ── UI ────────────────────────────────────────────────────────────────
   return (
     <RHFFormProvider {...methods}>
@@ -271,6 +327,10 @@ export function SchoolNewEditForm({ currentSchool }: Props) {
                       <ToggleButton value="cora">
                         <Iconify icon="mdi:bank" sx={{ mr: 1 }} />
                         Banco Cora
+                      </ToggleButton>
+                      <ToggleButton value="sicredi">
+                        <Iconify icon="mdi:bank-transfer" sx={{ mr: 1 }} />
+                        Sicredi
                       </ToggleButton>
                     </ToggleButtonGroup>
                   )}
@@ -409,6 +469,71 @@ export function SchoolNewEditForm({ currentSchool }: Props) {
                     )}
                   </Stack>
                 )}
+
+                {/* ── Sicredi ── */}
+                {provider === 'sicredi' && (
+                  <Stack spacing={2}>
+                    {sicrediConfigured && !sicrediSetupOpen ? (
+                      <Alert
+                        severity="success"
+                        action={
+                          <Button size="small" onClick={() => setSicrediSetupOpen(true)}>
+                            Reconfigurar
+                          </Button>
+                        }
+                      >
+                        <AlertTitle>Sicredi configurado</AlertTitle>
+                        Cooperativa: <strong>{currentSchool?.sicrediAccount?.cooperativa}</strong> ·{' '}
+                        Ambiente:{' '}
+                        <Chip
+                          size="small"
+                          label={currentSchool?.sicrediAccount?.environment === 'production' ? 'Produção' : 'Homologação'}
+                          color={currentSchool?.sicrediAccount?.environment === 'production' ? 'success' : 'warning'}
+                        />
+                      </Alert>
+                    ) : (
+                      <>
+                        {!sicrediConfigured && (
+                          <Alert severity="info">
+                            Preencha os dados do portal do desenvolvedor Sicredi (developer.sicredi.com.br).
+                          </Alert>
+                        )}
+                        <Grid container spacing={2}>
+                          <Grid xs={12} sm={6}>
+                            <TextField fullWidth size="small" label="Nome da conta" value={sicrediAccountName} onChange={(e) => setSicrediAccountName(e.target.value)} />
+                          </Grid>
+                          <Grid xs={12} sm={6}>
+                            <FormControl size="small" fullWidth>
+                              <InputLabel>Ambiente</InputLabel>
+                              <Select value={sicrediEnvironment} label="Ambiente" onChange={(e) => setSicrediEnvironment(e.target.value as 'homolog' | 'production')}>
+                                <MenuItem value="production">Produção</MenuItem>
+                                <MenuItem value="homolog">Homologação</MenuItem>
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                          <Grid xs={12} sm={6}>
+                            <TextField fullWidth size="small" label="Client ID (x-api-key) *" value={sicrediClientId} onChange={(e) => setSicrediClientId(e.target.value)} />
+                          </Grid>
+                          <Grid xs={12} sm={6}>
+                            <TextField fullWidth size="small" type="password" label="Client Secret / Código de acesso *" value={sicrediClientSecret} onChange={(e) => setSicrediClientSecret(e.target.value)} />
+                          </Grid>
+                          <Grid xs={12} sm={6}>
+                            <TextField fullWidth size="small" label="Username (beneficiário) *" value={sicrediUsername} onChange={(e) => setSicrediUsername(e.target.value)} />
+                          </Grid>
+                          <Grid xs={12} sm={6}>
+                            <TextField fullWidth size="small" label="Cooperativa *" value={sicrediCooperativa} onChange={(e) => setSicrediCooperativa(e.target.value)} placeholder="Ex: 2206" />
+                          </Grid>
+                          <Grid xs={12} sm={6}>
+                            <TextField fullWidth size="small" label="Posto *" value={sicrediPosto} onChange={(e) => setSicrediPosto(e.target.value)} placeholder="Ex: 01" />
+                          </Grid>
+                          <Grid xs={12} sm={6}>
+                            <TextField fullWidth size="small" label="Código do Beneficiário *" value={sicrediCodigoBeneficiario} onChange={(e) => setSicrediCodigoBeneficiario(e.target.value)} placeholder="Ex: 27585" />
+                          </Grid>
+                        </Grid>
+                      </>
+                    )}
+                  </Stack>
+                )}
               </Card>
 
               {/* Materiais e Categorias */}
@@ -459,7 +584,7 @@ export function SchoolNewEditForm({ currentSchool }: Props) {
                   variant="outlined"
                   color="inherit"
                   onClick={() => router.push(paths.dashboard.schools.root)}
-                  disabled={isSubmitting || coraLoading}
+                  disabled={isSubmitting || coraLoading || sicrediLoading}
                 >
                   Cancelar
                 </Button>
@@ -473,6 +598,16 @@ export function SchoolNewEditForm({ currentSchool }: Props) {
                     startIcon={<Iconify icon="mdi:bank" />}
                   >
                     {coraConfigured ? 'Reconfigurar Cora' : 'Configurar Cora'}
+                  </LoadingButton>
+                ) : provider === 'sicredi' && (!sicrediConfigured || sicrediSetupOpen) ? (
+                  <LoadingButton
+                    fullWidth
+                    variant="contained"
+                    loading={sicrediLoading}
+                    onClick={handleSicrediSetup}
+                    startIcon={<Iconify icon="mdi:bank-transfer" />}
+                  >
+                    {sicrediConfigured ? 'Reconfigurar Sicredi' : 'Configurar Sicredi'}
                   </LoadingButton>
                 ) : (
                   <LoadingButton
@@ -489,7 +624,7 @@ export function SchoolNewEditForm({ currentSchool }: Props) {
 
               {isEdit && (
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block', textAlign: 'center' }}>
-                  Troca de Cora → Asaas ou vice-versa requer nova configuração.
+                  Troca de provedor requer nova configuração.
                 </Typography>
               )}
             </Card>

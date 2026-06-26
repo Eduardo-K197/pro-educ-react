@@ -112,7 +112,7 @@ export interface ISchoolWebhooks {
   ok: boolean;
   schoolId: string;
   schoolName: string;
-  status: 'ACTIVE' | 'INACTIVE' | 'UNKNOWN';
+  status: 'ACTIVE' | 'INACTIVE' | 'UNKNOWN' | 'UNCONFIGURED' | 'NONE';
   count: number;
   webhooks: IWebhookItem[];
 }
@@ -123,9 +123,12 @@ export interface GetAllSchoolsWebhooksResponse {
   ok: number;
   failed: number;
   summary: {
-    ACTIVE: number;
+    ACTIVE?: number;
     INACTIVE?: number;
     UNKNOWN?: number;
+    UNCONFIGURED?: number;
+    NONE?: number;
+    [key: string]: number | undefined;
   };
   items: ISchoolWebhooks[];
 }

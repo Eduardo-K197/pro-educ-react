@@ -1,11 +1,12 @@
 'use client';
 
-import type { AdminListItem, IAdminTableFilters } from 'src/types/services/admin';
+import type { AdminListItem, IAdminTableFilters, IAdminItem } from 'src/types/services/admin';
 import { useState, useCallback, useEffect } from 'react';
 
 import Button from '@mui/material/Button';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
+import Box from '@mui/material/Box';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -32,13 +33,21 @@ import { CustomTable } from 'src/components/list-table/list-table';
 import { AdminTableRow } from '../admin-table-row';
 import { AdminTableToolbar } from '../admin-table-toolbar';
 import { AdminTableFiltersResult } from '../admin-table-filters-result';
-import { IAdminItem } from 'src/types/services/admin';
 
 const STATUS_OPTIONS = [{ value: 'all', label: 'Todos' }, ...USER_STATUS_OPTIONS];
 
+const ROLE_OPTIONS = [
+  { value: 'all', label: 'Todos' },
+  { value: 'superAdmin', label: 'Super Admin' },
+  { value: 'admin', label: 'Admin' },
+  { value: 'manager', label: 'Gerente' },
+  { value: 'employee', label: 'Funcionário' },
+  { value: 'teacher', label: 'Professor' },
+];
+
 const TABLE_HEAD = [
-  { id: 'name', label: 'Nome' }, 
-  { id: 'school', label: 'Escolas', width: 300},
+  { id: 'name', label: 'Nome' },
+  { id: 'school', label: 'Escolas', width: 300 },
   { id: 'status', label: 'Status', width: 100 },
   { id: '', width: 88 },
 ];
@@ -56,6 +65,7 @@ export function AdminListView() {
   const filters = useSetState<IAdminTableFilters>({
     name: '',
     status: 'all',
+    role: 'all',
     startDate: null,
     endDate: null,
   });
@@ -70,13 +80,13 @@ export function AdminListView() {
 
       const adminsWithStatus = admins.map((admin: IAdminItem) => ({
         ...admin,
-        status: admin.status || 'active'
-      })) // pega a lista que de admin que admin que ja existe e adiciona o campo de status
+        status: admin.status || 'active',
+      }));
 
       setTableData(adminsWithStatus);
     } catch (error) {
       console.error(error);
-      toast.error('Erro ao carregar administradores');
+      toast.error('Erro ao carregar usuários');
     } finally {
       setLoading(false);
     }
@@ -97,11 +107,11 @@ export function AdminListView() {
     !!filters.state.name ||
     !!filters.state.startDate ||
     !!filters.state.endDate ||
-    filters.state.status !== 'all';
+    filters.state.status !== 'all' ||
+    filters.state.role !== 'all';
 
   const notFound = (!dataFiltered.length && canReset) || !dataFiltered.length;
 
-  // Variável para corrigir a paginação ao deletar
   const dataInPage = rowInPage(dataFiltered, table.page, table.rowsPerPage);
 
   const handleDeleteRow = useCallback(
@@ -109,11 +119,11 @@ export function AdminListView() {
       try {
         await AdminService.delete(id);
         const deleteRow = tableData.filter((row) => row.id !== id);
-        toast.success('Administrador excluído com sucesso!');
+        toast.success('Usuário excluído com sucesso!');
         setTableData(deleteRow);
         table.onUpdatePageDeleteRow(dataInPage.length);
       } catch (error) {
-        toast.error('Erro ao excluir administrador');
+        toast.error('Erro ao excluir usuário');
       }
     },
     [dataInPage.length, table, tableData]
@@ -124,14 +134,14 @@ export function AdminListView() {
       const idsToDelete = table.selected;
       await Promise.all(idsToDelete.map((id) => AdminService.delete(id)));
       const deleteRows = tableData.filter((row) => !idsToDelete.includes(row.id));
-      toast.success('Administradores excluídos com sucesso!');
+      toast.success('Usuários excluídos com sucesso!');
       setTableData(deleteRows);
       table.onUpdatePageDeleteRows({
         totalRowsInPage: dataInPage.length,
         totalRowsFiltered: dataFiltered.length,
       });
     } catch (error) {
-      toast.error('Erro ao excluir administradores');
+      toast.error('Erro ao excluir usuários');
     }
   }, [dataFiltered.length, dataInPage.length, table, tableData]);
 
@@ -144,7 +154,7 @@ export function AdminListView() {
 
   const handleEditRow = useCallback(
     (id: string) => {
-      router.push(paths.dashboard.admins.edit(id)); // mantém sua rota atual
+      router.push(paths.dashboard.admins.edit(id));
     },
     [router]
   );
@@ -157,13 +167,21 @@ export function AdminListView() {
     [filters, table]
   );
 
+  const handleFilterRole = useCallback(
+    (event: React.SyntheticEvent, newValue: string) => {
+      table.onResetPage();
+      filters.setState({ role: newValue });
+    },
+    [filters, table]
+  );
+
   return (
     <DashboardContent>
       <CustomBreadcrumbs
-        heading="Lista"
+        heading="Usuários"
         links={[
           { name: 'Dashboard', href: paths.dashboard.root },
-          { name: 'Admins', href: paths.dashboard.admins.root },
+          { name: 'Usuários', href: paths.dashboard.admins.root },
           { name: 'Lista' },
         ]}
         action={
@@ -173,7 +191,7 @@ export function AdminListView() {
             variant="contained"
             startIcon={<Iconify icon="mingcute:add-line" />}
           >
-            Novo Admin
+            Novo Usuário
           </Button>
         }
         sx={{ mb: { xs: 3, md: 5 } }}
@@ -185,9 +203,10 @@ export function AdminListView() {
         tableHead={TABLE_HEAD}
         notFound={notFound}
         onDeleteRows={handleDeleteRows}
-        
+
         filters={
           <>
+            {/* Filtro por status */}
             <Tabs
               value={filters.state.status}
               onChange={handleFilterStatus}
@@ -209,21 +228,54 @@ export function AdminListView() {
                         ((tab.value === 'all' || tab.value === filters.state.status) && 'filled') ||
                         'soft'
                       }
-                    color={
-                      (tab.value === 'active' && 'success') ||
-                      (tab.value === 'pending' && 'warning') ||
-                      (tab.value === 'banned' && 'error') ||
-                      'default'
-                    }
+                      color={
+                        (tab.value === 'active' && 'success') ||
+                        (tab.value === 'pending' && 'warning') ||
+                        (tab.value === 'banned' && 'error') ||
+                        'default'
+                      }
                     >
-                    {['active', 'pending', 'banned', 'rejected'].includes(tab.value)
-                      ? tableData.filter((admin) => admin.status === tab.value).length
-                      : tableData.length}
+                      {['active', 'pending', 'banned', 'rejected'].includes(tab.value)
+                        ? tableData.filter((admin) => admin.status === tab.value).length
+                        : tableData.length}
                     </Label>
                   }
                 />
               ))}
             </Tabs>
+
+            {/* Filtro por tipo/role */}
+            <Box
+              sx={{
+                px: 2.5,
+                pt: 1,
+                borderBottom: (theme) =>
+                  `1px solid ${varAlpha(theme.vars.palette.grey['500Channel'], 0.08)}`,
+              }}
+            >
+              <Tabs
+                value={filters.state.role}
+                onChange={handleFilterRole}
+                variant="scrollable"
+                scrollButtons="auto"
+              >
+                {ROLE_OPTIONS.map((opt) => (
+                  <Tab
+                    key={opt.value}
+                    iconPosition="end"
+                    value={opt.value}
+                    label={opt.label}
+                    icon={
+                      <Label variant={filters.state.role === opt.value ? 'filled' : 'soft'} color="default">
+                        {opt.value === 'all'
+                          ? tableData.length
+                          : tableData.filter((u) => u.role === opt.value).length}
+                      </Label>
+                    }
+                  />
+                ))}
+              </Tabs>
+            </Box>
 
             <AdminTableToolbar
               filters={filters}
@@ -294,7 +346,7 @@ type ApplyFilterProps = {
 };
 
 function applyFilter({ inputData, comparator, filters, dateError }: ApplyFilterProps) {
-  const { name, status, startDate, endDate } = filters;
+  const { name, status, role, startDate, endDate } = filters;
 
   const stabilizedThis = inputData.map((el, index) => [el, index] as const);
 
@@ -314,9 +366,12 @@ function applyFilter({ inputData, comparator, filters, dateError }: ApplyFilterP
     );
   }
 
-  // filtra os usuarios que esttão com o memso stattus que o filtro no momento
   if (status !== 'all') {
     inputData = inputData.filter((user) => user.status === status);
+  }
+
+  if (role !== 'all') {
+    inputData = inputData.filter((user) => user.role === role);
   }
 
   if (!dateError) {

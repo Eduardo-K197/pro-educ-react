@@ -5,6 +5,7 @@ export interface AdminListItem {
   name: string;
   email: string;
   status?: string;
+  role?: string;
   createdAt?: string;
   schools?: { id: string; name: string }[];
 }
@@ -12,6 +13,7 @@ export interface AdminListItem {
 export type IAdminTableFilters = {
   name: string;
   status: string;
+  role: string;
   startDate: IDatePickerControl;
   endDate: IDatePickerControl;
 };
@@ -47,6 +49,7 @@ export type IAdminItem = {
   name: string;
   email: string;
   status?: string;
+  role?: string;
   avatarUrl?: string;
   isVerified?: boolean;
   // Pode ser apenas uma lista de ids (string[]) ou array de objetos {id,name}
