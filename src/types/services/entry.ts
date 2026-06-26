@@ -17,7 +17,7 @@ export type EntryApiStatus =
 export type TraducedStatus = 'Pendente' | 'Pago' | 'Atrasado' | 'Cancelado';
 
 export type BillingType = 'BOLETO' | 'PIX' | 'MONEY' | 'CREDIT_CARD';
-export type EntrySource = 'asaas' | 'cora' | 'manual' | 'proeduc';
+export type EntrySource = 'asaas' | 'cora' | 'sicredi' | 'manual' | 'proeduc';
 
 export interface EntryCategory {
   id: string;

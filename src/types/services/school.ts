@@ -1,9 +1,19 @@
-export type PaymentProvider = 'asaas' | 'cora';
+export type PaymentProvider = 'asaas' | 'cora' | 'sicredi';
 
 export interface CoraAccountInfo {
   id?: string;
   name?: string;
   clientId?: string;
+  environment?: 'homolog' | 'production';
+}
+
+export interface SicrediAccountInfo {
+  id?: string;
+  name?: string;
+  clientId?: string;
+  cooperativa?: string;
+  posto?: string;
+  codigoBeneficiario?: string;
   environment?: 'homolog' | 'production';
 }
 
@@ -17,6 +27,7 @@ export interface SchoolListItem {
   _certificateFilename?: string | null;
   certificateUrl?: string | null;
   coraAccount?: CoraAccountInfo | null;
+  sicrediAccount?: SicrediAccountInfo | null;
   studentCount: number;
   courseCount: number;
   classCount: number;
@@ -89,6 +100,7 @@ export interface SchoolDetail {
   certificateUrl?: string | null;
   createdAt?: string;
   coraAccount?: CoraAccountInfo | null;
+  sicrediAccount?: SicrediAccountInfo | null;
 
   employees?: SchoolEmployee[];
   categories?: SchoolCategory[];
