@@ -32,9 +32,10 @@ type Props = {
   onSelectRow: () => void;
   onEditRow: () => void;
   onDeleteRow: () => void;
+  onRefresh?: () => void;
 };
 
-export function AdminTableRow({ row, selected, onViewRow, onEditRow, onSelectRow, onDeleteRow }: Props) {
+export function AdminTableRow({ row, selected, onViewRow, onEditRow, onSelectRow, onDeleteRow, onRefresh }: Props) {
   const router = useRouter();
   const confirm = useBoolean();
 
@@ -120,7 +121,7 @@ export function AdminTableRow({ row, selected, onViewRow, onEditRow, onSelectRow
 
         <TableCell>
           <Stack direction="row" alignItems="center">
-            <Tooltip title="Quick Edit" placement="top" arrow>
+            <Tooltip title="Edição rápida" placement="top" arrow>
               <IconButton
                 color={quickEdit.value ? 'inherit' : 'default'}
                 onClick={quickEdit.onTrue}
@@ -161,27 +162,29 @@ export function AdminTableRow({ row, selected, onViewRow, onEditRow, onSelectRow
                   }}
                 >
                   <Iconify icon="solar:pen-bold" />
-                  Edit
+                  Editar
                 </MenuItem>
               </MenuList>
             </CustomPopover>
 
-      <AdminQuickEditForm currentAdmin={row} open={quickEdit.value} onClose={quickEdit.onFalse} />
+      <AdminQuickEditForm currentAdmin={row} open={quickEdit.value} onClose={quickEdit.onFalse} onSuccess={onRefresh} />
 
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title="Deletar"
-        content="Você tem certeza que quer deletar?"
+        title="Confirmar exclusão"
+        content="Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita."
         action={
-          <IconButton
+          <Button
+            variant="contained"
+            color="error"
             onClick={() => {
               onDeleteRow();
               confirm.onFalse();
             }}
           >
-            <Iconify icon="solar:trash-bin-trash-bold" />
-          </IconButton>
+            Excluir
+          </Button>
         }
       />
     </>

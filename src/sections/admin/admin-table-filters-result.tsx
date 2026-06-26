@@ -45,14 +45,13 @@ export function AdminTableFiltersResult({ filters, totalResults, onResetPage, sx
       <FiltersBlock label="Tipo:" isShow={filters.state.role !== 'all'}>
         <Chip
           {...chipProps}
-          label={filters.state.role}
+          label={({ superAdmin: 'Super Admin', admin: 'Admin', manager: 'Gerente', employee: 'Funcionário', teacher: 'Professor', master: 'Master', user: 'Usuário' } as Record<string, string>)[filters.state.role] ?? filters.state.role}
           onDelete={handleRemoveRole}
-          sx={{ textTransform: 'capitalize' }}
         />
       </FiltersBlock>
 
       <FiltersBlock
-        label="Date:"
+        label="Período:"
         isShow={Boolean(filters.state.startDate && filters.state.endDate)}
       >
         <Chip
@@ -62,7 +61,7 @@ export function AdminTableFiltersResult({ filters, totalResults, onResetPage, sx
         />
       </FiltersBlock>
 
-      <FiltersBlock label="Keyword:" isShow={!!filters.state.name}>
+      <FiltersBlock label="Busca:" isShow={!!filters.state.name}>
         <Chip {...chipProps} label={filters.state.name} onDelete={handleRemoveKeyword} />
       </FiltersBlock>
     </FiltersResult>

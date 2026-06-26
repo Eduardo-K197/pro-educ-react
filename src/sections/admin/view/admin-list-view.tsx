@@ -70,7 +70,7 @@ export function AdminListView() {
   const dateError = fIsAfter(filters.state.startDate, filters.state.endDate);
 
   const roleOptions = useMemo(() => {
-    const existing = [...new Set(tableData.map((u) => u.role).filter(Boolean))];
+    const existing = Array.from(new Set(tableData.map((u) => u.role).filter((r): r is string => !!r)));
     return [
       { value: 'all', label: 'Todos' },
       ...existing.map((r) => ({ value: r as string, label: ROLE_LABELS[r as string] ?? r })),
@@ -193,6 +193,7 @@ export function AdminListView() {
         dataFiltered={dataFiltered}
         tableHead={TABLE_HEAD}
         notFound={notFound}
+        loading={loading}
         onDeleteRows={handleDeleteRows}
 
         filters={
@@ -261,6 +262,7 @@ export function AdminListView() {
               onDeleteRow={() => handleDeleteRow(row.id)}
               onEditRow={() => handleEditRow(row.id)}
               onViewRow={() => handleViewRow(row.id)}
+              onRefresh={loadAdmins}
             />
           ))}
       </CustomTable>
@@ -268,10 +270,10 @@ export function AdminListView() {
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title="Deletar"
+        title="Confirmar exclusão"
         content={
           <>
-            Tem certeza que deseja deletar? <strong> {table.selected.length} </strong> items?
+            Tem certeza que deseja excluir <strong>{table.selected.length}</strong> usuário(s)?
           </>
         }
         action={
@@ -283,7 +285,7 @@ export function AdminListView() {
               confirm.onFalse();
             }}
           >
-            Deletar
+            Excluir
           </Button>
         }
       />
