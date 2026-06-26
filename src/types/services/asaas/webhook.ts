@@ -115,6 +115,7 @@ export interface ISchoolWebhooks {
   status: 'ACTIVE' | 'INACTIVE' | 'UNKNOWN' | 'UNCONFIGURED' | 'NONE';
   count: number;
   webhooks: IWebhookItem[];
+  sharedWith?: string[];
 }
 
 export interface GetAllSchoolsWebhooksResponse {

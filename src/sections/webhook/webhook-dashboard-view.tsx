@@ -235,6 +235,11 @@ function SchoolCard({
               {school.count} webhook{school.count !== 1 ? 's' : ''}
               {school.schoolId && ` · ID ${school.schoolId.slice(0, 8)}…`}
             </Typography>
+            {school.sharedWith && school.sharedWith.length > 0 && (
+              <Typography variant="caption" color="warning.main" display="block">
+                Token compartilhado com: {school.sharedWith.join(', ')}
+              </Typography>
+            )}
           </Box>
         </Stack>
 
