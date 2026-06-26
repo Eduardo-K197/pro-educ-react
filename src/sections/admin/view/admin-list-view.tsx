@@ -25,7 +25,6 @@ import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import { USER_STATUS_OPTIONS } from 'src/_mock';
 
 import { useTable, getComparator, rowInPage } from 'src/components/table';
 import { CustomTable } from 'src/components/list-table/list-table';
@@ -33,8 +32,6 @@ import { CustomTable } from 'src/components/list-table/list-table';
 import { AdminTableRow } from '../admin-table-row';
 import { AdminTableToolbar } from '../admin-table-toolbar';
 import { AdminTableFiltersResult } from '../admin-table-filters-result';
-
-const STATUS_OPTIONS = [{ value: 'all', label: 'Todos' }, ...USER_STATUS_OPTIONS];
 
 const ROLE_OPTIONS = [
   { value: 'all', label: 'Todos' },
@@ -48,7 +45,7 @@ const ROLE_OPTIONS = [
 const TABLE_HEAD = [
   { id: 'name', label: 'Nome' },
   { id: 'school', label: 'Escolas', width: 300 },
-  { id: 'status', label: 'Status', width: 100 },
+  { id: 'role', label: 'Tipo', width: 120 },
   { id: '', width: 88 },
 ];
 
@@ -64,7 +61,6 @@ export function AdminListView() {
 
   const filters = useSetState<IAdminTableFilters>({
     name: '',
-    status: 'all',
     role: 'all',
     startDate: null,
     endDate: null,
@@ -78,12 +74,7 @@ export function AdminListView() {
       const resp = await AdminService.list();
       const admins = (resp as any).admins ?? resp;
 
-      const adminsWithStatus = admins.map((admin: IAdminItem) => ({
-        ...admin,
-        status: admin.status || 'active',
-      }));
-
-      setTableData(adminsWithStatus);
+      setTableData(admins);
     } catch (error) {
       console.error(error);
       toast.error('Erro ao carregar usuários');
@@ -107,7 +98,6 @@ export function AdminListView() {
     !!filters.state.name ||
     !!filters.state.startDate ||
     !!filters.state.endDate ||
-    filters.state.status !== 'all' ||
     filters.state.role !== 'all';
 
   const notFound = (!dataFiltered.length && canReset) || !dataFiltered.length;
@@ -159,14 +149,6 @@ export function AdminListView() {
     [router]
   );
 
-  const handleFilterStatus = useCallback(
-    (event: React.SyntheticEvent, newValue: string) => {
-      table.onResetPage();
-      filters.setState({ status: newValue });
-    },
-    [filters, table]
-  );
-
   const handleFilterRole = useCallback(
     (event: React.SyntheticEvent, newValue: string) => {
       table.onResetPage();
@@ -206,76 +188,38 @@ export function AdminListView() {
 
         filters={
           <>
-            {/* Filtro por status */}
             <Tabs
-              value={filters.state.status}
-              onChange={handleFilterStatus}
+              value={filters.state.role}
+              onChange={handleFilterRole}
+              variant="scrollable"
+              scrollButtons="auto"
               sx={{
                 px: 2.5,
                 boxShadow: (theme) =>
                   `inset 0 -2px 0 0 ${varAlpha(theme.vars.palette.grey['500Channel'], 0.08)}`,
               }}
             >
-              {STATUS_OPTIONS.map((tab) => (
+              {ROLE_OPTIONS.map((opt) => (
                 <Tab
-                  key={tab.value}
+                  key={opt.value}
                   iconPosition="end"
-                  value={tab.value}
-                  label={tab.label}
+                  value={opt.value}
+                  label={opt.label}
                   icon={
                     <Label
                       variant={
-                        ((tab.value === 'all' || tab.value === filters.state.status) && 'filled') ||
-                        'soft'
+                        (opt.value === 'all' || opt.value === filters.state.role) ? 'filled' : 'soft'
                       }
-                      color={
-                        (tab.value === 'active' && 'success') ||
-                        (tab.value === 'pending' && 'warning') ||
-                        (tab.value === 'banned' && 'error') ||
-                        'default'
-                      }
+                      color="default"
                     >
-                      {['active', 'pending', 'banned', 'rejected'].includes(tab.value)
-                        ? tableData.filter((admin) => admin.status === tab.value).length
-                        : tableData.length}
+                      {opt.value === 'all'
+                        ? tableData.length
+                        : tableData.filter((u) => u.role === opt.value).length}
                     </Label>
                   }
                 />
               ))}
             </Tabs>
-
-            {/* Filtro por tipo/role */}
-            <Box
-              sx={{
-                px: 2.5,
-                pt: 1,
-                borderBottom: (theme) =>
-                  `1px solid ${varAlpha(theme.vars.palette.grey['500Channel'], 0.08)}`,
-              }}
-            >
-              <Tabs
-                value={filters.state.role}
-                onChange={handleFilterRole}
-                variant="scrollable"
-                scrollButtons="auto"
-              >
-                {ROLE_OPTIONS.map((opt) => (
-                  <Tab
-                    key={opt.value}
-                    iconPosition="end"
-                    value={opt.value}
-                    label={opt.label}
-                    icon={
-                      <Label variant={filters.state.role === opt.value ? 'filled' : 'soft'} color="default">
-                        {opt.value === 'all'
-                          ? tableData.length
-                          : tableData.filter((u) => u.role === opt.value).length}
-                      </Label>
-                    }
-                  />
-                ))}
-              </Tabs>
-            </Box>
 
             <AdminTableToolbar
               filters={filters}
@@ -346,7 +290,7 @@ type ApplyFilterProps = {
 };
 
 function applyFilter({ inputData, comparator, filters, dateError }: ApplyFilterProps) {
-  const { name, status, role, startDate, endDate } = filters;
+  const { name, role, startDate, endDate } = filters;
 
   const stabilizedThis = inputData.map((el, index) => [el, index] as const);
 
@@ -364,10 +308,6 @@ function applyFilter({ inputData, comparator, filters, dateError }: ApplyFilterP
         admin.name.toLowerCase().indexOf(name.toLowerCase()) !== -1 ||
         admin.email.toLowerCase().indexOf(name.toLowerCase()) !== -1
     );
-  }
-
-  if (status !== 'all') {
-    inputData = inputData.filter((user) => user.status === status);
   }
 
   if (role !== 'all') {

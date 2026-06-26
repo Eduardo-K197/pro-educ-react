@@ -12,7 +12,6 @@ export interface AdminListItem {
 
 export type IAdminTableFilters = {
   name: string;
-  status: string;
   role: string;
   startDate: IDatePickerControl;
   endDate: IDatePickerControl;

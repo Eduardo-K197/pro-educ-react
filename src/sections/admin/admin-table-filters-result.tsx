@@ -25,9 +25,9 @@ export function AdminTableFiltersResult({ filters, totalResults, onResetPage, sx
     filters.setState({ name: '' });
   }, [filters, onResetPage]);
 
-  const handleRemoveStatus = useCallback(() => {
+  const handleRemoveRole = useCallback(() => {
     onResetPage();
-    filters.setState({ status: 'all' });
+    filters.setState({ role: 'all' });
   }, [filters, onResetPage]);
 
   const handleRemoveDate = useCallback(() => {
@@ -42,11 +42,11 @@ export function AdminTableFiltersResult({ filters, totalResults, onResetPage, sx
 
   return (
     <FiltersResult totalResults={totalResults} onReset={handleReset} sx={sx}>
-      <FiltersBlock label="Status:" isShow={filters.state.status !== 'all'}>
+      <FiltersBlock label="Tipo:" isShow={filters.state.role !== 'all'}>
         <Chip
           {...chipProps}
-          label={filters.state.status}
-          onDelete={handleRemoveStatus}
+          label={filters.state.role}
+          onDelete={handleRemoveRole}
           sx={{ textTransform: 'capitalize' }}
         />
       </FiltersBlock>

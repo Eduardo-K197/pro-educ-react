@@ -107,13 +107,14 @@ export function AdminTableRow({ row, selected, onViewRow, onEditRow, onSelectRow
           <Label
             variant="soft"
             color={
-              (row.status === 'active' && 'success') ||
-              (row.status === 'pending' && 'warning') ||
-              (row.status === 'banned' && 'error') ||
+              (row.role === 'superAdmin' && 'error') ||
+              (row.role === 'admin' && 'warning') ||
+              (row.role === 'manager' && 'info') ||
+              (row.role === 'teacher' && 'secondary') ||
               'default'
             }
           >
-            {row.status}
+            {row.role ?? '—'}
           </Label>
         </TableCell>
 
