@@ -1,7 +1,7 @@
 'use client';
 
 import type { AdminListItem, IAdminTableFilters, IAdminItem } from 'src/types/services/admin';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 
 import Button from '@mui/material/Button';
 import Tab from '@mui/material/Tab';
@@ -33,14 +33,15 @@ import { AdminTableRow } from '../admin-table-row';
 import { AdminTableToolbar } from '../admin-table-toolbar';
 import { AdminTableFiltersResult } from '../admin-table-filters-result';
 
-const ROLE_OPTIONS = [
-  { value: 'all', label: 'Todos' },
-  { value: 'superAdmin', label: 'Super Admin' },
-  { value: 'admin', label: 'Admin' },
-  { value: 'manager', label: 'Gerente' },
-  { value: 'employee', label: 'Funcionário' },
-  { value: 'teacher', label: 'Professor' },
-];
+const ROLE_LABELS: Record<string, string> = {
+  superAdmin: 'Super Admin',
+  admin: 'Admin',
+  manager: 'Gerente',
+  employee: 'Funcionário',
+  teacher: 'Professor',
+  master: 'Master',
+  user: 'Usuário',
+};
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Nome' },
@@ -67,6 +68,14 @@ export function AdminListView() {
   });
 
   const dateError = fIsAfter(filters.state.startDate, filters.state.endDate);
+
+  const roleOptions = useMemo(() => {
+    const existing = [...new Set(tableData.map((u) => u.role).filter(Boolean))];
+    return [
+      { value: 'all', label: 'Todos' },
+      ...existing.map((r) => ({ value: r as string, label: ROLE_LABELS[r as string] ?? r })),
+    ];
+  }, [tableData]);
 
   const loadAdmins = useCallback(async () => {
     try {
@@ -199,7 +208,7 @@ export function AdminListView() {
                   `inset 0 -2px 0 0 ${varAlpha(theme.vars.palette.grey['500Channel'], 0.08)}`,
               }}
             >
-              {ROLE_OPTIONS.map((opt) => (
+              {roleOptions.map((opt) => (
                 <Tab
                   key={opt.value}
                   iconPosition="end"

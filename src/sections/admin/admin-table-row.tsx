@@ -114,7 +114,7 @@ export function AdminTableRow({ row, selected, onViewRow, onEditRow, onSelectRow
               'default'
             }
           >
-            {row.role ?? '—'}
+            {({ superAdmin: 'Super Admin', admin: 'Admin', manager: 'Gerente', employee: 'Funcionário', teacher: 'Professor', master: 'Master', user: 'Usuário' } as Record<string, string>)[row.role ?? ''] ?? row.role ?? '—'}
           </Label>
         </TableCell>
 
