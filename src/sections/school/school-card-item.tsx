@@ -63,6 +63,8 @@ export function SchoolCardItem({ school }: SchoolCardItemProps) {
   }[status];
 
   const asaasConfigured = !!school.asaasToken;
+  const coraConfigured = !!(school.coraAccountId ?? school.coraAccount?.clientId);
+  const sicrediConfigured = !!(school.sicrediAccountId ?? school.sicrediAccount?.clientId);
 
   return (
     <>
@@ -116,18 +118,18 @@ export function SchoolCardItem({ school }: SchoolCardItemProps) {
                 {school.paymentProvider === 'cora' ? (
                   <Chip
                     size="small"
-                    color={school.coraAccount?.clientId ? 'primary' : 'warning'}
+                    color={coraConfigured ? 'primary' : 'warning'}
                     variant="filled"
-                    label={school.coraAccount?.clientId ? 'Cora ativa' : 'Cora pendente'}
+                    label={coraConfigured ? 'Cora ativa' : 'Cora pendente'}
                     icon={<Iconify icon="mdi:bank" width={14} />}
                   />
                 ) : school.paymentProvider === 'sicredi' ? (
                   <Chip
                     size="small"
-                    color={school.sicrediAccount?.clientId ? 'success' : 'warning'}
+                    color={sicrediConfigured ? 'success' : 'warning'}
                     variant="filled"
-                    label={school.sicrediAccount?.clientId ? 'Sicredi ativo' : 'Sicredi pendente'}
-                    icon={<Iconify icon="mdi:bank" width={14} />}
+                    label={sicrediConfigured ? 'Sicredi ativo' : 'Sicredi pendente'}
+                    icon={<Iconify icon="mdi:bank-transfer" width={14} />}
                   />
                 ) : (
                   <Chip

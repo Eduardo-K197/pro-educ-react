@@ -22,6 +22,8 @@ export interface SchoolListItem {
   name: string;
   createdAt: string;
   paymentProvider?: PaymentProvider;
+  coraAccountId?: string | null;
+  sicrediAccountId?: string | null;
   asaasToken?: string | null;
   asaasHomologationMode?: boolean;
   _certificateFilename?: string | null;

@@ -14,6 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, FormProvider as RHFFormProvider, Controller } from 'react-hook-form';
 
 import Grid from '@mui/material/Unstable_Grid2';
+import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -94,6 +95,11 @@ export function SchoolNewEditForm({ currentSchool }: Props) {
   const certRef = useRef<HTMLInputElement>(null);
   const keyRef = useRef<HTMLInputElement>(null);
 
+  // Certificate template state
+  const [certModelFile, setCertModelFile] = useState<File | null>(null);
+  const [certModelPreview, setCertModelPreview] = useState<string | null>(null);
+  const certModelRef = useRef<HTMLInputElement>(null);
+
   // Sicredi setup local state
   const [sicrediSetupOpen, setSicrediSetupOpen] = useState(false);
   const [sicrediLoading, setSicrediLoading] = useState(false);
@@ -151,35 +157,80 @@ export function SchoolNewEditForm({ currentSchool }: Props) {
 
     try {
       if (isEdit && currentSchool) {
-        const payload: SchoolUpdatePayload = {
-          name: values.name,
-          ...(values.paymentProvider === 'asaas' && {
-            asaasToken: values.asaasToken || undefined,
-            asaasSandboxMode: values.asaasSandboxMode,
-          }),
-          materials: mapItemsPreservingId(materialNames, currentSchool.materials),
-          categories: mapItemsPreservingId(categoryNames, currentSchool.categories),
-        };
-        await SchoolService.update(currentSchool.id, payload);
+        if (certModelFile) {
+          // Envia como multipart/form-data quando há arquivo de certificado
+          const form = new FormData();
+          form.append('name', values.name);
+          form.append(
+            'materials',
+            JSON.stringify(mapItemsPreservingId(materialNames, currentSchool.materials))
+          );
+          form.append(
+            'categories',
+            JSON.stringify(mapItemsPreservingId(categoryNames, currentSchool.categories))
+          );
+          if (values.paymentProvider === 'asaas') {
+            if (values.asaasToken) form.append('asaasToken', values.asaasToken);
+            form.append('asaasSandboxMode', String(values.asaasSandboxMode ?? false));
+          }
+          form.append('certificate', certModelFile);
+          await axiosInstance.put(`/schools/${currentSchool.id}`, form, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+        } else {
+          const payload: SchoolUpdatePayload = {
+            name: values.name,
+            ...(values.paymentProvider === 'asaas' && {
+              asaasToken: values.asaasToken || undefined,
+              asaasSandboxMode: values.asaasSandboxMode,
+            }),
+            materials: mapItemsPreservingId(materialNames, currentSchool.materials),
+            categories: mapItemsPreservingId(categoryNames, currentSchool.categories),
+          };
+          await SchoolService.update(currentSchool.id, payload);
+        }
         toast.success('Escola atualizada!');
       } else {
-        const payload: SchoolCreatePayload = {
-          name: values.name,
-          asaasHomologationMode: values.asaasHomologationMode ?? false,
-          ...(values.paymentProvider === 'asaas' && {
-            asaasToken: values.asaasToken || undefined,
-            asaasSandboxMode: values.asaasSandboxMode,
-          }),
-          defaultMaterials: materialNames.map((n) => ({ name: n })),
-          categories: categoryNames.map((n) => ({ name: n })),
-        };
-        await SchoolService.create(payload);
+        if (certModelFile) {
+          const form = new FormData();
+          form.append('name', values.name);
+          form.append('paymentProvider', values.paymentProvider);
+          form.append('asaasHomologationMode', String(values.asaasHomologationMode ?? false));
+          if (values.paymentProvider === 'asaas') {
+            if (values.asaasToken) form.append('asaasToken', values.asaasToken);
+            form.append('asaasSandboxMode', String(values.asaasSandboxMode ?? false));
+          }
+          form.append(
+            'defaultMaterials',
+            JSON.stringify(materialNames.map((n) => ({ name: n })))
+          );
+          form.append(
+            'categories',
+            JSON.stringify(categoryNames.map((n) => ({ name: n })))
+          );
+          form.append('certificate', certModelFile);
+          await axiosInstance.post('/schools', form, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+        } else {
+          const payload: SchoolCreatePayload = {
+            name: values.name,
+            asaasHomologationMode: values.asaasHomologationMode ?? false,
+            ...(values.paymentProvider === 'asaas' && {
+              asaasToken: values.asaasToken || undefined,
+              asaasSandboxMode: values.asaasSandboxMode,
+            }),
+            defaultMaterials: materialNames.map((n) => ({ name: n })),
+            categories: categoryNames.map((n) => ({ name: n })),
+          };
+          await SchoolService.create(payload);
+        }
         toast.success('Escola criada!');
       }
 
       router.push(paths.dashboard.schools.root);
     } catch (error: any) {
-      toast.error(error?.message ?? 'Erro ao salvar escola');
+      toast.error(error?.response?.data?.message ?? error?.message ?? 'Erro ao salvar escola');
     }
   });
 
@@ -570,6 +621,99 @@ export function SchoolNewEditForm({ currentSchool }: Props) {
                       placeholder="Mensalidade&#10;Material&#10;Uniforme"
                     />
                   </Stack>
+                </Stack>
+              </Card>
+
+              {/* Modelo de certificado */}
+              <Card sx={{ p: 3 }}>
+                <Typography variant="subtitle1" sx={{ mb: 0.5 }}>
+                  Modelo de certificado
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+                  Imagem de fundo usada nos PDFs de certificado gerados para os alunos. Formatos aceitos: JPG, PNG.
+                </Typography>
+
+                <Stack spacing={2}>
+                  {/* Preview: arquivo recém-selecionado tem prioridade sobre o cadastrado */}
+                  {(certModelPreview || currentSchool?.certificateUrl) && (
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        borderRadius: 1,
+                        overflow: 'hidden',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        bgcolor: 'background.neutral',
+                      }}
+                    >
+                      <Box
+                        component="img"
+                        src={certModelPreview ?? currentSchool?.certificateUrl ?? ''}
+                        alt="Modelo de certificado"
+                        sx={{ width: '100%', display: 'block', maxHeight: 200, objectFit: 'cover' }}
+                      />
+                      {certModelPreview && (
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            position: 'absolute',
+                            top: 6,
+                            left: 8,
+                            bgcolor: 'success.main',
+                            color: 'common.white',
+                            px: 1,
+                            py: 0.25,
+                            borderRadius: 0.5,
+                          }}
+                        >
+                          Nova imagem selecionada
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<Iconify icon="solar:upload-bold" />}
+                      onClick={() => certModelRef.current?.click()}
+                    >
+                      {currentSchool?.certificateUrl ? 'Trocar imagem' : 'Selecionar imagem'}
+                    </Button>
+                    {certModelFile && (
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => {
+                          setCertModelFile(null);
+                          if (certModelPreview) URL.revokeObjectURL(certModelPreview);
+                          setCertModelPreview(null);
+                          if (certModelRef.current) certModelRef.current.value = '';
+                        }}
+                      >
+                        Remover
+                      </Button>
+                    )}
+                    {certModelFile && (
+                      <Typography variant="caption" color="text.secondary" noWrap>
+                        {certModelFile.name}
+                      </Typography>
+                    )}
+                  </Stack>
+
+                  <input
+                    ref={certModelRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg"
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] ?? null;
+                      if (certModelPreview) URL.revokeObjectURL(certModelPreview);
+                      setCertModelFile(file);
+                      setCertModelPreview(file ? URL.createObjectURL(file) : null);
+                    }}
+                  />
                 </Stack>
               </Card>
             </Stack>

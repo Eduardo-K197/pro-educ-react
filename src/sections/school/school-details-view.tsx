@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
-import { Card, Stack, Typography, Grid, Chip, Divider, Button, Alert, AlertTitle } from '@mui/material';
+import { Box, Card, Stack, Typography, Grid, Chip, Divider, Button, Alert, AlertTitle } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
@@ -149,7 +149,7 @@ export function SchoolDetailsView() {
             </Grid>
           )}
 
-          {/* Certificado, se existir */}
+          {/* Modelo de certificado */}
           {certificateValue && (
             <>
               <Divider />
@@ -158,15 +158,24 @@ export function SchoolDetailsView() {
                 Modelo de certificado
               </Typography>
 
-              <Typography
-                variant="body2"
+              <Box
                 sx={{
-                  fontFamily: 'monospace',
-                  wordBreak: 'break-all',
+                  borderRadius: 1,
+                  overflow: 'hidden',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  bgcolor: 'background.neutral',
+                  maxWidth: 480,
                 }}
               >
-                {certificateValue}
-              </Typography>
+                <Box
+                  component="img"
+                  src={certificateValue}
+                  alt="Modelo de certificado"
+                  sx={{ width: '100%', display: 'block', maxHeight: 240, objectFit: 'cover' }}
+                  onError={(e: any) => { e.target.style.display = 'none'; }}
+                />
+              </Box>
             </>
           )}
 
