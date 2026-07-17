@@ -21,6 +21,7 @@ import { varAlpha } from 'src/theme/styles';
 
 import { WebhookService } from 'src/services/asaas/webhook';
 import { CoraService } from 'src/services/cora';
+import { SicrediService } from 'src/services/sicredi';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -290,6 +291,7 @@ export function WebhookDashboardView() {
   const [loading, setLoading] = useState(true);
   const [reactivatingId, setReactivatingId] = useState<string | null>(null);
   const [pollingAll, setPollingAll] = useState(false);
+  const [pollingSicredi, setPollingSicredi] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -330,6 +332,18 @@ export function WebhookDashboardView() {
     }
   }, []);
 
+  const handlePollSicredi = useCallback(async () => {
+    setPollingSicredi(true);
+    try {
+      const res = await SicrediService.pollAll();
+      toast.success(`Polling Sicredi concluído — ${res?.updated ?? 0} boleto(s) atualizado(s)`);
+    } catch {
+      toast.error('Erro ao executar polling Sicredi');
+    } finally {
+      setPollingSicredi(false);
+    }
+  }, []);
+
   if (loading) {
     return (
       <DashboardContent>
@@ -360,6 +374,15 @@ export function WebhookDashboardView() {
               startIcon={<Iconify icon="solar:refresh-circle-bold" />}
             >
               Polling Cora
+            </LoadingButton>
+            <LoadingButton
+              variant="soft"
+              color="inherit"
+              loading={pollingSicredi}
+              onClick={handlePollSicredi}
+              startIcon={<Iconify icon="solar:refresh-circle-bold" />}
+            >
+              Polling Sicredi
             </LoadingButton>
             <Tooltip title="Atualizar lista">
               <Button
