@@ -21,6 +21,8 @@ import { useRouter, useSearchParams } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 import { paths } from 'src/routes/paths';
 
+import { CONFIG } from 'src/config-global';
+
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import axios, { STORAGE_KEYS } from 'src/utils/axios';
@@ -58,7 +60,7 @@ function stripHtml(s: string) {
 export function JwtSignInView() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnTo = decodeURIComponent(searchParams?.get('returnTo') ?? '/proeduc');
+  const returnTo = decodeURIComponent(searchParams?.get('returnTo') ?? CONFIG.auth.redirectPath);
 
   const { checkUserSession } = useAuthContext();
   const [errorMsg, setErrorMsg] = useState('');
@@ -96,7 +98,7 @@ export function JwtSignInView() {
         setChangePasswordOpen(true);
       } else {
         await checkUserSession?.();
-        router.push(returnTo || '/proeduc');
+        router.push(returnTo || CONFIG.auth.redirectPath);
       }
     } catch (err: any) {
       const raw = err?.message || String(err);
@@ -118,7 +120,7 @@ export function JwtSignInView() {
       }
       setChangePasswordOpen(false);
       await checkUserSession?.();
-      router.push(returnTo || '/proeduc');
+      router.push(returnTo || CONFIG.auth.redirectPath);
     } catch (err: any) {
       const msg =
         err?.response?.data?.error ||

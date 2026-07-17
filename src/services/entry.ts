@@ -79,6 +79,14 @@ export class EntryService {
     return ApiService.delete<void>(`${this.PAYMENT_PATH}/${id}`, config);
   }
 
+  static deleteInstallment(id: string, config?: AxiosRequestConfig): Promise<void> {
+    return ApiService.delete<void>(`/installments/${id}`, config);
+  }
+
+  static getInstallmentPdf(id: string, config?: AxiosRequestConfig): Promise<{ pdfBase64: string }> {
+    return ApiService.get<{ pdfBase64: string }>(`/installments/${id}`, undefined, config);
+  }
+
   static recoverEntry(id: string, config?: AxiosRequestConfig): Promise<void> {
     return ApiService.patch<Record<string, never>, void>(
       `${this.BASE_PATH}/${id}/recover`,

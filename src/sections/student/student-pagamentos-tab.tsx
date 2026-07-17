@@ -26,6 +26,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import TableContainer from '@mui/material/TableContainer';
 import CircularProgress from '@mui/material/CircularProgress';
+import DialogContentText from '@mui/material/DialogContentText';
 
 import Tooltip from '@mui/material/Tooltip';
 
@@ -58,6 +59,19 @@ interface Props {
   studentId: number;
 }
 
+function downloadPdfBase64(base64: string, filename: string) {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+  const blob = new Blob([bytes], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function StudentPagamentosTab({ studentId }: Props) {
   const [entries, setEntries] = useState<EntryListItem[]>([]);
   const [categories, setCategories] = useState<EntryCategory[]>([]);
@@ -73,6 +87,12 @@ export function StudentPagamentosTab({ studentId }: Props) {
   const [formCategoryId, setFormCategoryId] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [linhaDigitavel, setLinhaDigitavel] = useState<string | null>(null);
+
+  // action states
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [receivingId, setReceivingId] = useState<string | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<EntryListItem | null>(null);
+  const [canceling, setCanceling] = useState(false);
 
   const loadEntries = useCallback(() => {
     setLoading(true);
@@ -153,6 +173,64 @@ export function StudentPagamentosTab({ studentId }: Props) {
     }
   };
 
+  const handleDownloadBoleto = async (entry: EntryListItem) => {
+    setDownloadingId(entry.id);
+    try {
+      if (entry.source === 'sicredi') {
+        const pdfId = entry.installment ?? entry.payment ?? entry.id;
+        const { pdfBase64 } = await EntryService.getInstallmentPdf(pdfId as string);
+        downloadPdfBase64(pdfBase64, `boleto-${entry.id}.pdf`);
+      } else if (entry.installment) {
+        const { pdfBase64 } = await EntryService.getInstallmentPdf(entry.installment);
+        downloadPdfBase64(pdfBase64, `boleto-${entry.installment}.pdf`);
+      } else if (entry.bankSlipUrl) {
+        window.open(entry.bankSlipUrl, '_blank');
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.response?.data?.error || 'Erro ao baixar boleto';
+      toast.error(msg);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  const handleMarkReceived = async (entry: EntryListItem) => {
+    setReceivingId(entry.id);
+    try {
+      await EntryService.updateEntry(entry.id, {
+        status: 'RECEIVED_IN_CASH',
+        paidAt: new Date().toISOString().slice(0, 10),
+      });
+      toast.success('Lançamento marcado como recebido!');
+      loadEntries();
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.response?.data?.error || 'Erro ao registrar recebimento';
+      toast.error(msg);
+    } finally {
+      setReceivingId(null);
+    }
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!cancelTarget) return;
+    setCanceling(true);
+    try {
+      if (cancelTarget.installment) {
+        await EntryService.deleteInstallment(cancelTarget.installment);
+      } else {
+        await EntryService.deleteEntry(cancelTarget.id);
+      }
+      toast.success('Lançamento cancelado!');
+      loadEntries();
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.response?.data?.error || 'Erro ao cancelar';
+      toast.error(msg);
+    } finally {
+      setCanceling(false);
+      setCancelTarget(null);
+    }
+  };
+
   return (
     <Stack spacing={3}>
       {!forbidden && (
@@ -202,6 +280,14 @@ export function StudentPagamentosTab({ studentId }: Props) {
                 {entries.map((entry) => {
                   const status = entry.traducedStatus ?? '';
                   const color = STATUS_COLOR[status] ?? 'default';
+                  const isActive = status === 'Pendente' || status === 'Atrasado';
+                  const isBoleto = entry.billingType === 'BOLETO';
+                  const isMoney = entry.billingType === 'MONEY';
+                  const isManual = entry.source === 'proeduc' || entry.source === 'manual';
+                  const isSicredi = entry.source === 'sicredi';
+                  const isDownloading = downloadingId === entry.id;
+                  const isReceiving = receivingId === entry.id;
+
                   return (
                     <TableRow key={entry.id} hover>
                       <TableCell>
@@ -246,71 +332,133 @@ export function StudentPagamentosTab({ studentId }: Props) {
                           {status || '—'}
                         </Label>
                       </TableCell>
+
+                      {/* ---- AÇÕES ---- */}
                       <TableCell align="right">
-                        {entry.source === 'sicredi' ? (
-                          <>
-                            {entry.bankSlipUrl ? (
-                              <Tooltip title="Copiar linha digitável">
-                                <IconButton
-                                  size="small"
-                                  color="success"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(entry.bankSlipUrl!);
-                                    toast.success('Linha digitável copiada!');
-                                  }}
-                                >
-                                  <Iconify icon="solar:clipboard-bold" width={16} />
+                        <Stack direction="row" justifyContent="flex-end" spacing={0.5}>
+                          {/* Sicredi: copiar linha digitável */}
+                          {isSicredi && entry.bankSlipUrl && (
+                            <Tooltip title="Copiar linha digitável">
+                              <IconButton
+                                size="small"
+                                color="success"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(entry.bankSlipUrl!);
+                                  toast.success('Linha digitável copiada!');
+                                }}
+                              >
+                                <Iconify icon="solar:clipboard-bold" width={16} />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+
+                          {/* Sicredi: sem registro */}
+                          {isSicredi && !entry.bankSlipUrl && isActive && (
+                            <Tooltip title="Boleto sem registro no Sicredi — precisa ser reemitido">
+                              <span>
+                                <IconButton size="small" disabled>
+                                  <Iconify icon="solar:file-text-bold" width={16} />
                                 </IconButton>
-                              </Tooltip>
-                            ) : (status === 'Pendente' || status === 'Atrasado') ? (
-                              <Tooltip title="Boleto sem registro no Sicredi — precisa ser reemitido">
-                                <span>
-                                  <IconButton size="small" disabled>
-                                    <Iconify icon="solar:file-text-bold" width={16} />
-                                  </IconButton>
-                                </span>
-                              </Tooltip>
-                            ) : null}
-                            {entry.invoiceUrl && (
-                              <Tooltip title="Copiar código PIX">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(entry.invoiceUrl!);
-                                    toast.success('Código PIX copiado!');
-                                  }}
-                                >
-                                  <Iconify icon="solar:qr-code-bold" width={16} />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            {entry.bankSlipUrl && (
+                              </span>
+                            </Tooltip>
+                          )}
+
+                          {/* Sicredi: copiar PIX */}
+                          {isSicredi && entry.invoiceUrl && (
+                            <Tooltip title="Copiar código PIX">
+                              <IconButton
+                                size="small"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(entry.invoiceUrl!);
+                                  toast.success('Código PIX copiado!');
+                                }}
+                              >
+                                <Iconify icon="solar:qr-code-bold" width={16} />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+
+                          {/* Não-Sicredi: abrir boleto */}
+                          {!isSicredi && entry.bankSlipUrl && (
+                            <Tooltip title="Ver boleto">
                               <IconButton
                                 size="small"
                                 component="a"
                                 href={entry.bankSlipUrl}
                                 target="_blank"
-                                title="Ver boleto"
                               >
                                 <Iconify icon="solar:file-text-bold" width={16} />
                               </IconButton>
-                            )}
-                            {entry.invoiceUrl && (
+                            </Tooltip>
+                          )}
+
+                          {/* Não-Sicredi: abrir fatura */}
+                          {!isSicredi && entry.invoiceUrl && (
+                            <Tooltip title="Ver fatura">
                               <IconButton
                                 size="small"
                                 component="a"
                                 href={entry.invoiceUrl}
                                 target="_blank"
-                                title="Ver fatura"
                               >
                                 <Iconify icon="solar:link-bold" width={16} />
                               </IconButton>
-                            )}
-                          </>
-                        )}
+                            </Tooltip>
+                          )}
+
+                          {/* Download PDF do boleto */}
+                          {isBoleto && isActive && (entry.bankSlipUrl || entry.installment || isSicredi) && (
+                            <Tooltip title="Baixar boleto PDF">
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  color="primary"
+                                  onClick={() => handleDownloadBoleto(entry)}
+                                  disabled={isDownloading}
+                                >
+                                  {isDownloading ? (
+                                    <CircularProgress size={14} />
+                                  ) : (
+                                    <Iconify icon="solar:download-bold" width={16} />
+                                  )}
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          )}
+
+                          {/* Receber manualmente (só lançamentos manuais pendentes) */}
+                          {isManual && isMoney && status === 'Pendente' && (
+                            <Tooltip title="Marcar como recebido">
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  color="success"
+                                  onClick={() => handleMarkReceived(entry)}
+                                  disabled={isReceiving}
+                                >
+                                  {isReceiving ? (
+                                    <CircularProgress size={14} />
+                                  ) : (
+                                    <Iconify icon="solar:check-circle-bold" width={16} />
+                                  )}
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          )}
+
+                          {/* Cancelar */}
+                          {isActive && (
+                            <Tooltip title="Cancelar lançamento">
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={() => setCancelTarget(entry)}
+                              >
+                                <Iconify icon="solar:trash-bin-trash-bold" width={16} />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Stack>
                       </TableCell>
                     </TableRow>
                   );
@@ -321,7 +469,7 @@ export function StudentPagamentosTab({ studentId }: Props) {
         )}
       </Card>
 
-      {/* Create dialog */}
+      {/* Diálogo: novo lançamento */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Novo lançamento</DialogTitle>
         <DialogContent>
@@ -425,6 +573,34 @@ export function StudentPagamentosTab({ studentId }: Props) {
           </Button>
           <Button variant="contained" onClick={handleSave} disabled={saving || !!linhaDigitavel}>
             {saving ? 'Salvando...' : 'Salvar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Diálogo: confirmar cancelamento */}
+      <Dialog open={!!cancelTarget} onClose={() => setCancelTarget(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Cancelar lançamento</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Tem certeza que deseja cancelar este lançamento
+            {cancelTarget?.description ? ` "${cancelTarget.description}"` : ''}
+            {cancelTarget?.value ? ` de ${fCurrency(cancelTarget.value)}` : ''}?
+            {cancelTarget?.source === 'sicredi' || cancelTarget?.source === 'cora'
+              ? ' O título também será cancelado no banco.'
+              : ''}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCancelTarget(null)} disabled={canceling}>
+            Voltar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleConfirmCancel}
+            disabled={canceling}
+          >
+            {canceling ? 'Cancelando...' : 'Confirmar cancelamento'}
           </Button>
         </DialogActions>
       </Dialog>
