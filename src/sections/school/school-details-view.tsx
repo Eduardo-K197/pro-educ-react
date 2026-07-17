@@ -113,6 +113,23 @@ export function SchoolDetailsView() {
                 </>
               )}
             </Alert>
+          ) : school.paymentProvider === 'sicredi' ? (
+            <Alert
+              severity={school.sicrediAccount?.clientId ? 'success' : 'warning'}
+              icon={<Iconify icon="mdi:bank-transfer" />}
+            >
+              <AlertTitle>
+                Sicredi{school.sicrediAccount?.clientId ? ' — Configurado' : ' — Pendente de configuração'}
+              </AlertTitle>
+              {school.sicrediAccount?.clientId && (
+                <>
+                  Cooperativa: <strong>{school.sicrediAccount.cooperativa}</strong> &bull;{' '}
+                  Posto: <strong>{school.sicrediAccount.posto}</strong> &bull;{' '}
+                  Beneficiário: <strong>{school.sicrediAccount.codigoBeneficiario}</strong> &bull;{' '}
+                  Ambiente: <strong>{school.sicrediAccount.environment === 'production' ? 'Produção' : 'Homologação'}</strong>
+                </>
+              )}
+            </Alert>
           ) : (
             <Grid container spacing={2}>
               <Grid item xs={12} md={4}>

@@ -7,6 +7,7 @@ import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Select from '@mui/material/Select';
@@ -71,6 +72,7 @@ export function StudentPagamentosTab({ studentId }: Props) {
   const [formBillingType, setFormBillingType] = useState<BillingType>('BOLETO');
   const [formCategoryId, setFormCategoryId] = useState('');
   const [formDescription, setFormDescription] = useState('');
+  const [linhaDigitavel, setLinhaDigitavel] = useState<string | null>(null);
 
   const loadEntries = useCallback(() => {
     setLoading(true);
@@ -102,6 +104,7 @@ export function StudentPagamentosTab({ studentId }: Props) {
     setFormBillingType('BOLETO');
     setFormCategoryId('');
     setFormDescription('');
+    setLinhaDigitavel(null);
     setDialogOpen(true);
   };
 
@@ -112,8 +115,9 @@ export function StudentPagamentosTab({ studentId }: Props) {
       return;
     }
     setSaving(true);
+    const usesGateway = formBillingType === 'BOLETO' || formBillingType === 'PIX';
     try {
-      await EntryService.createEntry({
+      const payload = {
         value: val,
         discount: parseFloat(formDiscount) || 0,
         dueDate: formDueDate || undefined,
@@ -121,9 +125,21 @@ export function StudentPagamentosTab({ studentId }: Props) {
         categoryId: formCategoryId || undefined,
         description: formDescription || undefined,
         studentId,
-      });
+      };
+      if (usesGateway) {
+        const result: any = await EntryService.createPayment(payload);
+        if (result?.source === 'sicredi') {
+          const linha = result?.bankSlipUrl ?? result?.invoiceUrl;
+          if (linha) setLinhaDigitavel(linha);
+        } else {
+          const url = result?.bankSlipUrl ?? result?.invoiceUrl;
+          if (url) window.open(url, '_blank');
+        }
+      } else {
+        await EntryService.createEntry(payload);
+      }
       toast.success('Lançamento criado!');
-      setDialogOpen(false);
+      if (!usesGateway) setDialogOpen(false);
       loadEntries();
     } catch (err: any) {
       const msg =
@@ -377,13 +393,37 @@ export function StudentPagamentosTab({ studentId }: Props) {
               onChange={(e) => setFormDueDate(e.target.value)}
               InputLabelProps={{ shrink: true }}
             />
+
+            {linhaDigitavel && (
+              <Alert
+                severity="success"
+                action={
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      navigator.clipboard.writeText(linhaDigitavel);
+                      toast.success('Linha digitável copiada!');
+                    }}
+                  >
+                    Copiar
+                  </Button>
+                }
+              >
+                <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
+                  Boleto Sicredi gerado!
+                </Typography>
+                <Typography variant="caption" sx={{ wordBreak: 'break-all' }}>
+                  {linhaDigitavel}
+                </Typography>
+              </Alert>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)} disabled={saving}>
-            Cancelar
+            {linhaDigitavel ? 'Fechar' : 'Cancelar'}
           </Button>
-          <Button variant="contained" onClick={handleSave} disabled={saving}>
+          <Button variant="contained" onClick={handleSave} disabled={saving || !!linhaDigitavel}>
             {saving ? 'Salvando...' : 'Salvar'}
           </Button>
         </DialogActions>
