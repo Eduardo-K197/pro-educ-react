@@ -26,6 +26,8 @@ import DialogActions from '@mui/material/DialogActions';
 import TableContainer from '@mui/material/TableContainer';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import Tooltip from '@mui/material/Tooltip';
+
 import { fDate } from 'src/utils/format-time';
 import { fCurrency } from 'src/utils/format-number';
 import { Iconify } from 'src/components/iconify';
@@ -229,27 +231,69 @@ export function StudentPagamentosTab({ studentId }: Props) {
                         </Label>
                       </TableCell>
                       <TableCell align="right">
-                        {entry.bankSlipUrl && (
-                          <IconButton
-                            size="small"
-                            component="a"
-                            href={entry.bankSlipUrl}
-                            target="_blank"
-                            title="Ver boleto"
-                          >
-                            <Iconify icon="solar:file-text-bold" width={16} />
-                          </IconButton>
-                        )}
-                        {entry.invoiceUrl && (
-                          <IconButton
-                            size="small"
-                            component="a"
-                            href={entry.invoiceUrl}
-                            target="_blank"
-                            title="Ver fatura"
-                          >
-                            <Iconify icon="solar:link-bold" width={16} />
-                          </IconButton>
+                        {entry.source === 'sicredi' ? (
+                          <>
+                            {entry.bankSlipUrl ? (
+                              <Tooltip title="Copiar linha digitável">
+                                <IconButton
+                                  size="small"
+                                  color="success"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(entry.bankSlipUrl!);
+                                    toast.success('Linha digitável copiada!');
+                                  }}
+                                >
+                                  <Iconify icon="solar:clipboard-bold" width={16} />
+                                </IconButton>
+                              </Tooltip>
+                            ) : (status === 'Pendente' || status === 'Atrasado') ? (
+                              <Tooltip title="Boleto sem registro no Sicredi — precisa ser reemitido">
+                                <span>
+                                  <IconButton size="small" disabled>
+                                    <Iconify icon="solar:file-text-bold" width={16} />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            ) : null}
+                            {entry.invoiceUrl && (
+                              <Tooltip title="Copiar código PIX">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(entry.invoiceUrl!);
+                                    toast.success('Código PIX copiado!');
+                                  }}
+                                >
+                                  <Iconify icon="solar:qr-code-bold" width={16} />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {entry.bankSlipUrl && (
+                              <IconButton
+                                size="small"
+                                component="a"
+                                href={entry.bankSlipUrl}
+                                target="_blank"
+                                title="Ver boleto"
+                              >
+                                <Iconify icon="solar:file-text-bold" width={16} />
+                              </IconButton>
+                            )}
+                            {entry.invoiceUrl && (
+                              <IconButton
+                                size="small"
+                                component="a"
+                                href={entry.invoiceUrl}
+                                target="_blank"
+                                title="Ver fatura"
+                              >
+                                <Iconify icon="solar:link-bold" width={16} />
+                              </IconButton>
+                            )}
+                          </>
                         )}
                       </TableCell>
                     </TableRow>

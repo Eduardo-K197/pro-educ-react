@@ -47,6 +47,7 @@ export function FinancialCreateView() {
   const [students, setStudents] = useState<StudentListItem[]>([]);
   const [categories, setCategories] = useState<EntryCategory[]>([]);
   const [invoiceUrl, setInvoiceUrl] = useState<string | null>(null);
+  const [linhaDigitavel, setLinhaDigitavel] = useState<string | null>(null);
 
   useEffect(() => {
     StudentService.list()
@@ -94,10 +95,15 @@ export function FinancialCreateView() {
       let result: any;
       if (usesGateway) {
         result = await EntryService.createPayment(payload);
-        const url = result?.bankSlipUrl ?? result?.invoiceUrl;
-        if (url) {
-          setInvoiceUrl(url);
-          window.open(url, '_blank');
+        if (result?.source === 'sicredi') {
+          const linha = result?.bankSlipUrl ?? result?.invoiceUrl;
+          if (linha) setLinhaDigitavel(linha);
+        } else {
+          const url = result?.bankSlipUrl ?? result?.invoiceUrl;
+          if (url) {
+            setInvoiceUrl(url);
+            window.open(url, '_blank');
+          }
         }
       } else {
         result = await EntryService.createEntry(payload);
@@ -188,6 +194,30 @@ export function FinancialCreateView() {
                     }
                   >
                     Link da cobrança gerado com sucesso!
+                  </Alert>
+                )}
+
+                {linhaDigitavel && (
+                  <Alert
+                    severity="success"
+                    action={
+                      <Button
+                        size="small"
+                        onClick={() => {
+                          navigator.clipboard.writeText(linhaDigitavel);
+                          toast.success('Linha digitável copiada!');
+                        }}
+                      >
+                        Copiar
+                      </Button>
+                    }
+                  >
+                    <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
+                      Boleto Sicredi gerado!
+                    </Typography>
+                    <Typography variant="caption" sx={{ wordBreak: 'break-all' }}>
+                      {linhaDigitavel}
+                    </Typography>
                   </Alert>
                 )}
               </Stack>

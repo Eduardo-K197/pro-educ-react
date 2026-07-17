@@ -121,6 +121,14 @@ export function SchoolCardItem({ school }: SchoolCardItemProps) {
                     label={school.coraAccount?.clientId ? 'Cora ativa' : 'Cora pendente'}
                     icon={<Iconify icon="mdi:bank" width={14} />}
                   />
+                ) : school.paymentProvider === 'sicredi' ? (
+                  <Chip
+                    size="small"
+                    color={school.sicrediAccount?.clientId ? 'success' : 'warning'}
+                    variant="filled"
+                    label={school.sicrediAccount?.clientId ? 'Sicredi ativo' : 'Sicredi pendente'}
+                    icon={<Iconify icon="mdi:bank" width={14} />}
+                  />
                 ) : (
                   <Chip
                     size="small"

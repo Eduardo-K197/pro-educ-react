@@ -20,6 +20,7 @@ import { fCurrency } from 'src/utils/format-number';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
+import { toast } from 'src/components/snackbar';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { usePopover, CustomPopover } from 'src/components/custom-popover';
 
@@ -65,7 +66,9 @@ export function FinancialTableRow({
   const isPending = displayStatus === 'Pendente';
 
   const invoiceUrl = row.bankSlipUrl ?? row.invoiceUrl;
-  const sourceLabel = row.source === 'cora' ? 'Cora' : row.source === 'asaas' ? 'Asaas' : null;
+  const isSicredi = row.source === 'sicredi';
+  const sourceLabel =
+    row.source === 'cora' ? 'Cora' : row.source === 'asaas' ? 'Asaas' : isSicredi ? 'Sicredi' : null;
 
   const studentName = row.student?.name;
   const guardianName = row.student?.guardian?.name;
@@ -149,7 +152,7 @@ export function FinancialTableRow({
               <Chip
                 label={sourceLabel}
                 size="small"
-                color={row.source === 'cora' ? 'primary' : 'default'}
+                color={row.source === 'cora' ? 'primary' : isSicredi ? 'success' : 'default'}
                 variant="outlined"
               />
             )}
@@ -173,12 +176,52 @@ export function FinancialTableRow({
                 </IconButton>
               </Tooltip>
             )}
-            {invoiceUrl && (
-              <Tooltip title={row.source === 'cora' ? 'Ver cobrança na Cora' : 'Ver cobrança no Asaas'}>
-                <IconButton size="small" onClick={() => window.open(invoiceUrl, '_blank')}>
-                  <Iconify icon="solar:link-bold" />
-                </IconButton>
-              </Tooltip>
+            {isSicredi ? (
+              <>
+                {row.bankSlipUrl ? (
+                  <Tooltip title="Copiar linha digitável">
+                    <IconButton
+                      size="small"
+                      color="success"
+                      onClick={() => {
+                        navigator.clipboard.writeText(row.bankSlipUrl!);
+                        toast.success('Linha digitável copiada!');
+                      }}
+                    >
+                      <Iconify icon="solar:clipboard-bold" />
+                    </IconButton>
+                  </Tooltip>
+                ) : (isPending || isOverdue) ? (
+                  <Tooltip title="Boleto sem registro no Sicredi — precisa ser reemitido">
+                    <span>
+                      <IconButton size="small" disabled>
+                        <Iconify icon="solar:file-text-bold" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                ) : null}
+                {row.invoiceUrl && (
+                  <Tooltip title="Copiar código PIX">
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        navigator.clipboard.writeText(row.invoiceUrl!);
+                        toast.success('Código PIX copiado!');
+                      }}
+                    >
+                      <Iconify icon="solar:qr-code-bold" />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </>
+            ) : (
+              invoiceUrl && (
+                <Tooltip title={row.source === 'cora' ? 'Ver cobrança na Cora' : 'Ver cobrança no Asaas'}>
+                  <IconButton size="small" onClick={() => window.open(invoiceUrl, '_blank')}>
+                    <Iconify icon="solar:link-bold" />
+                  </IconButton>
+                </Tooltip>
+              )
             )}
             <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
               <Iconify icon="eva:more-vertical-fill" />
