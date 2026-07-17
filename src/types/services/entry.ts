@@ -42,6 +42,7 @@ export interface EntryListItem {
   invoiceUrl?: string | null;
   installment?: string | null;
   installmentNumber?: number | null;
+  payment?: string | null;
   customer?: string | null;
   deleted?: boolean;
   student?: {
