@@ -533,6 +533,35 @@ export function StudentPagamentosTab({ studentId }: Props) {
                   const instId = group.installmentId!;
                   const isCollapsed = collapsedGroups.has(instId);
 
+                  const PROVIDER_LABELS: Record<string, string> = {
+                    sicredi: 'Sicredi',
+                    asaas: 'Asaas',
+                    cora: 'Cora',
+                  };
+                  const firstEntry = group.entries[0];
+                  const provider =
+                    (firstEntry?.source && PROVIDER_LABELS[firstEntry.source]) ||
+                    firstEntry?.source ||
+                    'Carnê';
+                  const dueDates = group.entries
+                    .map((e) => e.dueDate)
+                    .filter((d): d is string => !!d)
+                    .sort();
+                  const fmt = (d: string) => {
+                    const dt = new Date(d);
+                    return `${dt.toLocaleString('pt-BR', { month: 'short' })}/${dt.getFullYear()}`.replace('.', '');
+                  };
+                  const dateRange =
+                    dueDates.length >= 2
+                      ? `${fmt(dueDates[0])} – ${fmt(dueDates[dueDates.length - 1])}`
+                      : dueDates.length === 1
+                      ? fmt(dueDates[0])
+                      : null;
+                  const count = group.entries.length;
+                  const groupLabel = dateRange
+                    ? `${provider} · ${dateRange} · ${count} parcela${count !== 1 ? 's' : ''}`
+                    : `${provider} · ${count} parcela${count !== 1 ? 's' : ''}`;
+
                   return (
                     <React.Fragment key={`group-${instId}`}>
                       {/* Group header row */}
@@ -552,15 +581,8 @@ export function StudentPagamentosTab({ studentId }: Props) {
                               sx={{ color: 'primary.main' }}
                             />
                             <Typography variant="body2" fontWeight={600}>
-                              Carnê — {group.description ?? 'Parcelado'}
+                              {groupLabel}
                             </Typography>
-                            <Chip
-                              size="small"
-                              label={`${group.entries.length} parcelas`}
-                              color="primary"
-                              variant="soft"
-                              sx={{ height: 18, fontSize: 11 }}
-                            />
                           </Stack>
                         </TableCell>
                         <TableCell>
