@@ -4,6 +4,8 @@ export interface TeacherListItem {
   email?: string;
   phoneNumber?: string;
   birthDate?: string;
+  startDate?: string;
+  observations?: string;
   hourlyProfit?: number;
   createdAt?: string;
   pictureUrl?: string;
@@ -22,11 +24,13 @@ export interface TeachersIndexResponse {
 export interface TeacherCreatePayload {
   name: string;
   email: string;
-  phoneNumber: string;   // required na API
+  phoneNumber: string;
   birthDate?: string;
+  startDate?: string;
+  observations?: string;
   hourlyProfit?: number;
-  courses?: string[];    // array de course IDs
-  password?: string;     // usado no create; API usa senha padrão se omitido
+  courses?: string[];
+  password?: string;
 }
 
 export interface TeacherUpdatePayload extends Partial<TeacherCreatePayload> {}

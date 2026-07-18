@@ -40,7 +40,9 @@ const TeacherSchema = zod.object({
   phoneNumber: zod.string().min(1, 'Telefone obrigatório'),
   password: zod.string().min(6, 'Senha mínima 6 caracteres').optional().or(zod.literal('')),
   birthDate: zod.string().optional(),
+  startDate: zod.string().optional(),
   hourlyProfit: zod.coerce.number().min(0).optional(),
+  observations: zod.string().optional(),
 });
 
 type TeacherFormValues = zod.infer<typeof TeacherSchema>;
@@ -77,7 +79,9 @@ export function TeacherNewEditForm({ currentTeacher }: Props) {
       phoneNumber: currentTeacher?.phoneNumber ?? '',
       password: '',
       birthDate: currentTeacher?.birthDate ? currentTeacher.birthDate.substring(0, 10) : '',
+      startDate: currentTeacher?.startDate ? currentTeacher.startDate.substring(0, 10) : '',
       hourlyProfit: currentTeacher?.hourlyProfit ?? 0,
+      observations: currentTeacher?.observations ?? '',
     }),
     [currentTeacher]
   );
@@ -105,8 +109,10 @@ export function TeacherNewEditForm({ currentTeacher }: Props) {
         fd.append('email', data.email);
         fd.append('phoneNumber', data.phoneNumber);
         if (data.birthDate) fd.append('birthDate', data.birthDate);
+        if (data.startDate) fd.append('startDate', data.startDate);
         if (data.hourlyProfit !== undefined) fd.append('hourlyProfit', String(data.hourlyProfit));
         if (data.password) fd.append('password', data.password);
+        if (data.observations) fd.append('observations', data.observations);
         selectedCourseIds.forEach((id) => fd.append('courses', id));
         if (selectedFile) fd.append('picture', selectedFile);
 
@@ -123,7 +129,9 @@ export function TeacherNewEditForm({ currentTeacher }: Props) {
           email: data.email,
           phoneNumber: data.phoneNumber,
           birthDate: data.birthDate || undefined,
+          startDate: data.startDate || undefined,
           hourlyProfit: data.hourlyProfit,
+          observations: data.observations || undefined,
           password: data.password || undefined,
         };
         if (isEdit && currentTeacher) {
@@ -169,9 +177,23 @@ export function TeacherNewEditForm({ currentTeacher }: Props) {
                   />
                 </Grid>
                 <Grid xs={12} sm={6}>
-                  <Field.Text name="hourlyProfit" label="Valor hora/aula (R$)" type="number" />
+                  <Field.Text
+                    name="startDate"
+                    label="Início na instituição"
+                    type="date"
+                    InputLabelProps={{ shrink: true }}
+                  />
                 </Grid>
               </Grid>
+
+              <Field.Text name="hourlyProfit" label="Valor hora/aula (R$)" type="number" />
+
+              <Field.Text
+                name="observations"
+                label="Observações"
+                multiline
+                rows={3}
+              />
 
               <Field.Text
                 name="password"
