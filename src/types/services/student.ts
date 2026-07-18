@@ -46,6 +46,7 @@ export interface StudentDetail extends StudentListItem {
   address?: StudentGuardianAddress | string;
   guardian?: StudentGuardian;
   subscriptions?: StudentSubscription[];
+  picture?: { id?: string; url?: string; fileName?: string };
   pictureUrl?: string;
 }
 

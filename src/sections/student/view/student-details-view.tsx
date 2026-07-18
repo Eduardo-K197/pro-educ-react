@@ -115,7 +115,7 @@ export function StudentDetailsView({ id }: Props) {
             <Card sx={{ p: 3, textAlign: 'center' }}>
               <Stack alignItems="center" spacing={2}>
                 <Avatar
-                  src={student.pictureUrl ?? undefined}
+                  src={student.picture?.url ?? student.pictureUrl ?? undefined}
                   sx={{
                     width: 80,
                     height: 80,

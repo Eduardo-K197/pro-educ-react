@@ -54,7 +54,7 @@ export function TeacherNewEditForm({ currentTeacher }: Props) {
   const isEdit = !!currentTeacher;
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(currentTeacher?.pictureUrl ?? null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(currentTeacher?.picture?.url ?? currentTeacher?.pictureUrl ?? null);
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>(
     currentTeacher?.courses?.map((c) => c.id) ?? []
   );
@@ -69,7 +69,7 @@ export function TeacherNewEditForm({ currentTeacher }: Props) {
 
   // Sync picture preview when switching between edit targets
   useEffect(() => {
-    if (!selectedFile) setPreviewUrl(currentTeacher?.pictureUrl ?? null);
+    if (!selectedFile) setPreviewUrl(currentTeacher?.picture?.url ?? currentTeacher?.pictureUrl ?? null);
   }, [currentTeacher, selectedFile]);
 
   const defaultValues = useMemo<TeacherFormValues>(

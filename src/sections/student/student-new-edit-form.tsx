@@ -185,7 +185,7 @@ export function StudentNewEditForm({ currentStudent }: Props) {
   // --- Photo state ---
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(currentStudent?.pictureUrl ?? null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(currentStudent?.picture?.url ?? currentStudent?.pictureUrl ?? null);
 
   // --- Student address state ---
   const [addr, setAddr] = useState<AddressFields>(() =>
@@ -236,7 +236,7 @@ export function StudentNewEditForm({ currentStudent }: Props) {
       reset(defaultValues);
       setAddr(parseAddressFromApi(currentStudent.address));
       setGuardianAddr(parseAddressFromApi(currentStudent.guardian?.address));
-      setPhotoPreview(currentStudent.pictureUrl ?? null);
+      setPhotoPreview(currentStudent.picture?.url ?? currentStudent.pictureUrl ?? null);
     }
   }, [currentStudent, defaultValues, reset]);
 

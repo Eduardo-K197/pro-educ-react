@@ -8,6 +8,7 @@ export interface TeacherListItem {
   observations?: string;
   hourlyProfit?: number;
   createdAt?: string;
+  picture?: { id?: string; url?: string; fileName?: string };
   pictureUrl?: string;
   courses?: { id: string; name: string }[];
 }
