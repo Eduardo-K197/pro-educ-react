@@ -203,7 +203,7 @@ export function StudentNewEditForm({ currentStudent }: Props) {
     () => ({
       name: currentStudent?.name ?? '',
       email: currentStudent?.email ?? '',
-      phone: currentStudent?.phone ?? '',
+      phone: currentStudent?.phoneNumber ?? currentStudent?.phone ?? '',
       birthDate: currentStudent?.birthDate ? currentStudent.birthDate.substring(0, 10) : '',
       gender: currentStudent?.gender ?? '',
       cpf: currentStudent?.cpf ?? '',
@@ -308,7 +308,7 @@ export function StudentNewEditForm({ currentStudent }: Props) {
         const form = new FormData();
         form.append('name', data.name);
         if (data.email) form.append('email', data.email);
-        if (data.phone) form.append('phone', data.phone);
+        if (data.phone) form.append('phoneNumber', data.phone);
         if (data.birthDate) form.append('birthDate', data.birthDate);
         if (data.gender) form.append('gender', data.gender);
         if (data.cpf) form.append('cpf', data.cpf);
@@ -329,7 +329,7 @@ export function StudentNewEditForm({ currentStudent }: Props) {
         const payload = {
           name: data.name,
           email: data.email || undefined,
-          phone: data.phone || undefined,
+          phoneNumber: data.phone || undefined,
           birthDate: data.birthDate || undefined,
           gender: data.gender || undefined,
           cpf: data.cpf || undefined,
@@ -350,7 +350,7 @@ export function StudentNewEditForm({ currentStudent }: Props) {
 
       router.push(paths.dashboard.students.root);
     } catch (error: any) {
-      toast.error(error?.message ?? 'Erro ao salvar aluno');
+      toast.error(error?.response?.data?.message ?? error?.response?.data?.error ?? error?.message ?? 'Erro ao salvar aluno');
     }
   });
 

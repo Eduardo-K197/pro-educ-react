@@ -158,7 +158,7 @@ export function StudentDetailsView({ id }: Props) {
                   <Table size="small">
                     <TableBody>
                       {[
-                        { label: 'Telefone', value: safeStr(student.phone) },
+                        { label: 'Telefone', value: safeStr(student.phoneNumber ?? student.phone) },
                         { label: 'Data de nascimento', value: student.birthDate ? fDate(student.birthDate) : undefined },
                         { label: 'Gênero', value: safeStr(student.gender) },
                         { label: 'CPF', value: safeStr(student.cpf) },

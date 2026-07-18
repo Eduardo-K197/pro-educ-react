@@ -217,7 +217,7 @@ export function AdminListView() {
         tableHead={TABLE_HEAD}
         notFound={notFound}
         loading={loading}
-        onDeleteRows={handleDeleteRows}
+        onDeleteRows={confirm.onTrue}
 
         filters={
           <>
