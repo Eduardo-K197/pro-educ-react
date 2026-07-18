@@ -625,6 +625,7 @@ export function StudentPagamentosTab({ studentId }: Props) {
                 <MenuItem value="CREDIT_CARD">Cartão de crédito</MenuItem>
                 <MenuItem value="DEBIT_CARD">Débito</MenuItem>
                 <MenuItem value="TRANSFER">Transferência</MenuItem>
+                <MenuItem value="CRYPTO">Criptomoeda</MenuItem>
                 <MenuItem value="OTHER">Outros</MenuItem>
               </Select>
             </FormControl>

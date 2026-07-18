@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -40,6 +40,7 @@ import { SubscriptionService } from 'src/services/subscription';
 interface Comment {
   id: string;
   content: string;
+  file?: string;
   createdAt?: string;
   student?: { id: number; name: string };
 }
@@ -55,6 +56,8 @@ export function StudentDesempenhoTab({ studentId }: Props) {
   const [loadingSubs, setLoadingSubs] = useState(true);
   const [loadingComments, setLoadingComments] = useState(true);
   const [newComment, setNewComment] = useState('');
+  const [commentFile, setCommentFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [sendingComment, setSendingComment] = useState(false);
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [generatingCert, setGeneratingCert] = useState(false);
@@ -92,8 +95,18 @@ export function StudentDesempenhoTab({ studentId }: Props) {
     if (!newComment.trim()) return;
     setSendingComment(true);
     try {
-      await axios.post('/comments', { content: newComment.trim(), student: studentId });
+      if (commentFile) {
+        const fd = new FormData();
+        fd.append('content', newComment.trim());
+        fd.append('student', String(studentId));
+        fd.append('file', commentFile);
+        await axios.post('/comments', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      } else {
+        await axios.post('/comments', { content: newComment.trim(), student: studentId });
+      }
       setNewComment('');
+      setCommentFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       loadComments();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Erro ao enviar comentário');
@@ -277,8 +290,15 @@ export function StudentDesempenhoTab({ studentId }: Props) {
                         </Label>
                       </TableCell>
                       <TableCell>
-                        <Label variant="soft" color={isPresent ? 'success' : 'error'}>
-                          {isPresent ? 'Presente' : 'Faltou'}
+                        <Label
+                          variant="soft"
+                          color={
+                            p.status === 'present' ? 'success' :
+                            p.status === 'justified_absence' ? 'warning' : 'error'
+                          }
+                        >
+                          {p.status === 'present' ? 'Presente' :
+                           p.status === 'justified_absence' ? 'Falta justificada' : 'Ausente'}
                         </Label>
                       </TableCell>
                     </TableRow>
@@ -340,6 +360,20 @@ export function StudentDesempenhoTab({ studentId }: Props) {
                   <Typography variant="body2" sx={{ mt: 0.5, whiteSpace: 'pre-wrap' }}>
                     {comment.content}
                   </Typography>
+                  {comment.file && (
+                    <Button
+                      size="small"
+                      variant="soft"
+                      color="info"
+                      startIcon={<Iconify icon="solar:file-download-bold" width={14} />}
+                      href={comment.file}
+                      target="_blank"
+                      component="a"
+                      sx={{ mt: 1 }}
+                    >
+                      Baixar arquivo
+                    </Button>
+                  )}
                 </Box>
               </Stack>
             ))}
@@ -348,22 +382,46 @@ export function StudentDesempenhoTab({ studentId }: Props) {
 
         <Divider sx={{ mb: 2 }} />
 
-        <Stack direction="row" spacing={1} alignItems="flex-end">
-          <TextField
-            fullWidth
-            multiline
-            minRows={2}
-            maxRows={5}
-            size="small"
-            placeholder="Escreva um comentário..."
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-          />
+        <TextField
+          fullWidth
+          multiline
+          minRows={2}
+          maxRows={5}
+          size="small"
+          placeholder="Escreva um comentário..."
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+        />
+
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 1 }}>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              style={{ display: 'none' }}
+              onChange={(e) => setCommentFile(e.target.files?.[0] ?? null)}
+            />
+            <Tooltip title="Anexar arquivo">
+              <IconButton size="small" onClick={() => fileInputRef.current?.click()}>
+                <Iconify icon="solar:paperclip-bold" width={18} />
+              </IconButton>
+            </Tooltip>
+            {commentFile && (
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                <Typography variant="caption" color="text.secondary" noWrap sx={{ maxWidth: 160 }}>
+                  {commentFile.name}
+                </Typography>
+                <IconButton size="small" onClick={() => { setCommentFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>
+                  <Iconify icon="solar:close-circle-bold" width={14} />
+                </IconButton>
+              </Stack>
+            )}
+          </Stack>
+
           <IconButton
             color="primary"
             onClick={handleSendComment}
             disabled={sendingComment || !newComment.trim()}
-            sx={{ mb: 0.5 }}
           >
             {sendingComment ? (
               <CircularProgress size={20} />
