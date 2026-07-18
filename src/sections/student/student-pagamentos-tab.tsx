@@ -558,9 +558,6 @@ export function StudentPagamentosTab({ studentId }: Props) {
                       ? fmt(dueDates[0])
                       : null;
                   const count = group.entries.length;
-                  const groupLabel = dateRange
-                    ? `${provider} · ${dateRange} · ${count} parcela${count !== 1 ? 's' : ''}`
-                    : `${provider} · ${count} parcela${count !== 1 ? 's' : ''}`;
 
                   return (
                     <React.Fragment key={`group-${instId}`}>
@@ -580,9 +577,30 @@ export function StudentPagamentosTab({ studentId }: Props) {
                               width={14}
                               sx={{ color: 'primary.main' }}
                             />
-                            <Typography variant="body2" fontWeight={600}>
-                              {groupLabel}
+                            <Typography
+                              component="span"
+                              variant="body2"
+                              fontWeight={700}
+                              color="primary.main"
+                            >
+                              {provider}
                             </Typography>
+                            {dateRange && (
+                              <>
+                                <Typography component="span" variant="caption" color="text.disabled" sx={{ mx: 0.25 }}>·</Typography>
+                                <Typography component="span" variant="body2" color="text.secondary">
+                                  {dateRange}
+                                </Typography>
+                              </>
+                            )}
+                            <Typography component="span" variant="caption" color="text.disabled" sx={{ mx: 0.25 }}>·</Typography>
+                            <Chip
+                              size="small"
+                              label={`${count} parcela${count !== 1 ? 's' : ''}`}
+                              color="primary"
+                              variant="soft"
+                              sx={{ height: 20, fontSize: 11, fontWeight: 600 }}
+                            />
                           </Stack>
                         </TableCell>
                         <TableCell>
