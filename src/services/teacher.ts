@@ -1,5 +1,7 @@
 import type { AxiosRequestConfig } from 'axios';
 
+import axiosInstance from 'src/utils/axios';
+
 import type {
   TeacherDetail,
   TeacherCreatePayload,
@@ -27,6 +29,17 @@ export class TeacherService {
     return ApiService.post<TeacherCreatePayload, TeacherDetail>(this.BASE_PATH, payload, config);
   }
 
+  static async createMultipart(
+    formData: FormData,
+    config?: AxiosRequestConfig
+  ): Promise<TeacherDetail> {
+    const { data } = await axiosInstance.post<TeacherDetail>(this.BASE_PATH, formData, {
+      ...config,
+      headers: { ...(config?.headers ?? {}), 'Content-Type': 'multipart/form-data' },
+    });
+    return data;
+  }
+
   static update(
     id: string,
     payload: TeacherUpdatePayload,
@@ -37,6 +50,18 @@ export class TeacherService {
       payload,
       config
     );
+  }
+
+  static async updateMultipart(
+    id: string,
+    formData: FormData,
+    config?: AxiosRequestConfig
+  ): Promise<TeacherDetail> {
+    const { data } = await axiosInstance.put<TeacherDetail>(`${this.BASE_PATH}/${id}`, formData, {
+      ...config,
+      headers: { ...(config?.headers ?? {}), 'Content-Type': 'multipart/form-data' },
+    });
+    return data;
   }
 
   static delete(id: string, config?: AxiosRequestConfig): Promise<void> {

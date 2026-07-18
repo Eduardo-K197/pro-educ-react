@@ -58,8 +58,8 @@ interface Props {
 
 export function StudentGradesTab({ studentId, subscriptions = [] }: Props) {
   const courses = subscriptions
-    .filter((s) => s.course?.id)
-    .map((s) => ({ id: s.course!.id, name: s.course!.name }))
+    .map((s) => s.course ?? s.classroom?.course)
+    .filter((c): c is { id: string; name: string } => !!c?.id)
     .filter((c, i, arr) => arr.findIndex((x) => x.id === c.id) === i);
 
   const [selectedCourseId, setSelectedCourseId] = useState<string>(courses[0]?.id ?? '');
