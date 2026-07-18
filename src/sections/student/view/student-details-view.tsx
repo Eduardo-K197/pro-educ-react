@@ -10,6 +10,7 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
+import Avatar from '@mui/material/Avatar';
 import Table from '@mui/material/Table';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
@@ -113,20 +114,18 @@ export function StudentDetailsView({ id }: Props) {
           <Grid xs={12} md={4}>
             <Card sx={{ p: 3, textAlign: 'center' }}>
               <Stack alignItems="center" spacing={2}>
-                <Stack
+                <Avatar
+                  src={student.pictureUrl ?? undefined}
                   sx={{
                     width: 80,
                     height: 80,
-                    borderRadius: '50%',
                     bgcolor: 'primary.lighter',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    color: 'primary.main',
+                    fontSize: 32,
                   }}
                 >
-                  <Typography variant="h3" color="primary.main">
-                    {student.name.charAt(0).toUpperCase()}
-                  </Typography>
-                </Stack>
+                  {student.name.charAt(0).toUpperCase()}
+                </Avatar>
 
                 <Stack spacing={0.5}>
                   <Typography variant="subtitle1">{student.name}</Typography>
@@ -188,9 +187,24 @@ export function StudentDetailsView({ id }: Props) {
                       <TableBody>
                         {[
                           { label: 'Nome', value: student.guardian.name },
-                          { label: 'Telefone', value: student.guardian.phone },
+                          { label: 'Telefone', value: student.guardian.phone ?? student.guardian.phoneNumber },
                           { label: 'E-mail', value: student.guardian.email },
                           { label: 'Parentesco', value: student.guardian.relationship },
+                          { label: 'CPF', value: student.guardian.cpf },
+                          { label: 'RG', value: student.guardian.rg },
+                          ...(student.guardian.address
+                            ? [{
+                                label: 'Endereço',
+                                value: [
+                                  student.guardian.address.street,
+                                  student.guardian.address.number,
+                                  student.guardian.address.county,
+                                  student.guardian.address.city,
+                                  student.guardian.address.state,
+                                  student.guardian.address.zipCode,
+                                ].filter(Boolean).join(', ') || undefined,
+                              }]
+                            : []),
                         ].map((item) => (
                           <TableRow key={item.label}>
                             <TableCell sx={{ color: 'text.secondary', width: 180, border: 0, py: 1 }}>

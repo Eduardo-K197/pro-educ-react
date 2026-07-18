@@ -10,6 +10,7 @@ import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Select from '@mui/material/Select';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -30,7 +31,9 @@ import { fDate } from 'src/utils/format-time';
 import { Iconify } from 'src/components/iconify';
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
+import { ConfirmDialog } from 'src/components/custom-dialog';
 
+import axiosInstance from 'src/utils/axios';
 import { ClassroomService } from 'src/services/classroom';
 import type { SubscriptionDetail } from 'src/services/subscription';
 import { SubscriptionService } from 'src/services/subscription';
@@ -48,7 +51,9 @@ export function StudentTurmasTab({ studentId }: Props) {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<SubscriptionDetail | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [generatingCertId, setGeneratingCertId] = useState<string | null>(null);
 
   const [formClassroomId, setFormClassroomId] = useState('');
   const [formStartAt, setFormStartAt] = useState('');
@@ -104,16 +109,32 @@ export function StudentTurmasTab({ studentId }: Props) {
     }
   };
 
-  const handleDelete = async (sub: SubscriptionDetail) => {
-    setDeletingId(sub.id);
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
     try {
-      await SubscriptionService.delete(sub.id);
+      await SubscriptionService.delete(pendingDelete.id);
       toast.success('Matrícula cancelada');
       loadSubscriptions();
     } catch {
       toast.error('Erro ao cancelar matrícula');
     } finally {
-      setDeletingId(null);
+      setDeleting(false);
+      setPendingDelete(null);
+    }
+  };
+
+  const handleGenerateCertificate = async (sub: SubscriptionDetail) => {
+    setGeneratingCertId(sub.id);
+    try {
+      await axiosInstance.post(`/certificates/${sub.id}`);
+      toast.success('Certificado gerado!');
+      loadSubscriptions();
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Erro ao gerar certificado';
+      toast.error(msg);
+    } finally {
+      setGeneratingCertId(null);
     }
   };
 
@@ -160,6 +181,7 @@ export function StudentTurmasTab({ studentId }: Props) {
                   const totalClasses = sub.presences?.length ?? 0;
                   const present = sub.presences?.filter((p) => p.status === 'present').length ?? 0;
                   const hasCert = !!sub.certificate;
+                  const isGenerating = generatingCertId === sub.id;
                   return (
                     <TableRow key={sub.id} hover>
                       <TableCell>
@@ -197,24 +219,55 @@ export function StudentTurmasTab({ studentId }: Props) {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Label variant="soft" color={hasCert ? 'success' : 'default'}>
-                          {hasCert ? 'Emitido' : 'Pendente'}
-                        </Label>
+                        {hasCert ? (
+                          <Tooltip title="Ver certificado">
+                            <Button
+                              size="small"
+                              variant="soft"
+                              color="success"
+                              startIcon={<Iconify icon="solar:diploma-bold-duotone" width={14} />}
+                              component="a"
+                              href={`/certificates/${(sub.certificate as any)?.id ?? sub.certificate}/view`}
+                              target="_blank"
+                              sx={{ fontSize: 11, height: 26, px: 1 }}
+                            >
+                              Ver
+                            </Button>
+                          </Tooltip>
+                        ) : (
+                          <Tooltip title="Gerar certificado">
+                            <span>
+                              <Button
+                                size="small"
+                                variant="soft"
+                                color="warning"
+                                startIcon={
+                                  isGenerating ? (
+                                    <CircularProgress size={12} />
+                                  ) : (
+                                    <Iconify icon="solar:diploma-bold-duotone" width={14} />
+                                  )
+                                }
+                                onClick={() => handleGenerateCertificate(sub)}
+                                disabled={isGenerating}
+                                sx={{ fontSize: 11, height: 26, px: 1 }}
+                              >
+                                Gerar
+                              </Button>
+                            </span>
+                          </Tooltip>
+                        )}
                       </TableCell>
                       <TableCell align="right">
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleDelete(sub)}
-                          disabled={deletingId === sub.id}
-                          title="Cancelar matrícula"
-                        >
-                          {deletingId === sub.id ? (
-                            <CircularProgress size={14} color="error" />
-                          ) : (
+                        <Tooltip title="Remover da turma">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => setPendingDelete(sub)}
+                          >
                             <Iconify icon="solar:trash-bin-trash-bold" width={16} />
-                          )}
-                        </IconButton>
+                          </IconButton>
+                        </Tooltip>
                       </TableCell>
                     </TableRow>
                   );
@@ -274,6 +327,24 @@ export function StudentTurmasTab({ studentId }: Props) {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Confirm remove dialog */}
+      <ConfirmDialog
+        open={!!pendingDelete}
+        onClose={() => setPendingDelete(null)}
+        title="Remover da turma"
+        content={`Tem certeza que deseja remover o aluno da turma "${pendingDelete?.classroom?.name ?? ''}"? Esta ação não pode ser desfeita.`}
+        action={
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleConfirmDelete}
+            disabled={deleting}
+          >
+            {deleting ? 'Removendo...' : 'Remover'}
+          </Button>
+        }
+      />
     </Stack>
   );
 }

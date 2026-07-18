@@ -67,7 +67,8 @@ export function StudentDesempenhoTab({ studentId }: Props) {
   }, [studentId]);
 
   useEffect(() => {
-    SubscriptionService.list({ student: String(studentId), deleted: 'false' })
+    // include deleted subscriptions so historic presences remain visible
+    SubscriptionService.list({ student: String(studentId) })
       .then((res) => {
         const list = res.subscriptions ?? [];
         setSubscriptions(list);
@@ -128,6 +129,7 @@ export function StudentDesempenhoTab({ studentId }: Props) {
                 <MenuItem key={s.id} value={s.id}>
                   {s.classroom?.name ?? s.id}
                   {s.classroom?.course?.name ? ` — ${s.classroom.course.name}` : ''}
+                  {s.deletedAt ? ' (removido)' : ''}
                 </MenuItem>
               ))}
             </Select>

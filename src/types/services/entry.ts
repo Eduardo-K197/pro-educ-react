@@ -16,7 +16,7 @@ export type EntryApiStatus =
 // Human-readable status computed by the API (traducedStatus field)
 export type TraducedStatus = 'Pendente' | 'Pago' | 'Atrasado' | 'Cancelado';
 
-export type BillingType = 'BOLETO' | 'PIX' | 'MONEY' | 'CREDIT_CARD';
+export type BillingType = 'BOLETO' | 'PIX' | 'MONEY' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'TRANSFER' | 'OTHER';
 export type EntrySource = 'asaas' | 'cora' | 'sicredi' | 'manual' | 'proeduc';
 
 export interface EntryCategory {
@@ -75,6 +75,7 @@ export interface EntryCreatePayload {
   categoryId?: string;
   studentId?: number;
   discount?: number;
+  installmentCount?: number;
 }
 
 export interface EntryUpdatePayload {

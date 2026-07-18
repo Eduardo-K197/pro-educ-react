@@ -1,9 +1,24 @@
+export interface StudentGuardianAddress {
+  zipCode?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  county?: string;  // bairro
+  street?: string;
+  number?: string;
+  complement?: string;
+}
+
 export interface StudentGuardian {
   id?: string;
   name: string;
   phone?: string;
+  phoneNumber?: string;
   email?: string;
   relationship?: string;
+  cpf?: string;
+  rg?: string;
+  address?: StudentGuardianAddress;
 }
 
 export interface StudentListItem {
@@ -28,7 +43,7 @@ export interface StudentListItem {
 
 export interface StudentDetail extends StudentListItem {
   rg?: string;
-  address?: string;
+  address?: StudentGuardianAddress | string;
   guardian?: StudentGuardian;
   subscriptions?: StudentSubscription[];
   pictureUrl?: string;
@@ -36,15 +51,17 @@ export interface StudentDetail extends StudentListItem {
 
 export interface StudentSubscription {
   id: string;
-  classroom?: { id: string; name: string };
+  classroom?: { id: string; name: string; course?: { id: string; name: string } };
   course?: { id: string; name: string };
   status?: string;
   createdAt?: string;
+  deletedAt?: string;
 }
 
 export interface StudentsIndexResponse {
   students: StudentListItem[];
   total?: number;
+  count?: number;
   page?: number;
   perPage?: number;
   totalPages?: number;
@@ -58,7 +75,7 @@ export interface StudentCreatePayload {
   gender?: string;
   cpf?: string;
   rg?: string;
-  address?: string;
+  address?: StudentGuardianAddress | string;
   guardian?: StudentGuardian;
   status?: string;
 }
