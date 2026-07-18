@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -534,10 +534,9 @@ export function StudentPagamentosTab({ studentId }: Props) {
                   const isCollapsed = collapsedGroups.has(instId);
 
                   return (
-                    <>
+                    <React.Fragment key={`group-${instId}`}>
                       {/* Group header row */}
                       <TableRow
-                        key={`group-${instId}`}
                         sx={{
                           bgcolor: (theme) =>
                             varAlpha(theme.vars.palette.primary.mainChannel, 0.06),
@@ -575,7 +574,7 @@ export function StudentPagamentosTab({ studentId }: Props) {
 
                       {/* Group child rows */}
                       {!isCollapsed && group.entries.map((entry) => renderEntryRow(entry, true))}
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </TableBody>

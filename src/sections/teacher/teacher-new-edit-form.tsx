@@ -102,8 +102,12 @@ export function TeacherNewEditForm({ currentTeacher }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      if (selectedFile || selectedCourseIds.length > 0) {
-        // Use multipart when photo is being uploaded or courses are selected
+      const coursesChanged = isEdit
+        ? JSON.stringify([...(currentTeacher?.courses?.map((c) => c.id) ?? [])].sort()) !==
+          JSON.stringify([...selectedCourseIds].sort())
+        : selectedCourseIds.length > 0;
+
+      if (selectedFile || coursesChanged) {
         const fd = new FormData();
         fd.append('name', data.name);
         fd.append('email', data.email);

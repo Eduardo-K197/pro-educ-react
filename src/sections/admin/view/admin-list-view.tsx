@@ -18,6 +18,7 @@ import { fIsAfter, fIsBetween } from 'src/utils/format-time';
 import { varAlpha } from 'src/theme/styles';
 
 import { AdminService } from 'src/services/admin';
+import { ApiService } from 'src/services/api/api';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 import { Label } from 'src/components/label';
@@ -57,7 +58,8 @@ export function AdminListView() {
   const router = useRouter();
   const confirm = useBoolean();
 
-  const [tableData, setTableData] = useState<AdminListItem[]>([]);
+  type TableEntry = AdminListItem & { _entityType?: 'admin' | 'employee' };
+  const [tableData, setTableData] = useState<TableEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   const filters = useSetState<IAdminTableFilters>({
@@ -80,10 +82,23 @@ export function AdminListView() {
   const loadAdmins = useCallback(async () => {
     try {
       setLoading(true);
-      const resp = await AdminService.list();
-      const admins = (resp as any).admins ?? resp;
+      const [adminResult, empResult] = await Promise.allSettled([
+        AdminService.list(),
+        ApiService.get<{ employees: AdminListItem[] }>('/employees'),
+      ]);
 
-      setTableData(admins);
+      const admins: AdminListItem[] =
+        adminResult.status === 'fulfilled'
+          ? ((adminResult.value as any).admins ?? adminResult.value)
+          : [];
+
+      const employees: AdminListItem[] =
+        empResult.status === 'fulfilled' ? (empResult.value.employees ?? []) : [];
+
+      setTableData([
+        ...admins.map((a) => ({ ...a, _entityType: 'admin' as const })),
+        ...employees.map((e) => ({ ...e, _entityType: 'employee' as const })),
+      ]);
     } catch (error) {
       console.error(error);
       toast.error('Erro ao carregar usuários');
@@ -113,28 +128,36 @@ export function AdminListView() {
 
   const dataInPage = rowInPage(dataFiltered, table.page, table.rowsPerPage);
 
+  const deleteUser = useCallback(
+    (id: string) => {
+      const row = tableData.find((r) => r.id === id);
+      return row?._entityType === 'employee'
+        ? ApiService.delete(`/employees/${id}`)
+        : AdminService.delete(id);
+    },
+    [tableData]
+  );
+
   const handleDeleteRow = useCallback(
     async (id: string) => {
       try {
-        await AdminService.delete(id);
-        const deleteRow = tableData.filter((row) => row.id !== id);
+        await deleteUser(id);
+        setTableData((prev) => prev.filter((row) => row.id !== id));
         toast.success('Usuário excluído com sucesso!');
-        setTableData(deleteRow);
         table.onUpdatePageDeleteRow(dataInPage.length);
       } catch (error) {
         toast.error('Erro ao excluir usuário');
       }
     },
-    [dataInPage.length, table, tableData]
+    [dataInPage.length, deleteUser, table]
   );
 
   const handleDeleteRows = useCallback(async () => {
     try {
       const idsToDelete = table.selected;
-      await Promise.all(idsToDelete.map((id) => AdminService.delete(id)));
-      const deleteRows = tableData.filter((row) => !idsToDelete.includes(row.id));
+      await Promise.all(idsToDelete.map((id) => deleteUser(id)));
+      setTableData((prev) => prev.filter((row) => !idsToDelete.includes(row.id)));
       toast.success('Usuários excluídos com sucesso!');
-      setTableData(deleteRows);
       table.onUpdatePageDeleteRows({
         totalRowsInPage: dataInPage.length,
         totalRowsFiltered: dataFiltered.length,
@@ -142,7 +165,7 @@ export function AdminListView() {
     } catch (error) {
       toast.error('Erro ao excluir usuários');
     }
-  }, [dataFiltered.length, dataInPage.length, table, tableData]);
+  }, [dataFiltered.length, dataInPage.length, deleteUser, table]);
 
   const handleViewRow = useCallback(
     (id: string) => {

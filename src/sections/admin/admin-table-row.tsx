@@ -112,6 +112,8 @@ export function AdminTableRow({ row, selected, onViewRow, onEditRow, onSelectRow
               (row.role === 'admin' && 'warning') ||
               (row.role === 'manager' && 'info') ||
               (row.role === 'teacher' && 'secondary') ||
+              (row.role === 'employee' && 'success') ||
+              (row.role === 'master' && 'primary') ||
               'default'
             }
           >

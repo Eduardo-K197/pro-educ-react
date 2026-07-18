@@ -70,7 +70,10 @@ const emptyAddress = (): AddressFields => ({
 
 function parseAddressFromApi(raw: any): AddressFields {
   if (!raw) return emptyAddress();
-  if (typeof raw === 'string') return { ...emptyAddress(), street: raw };
+  if (typeof raw === 'string') {
+    try { return parseAddressFromApi(JSON.parse(raw)); } catch {}
+    return emptyAddress();
+  }
   return {
     zipCode: raw.zipCode ?? '',
     street: raw.street ?? '',
@@ -81,6 +84,95 @@ function parseAddressFromApi(raw: any): AddressFields {
     complement: raw.complement ?? '',
   };
 }
+
+// ----------------------------------------------------------------------
+
+interface AddressSectionProps {
+  value: AddressFields;
+  onChange: (patch: Partial<AddressFields>) => void;
+  fetching: boolean;
+  onCepBlur: (cep: string) => void;
+}
+
+function AddressSection({ value, onChange, fetching, onCepBlur }: AddressSectionProps) {
+  return (
+    <Stack spacing={2}>
+      <Grid container spacing={2}>
+        <Grid xs={12} sm={4}>
+          <TextField
+            fullWidth
+            size="small"
+            label="CEP"
+            value={value.zipCode}
+            onChange={(e) => onChange({ zipCode: e.target.value })}
+            onBlur={(e) => onCepBlur(e.target.value)}
+            inputProps={{ maxLength: 9 }}
+            InputProps={{
+              endAdornment: fetching ? <CircularProgress size={16} /> : null,
+            }}
+          />
+        </Grid>
+        <Grid xs={12} sm={6}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Rua"
+            value={value.street}
+            onChange={(e) => onChange({ street: e.target.value })}
+          />
+        </Grid>
+        <Grid xs={12} sm={2}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Número"
+            value={value.number}
+            onChange={(e) => onChange({ number: e.target.value })}
+          />
+        </Grid>
+      </Grid>
+      <Grid container spacing={2}>
+        <Grid xs={12} sm={4}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Bairro"
+            value={value.county}
+            onChange={(e) => onChange({ county: e.target.value })}
+          />
+        </Grid>
+        <Grid xs={12} sm={4}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Cidade"
+            value={value.city}
+            onChange={(e) => onChange({ city: e.target.value })}
+          />
+        </Grid>
+        <Grid xs={12} sm={4}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Estado (UF)"
+            value={value.state}
+            onChange={(e) => onChange({ state: e.target.value })}
+            inputProps={{ maxLength: 2, style: { textTransform: 'uppercase' } }}
+          />
+        </Grid>
+      </Grid>
+      <TextField
+        fullWidth
+        size="small"
+        label="Ponto de referência / Complemento"
+        value={value.complement}
+        onChange={(e) => onChange({ complement: e.target.value })}
+      />
+    </Stack>
+  );
+}
+
+// ----------------------------------------------------------------------
 
 type Props = {
   currentStudent?: StudentDetail;
@@ -185,95 +277,6 @@ export function StudentNewEditForm({ currentStudent }: Props) {
   }, []);
 
   const importAddressToGuardian = () => setGuardianAddr({ ...addr });
-
-  // --- Address sub-field component ---
-  const AddressSection = ({
-    value,
-    onChange,
-    fetching,
-    onCepBlur,
-    prefix,
-  }: {
-    value: AddressFields;
-    onChange: (patch: Partial<AddressFields>) => void;
-    fetching: boolean;
-    onCepBlur: (cep: string) => void;
-    prefix: string;
-  }) => (
-    <Stack spacing={2}>
-      <Grid container spacing={2}>
-        <Grid xs={12} sm={4}>
-          <TextField
-            fullWidth
-            size="small"
-            label="CEP"
-            value={value.zipCode}
-            onChange={(e) => onChange({ zipCode: e.target.value })}
-            onBlur={(e) => onCepBlur(e.target.value)}
-            inputProps={{ maxLength: 9 }}
-            InputProps={{
-              endAdornment: fetching ? <CircularProgress size={16} /> : null,
-            }}
-          />
-        </Grid>
-        <Grid xs={12} sm={6}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Rua"
-            value={value.street}
-            onChange={(e) => onChange({ street: e.target.value })}
-          />
-        </Grid>
-        <Grid xs={12} sm={2}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Número"
-            value={value.number}
-            onChange={(e) => onChange({ number: e.target.value })}
-          />
-        </Grid>
-      </Grid>
-      <Grid container spacing={2}>
-        <Grid xs={12} sm={4}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Bairro"
-            value={value.county}
-            onChange={(e) => onChange({ county: e.target.value })}
-          />
-        </Grid>
-        <Grid xs={12} sm={4}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Cidade"
-            value={value.city}
-            onChange={(e) => onChange({ city: e.target.value })}
-          />
-        </Grid>
-        <Grid xs={12} sm={4}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Estado (UF)"
-            value={value.state}
-            onChange={(e) => onChange({ state: e.target.value })}
-            inputProps={{ maxLength: 2, style: { textTransform: 'uppercase' } }}
-          />
-        </Grid>
-      </Grid>
-      <TextField
-        fullWidth
-        size="small"
-        label="Ponto de referência / Complemento"
-        value={value.complement}
-        onChange={(e) => onChange({ complement: e.target.value })}
-      />
-    </Stack>
-  );
 
   // --- Submit ---
   const onSubmit = handleSubmit(async (data) => {
@@ -472,7 +475,6 @@ export function StudentNewEditForm({ currentStudent }: Props) {
                 onChange={(patch) => setAddr((prev) => ({ ...prev, ...patch }))}
                 fetching={fetchingCep}
                 onCepBlur={(cep) => fetchCep(cep, 'student')}
-                prefix="student"
               />
             </Stack>
 
@@ -533,7 +535,6 @@ export function StudentNewEditForm({ currentStudent }: Props) {
                 onChange={(patch) => setGuardianAddr((prev) => ({ ...prev, ...patch }))}
                 fetching={fetchingGuardianCep}
                 onCepBlur={(cep) => fetchCep(cep, 'guardian')}
-                prefix="guardian"
               />
             </Stack>
           </Card>
