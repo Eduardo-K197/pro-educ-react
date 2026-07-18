@@ -27,6 +27,7 @@ export interface StudentListItem {
   email?: string;
   phone?: string;
   phoneNumber?: string;
+  picture?: { id?: string; url?: string; fileName?: string };
   birthDate?: string;
   gender?: string;
   status?: string;

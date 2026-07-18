@@ -58,7 +58,7 @@ export function StudentTableRow({ row, selected, onSelectRow, onDeleteRow, canDe
 
         <TableCell>
           <Stack direction="row" alignItems="center" spacing={2}>
-            <Avatar sx={{ width: 36, height: 36 }}>
+            <Avatar src={row.picture?.url} sx={{ width: 36, height: 36 }}>
               {row.name?.charAt(0).toUpperCase() ?? '?'}
             </Avatar>
             <Stack>
