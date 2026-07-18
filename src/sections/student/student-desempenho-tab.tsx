@@ -11,6 +11,7 @@ import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
 import Select from '@mui/material/Select';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -56,6 +57,7 @@ export function StudentDesempenhoTab({ studentId }: Props) {
   const [newComment, setNewComment] = useState('');
   const [sendingComment, setSendingComment] = useState(false);
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
+  const [generatingCert, setGeneratingCert] = useState(false);
 
   const loadComments = useCallback(() => {
     setLoadingComments(true);
@@ -112,6 +114,27 @@ export function StudentDesempenhoTab({ studentId }: Props) {
     }
   };
 
+  const handleGenerateCertificate = async () => {
+    if (!selectedSub) return;
+    setGeneratingCert(true);
+    try {
+      await axios.post(`/certificates/${selectedSub.id}`);
+      toast.success('Certificado gerado!');
+      // Reload subscriptions to get updated certificate field
+      SubscriptionService.list({ student: String(studentId) })
+        .then((res) => {
+          const list = res.subscriptions ?? [];
+          setSubscriptions(list);
+        })
+        .catch(() => {});
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Erro ao gerar certificado';
+      toast.error(msg);
+    } finally {
+      setGeneratingCert(false);
+    }
+  };
+
   return (
     <Stack spacing={3}>
       {/* Turma selector + attendance summary */}
@@ -141,6 +164,47 @@ export function StudentDesempenhoTab({ studentId }: Props) {
               color={attendancePct >= 75 ? 'success' : 'error'}
               variant="soft"
             />
+          )}
+
+          <Box sx={{ flex: 1 }} />
+
+          {selectedSub && (
+            selectedSub.certificate ? (
+              <Tooltip title="Ver certificado">
+                <Button
+                  size="small"
+                  variant="soft"
+                  color="success"
+                  startIcon={<Iconify icon="solar:diploma-bold-duotone" width={14} />}
+                  component="a"
+                  href={`/certificates/${selectedSub.certificate?.id}/view`}
+                  target="_blank"
+                >
+                  Ver certificado
+                </Button>
+              </Tooltip>
+            ) : (
+              <Tooltip title="Gerar certificado para esta turma">
+                <span>
+                  <Button
+                    size="small"
+                    variant="soft"
+                    color="warning"
+                    startIcon={
+                      generatingCert ? (
+                        <CircularProgress size={12} />
+                      ) : (
+                        <Iconify icon="solar:diploma-bold-duotone" width={14} />
+                      )
+                    }
+                    onClick={handleGenerateCertificate}
+                    disabled={generatingCert}
+                  >
+                    Gerar certificado
+                  </Button>
+                </span>
+              </Tooltip>
+            )
           )}
         </Stack>
       </Card>
