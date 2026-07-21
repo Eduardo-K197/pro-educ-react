@@ -238,6 +238,7 @@ export function GroupDetailsView({ group, adminList, schoolList }: Props) {
           open={openAddSchool}
           onClose={() => setOpenAddSchool(false)}
           groupId={group.id}
+          linkedSchoolIds={schoolsId}
           onRefresh={handleRefresh}
         />
       )}
