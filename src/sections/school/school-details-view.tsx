@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
 import { Box, Card, Stack, Typography, Grid, Chip, Divider, Button, Alert, AlertTitle } from '@mui/material';
@@ -13,6 +13,7 @@ import { paths } from 'src/routes/paths';
 import type { SchoolDetail } from 'src/types/services/school';
 import { SchoolService } from 'src/services/school';
 import { useSchoolMode } from 'src/hooks/use-school-mode';
+import { SchoolQuickAddAdmin } from './school-quick-add-admin';
 
 export function SchoolDetailsView() {
   const params = useParams();
@@ -23,24 +24,22 @@ export function SchoolDetailsView() {
 
   const [school, setSchool] = useState<SchoolDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [openAddAdmin, setOpenAddAdmin] = useState(false);
 
-  useEffect(() => {
+  const loadSchool = useCallback(async () => {
     if (!id) return;
-
-    const load = async () => {
-      try {
-        const data = await SchoolService.getById(id);
-        setSchool(data);
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Erro ao carregar escola', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    void load();
+    try {
+      const data = await SchoolService.getById(id);
+      setSchool(data);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Erro ao carregar escola', error);
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => { void loadSchool(); }, [loadSchool]);
 
   if (loading) {
     return (
@@ -184,9 +183,17 @@ export function SchoolDetailsView() {
           {/* Admins x Employees */}
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                  Administradores
-                </Typography>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+                <Typography variant="subtitle1">Administradores</Typography>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<Iconify icon="mingcute:add-line" />}
+                  onClick={() => setOpenAddAdmin(true)}
+                >
+                  Adicionar
+                </Button>
+              </Stack>
 
               {school.admins?.length ? (
                 <Stack direction="row" flexWrap="wrap" gap={1}>
@@ -199,7 +206,7 @@ export function SchoolDetailsView() {
                     />
                   ))}
                 </Stack>
-                ) : (
+              ) : (
                 <Typography variant="body2" color="text.secondary">
                   Nenhum administrador vinculado.
                 </Typography>
@@ -303,6 +310,14 @@ export function SchoolDetailsView() {
           </div>
         </Stack>
       </Card>
+
+      <SchoolQuickAddAdmin
+        open={openAddAdmin}
+        onClose={() => setOpenAddAdmin(false)}
+        schoolId={school.id}
+        linkedAdminIds={school.admins?.map((a) => a.id) ?? []}
+        onRefresh={loadSchool}
+      />
     </DashboardContent>
   );
 }
