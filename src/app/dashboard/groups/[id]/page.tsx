@@ -25,7 +25,7 @@ export default function GroupDetailsPage({ params }: { params: { id: string } })
         const [groupData, adminsResponse, schoolsResponse] = await Promise.all([
           GroupService.getById(params.id),
           AdminService.list(),
-          SchoolService.list(),
+          SchoolService.list({ hasPagination: false }),
         ]);
 
         if (mounted) {
