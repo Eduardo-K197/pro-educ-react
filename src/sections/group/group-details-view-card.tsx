@@ -167,17 +167,17 @@ export function GroupDetailsViewCard({ type, item, onRefresh, groupId, onDeleteR
             {type === 'admin' ? 'Excluir Admin' : 'Excluir Escola'}
           </Button>
 
-          {type === 'school' && (        
+          {type === 'school' && (
             <Button
               variant="outlined"
               size="small"
               startIcon={<Iconify icon="solar:eye-bold" />}
-              onClick={() => {
-              }}
+              component={RouterLink}
+              href={detailsLink}
             >
               Acessar
             </Button>
-          )} 
+          )}
 
           <Button
             size="small"
