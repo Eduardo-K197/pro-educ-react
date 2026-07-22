@@ -53,18 +53,17 @@ export function GroupDetailsView({ group, adminList, schoolList }: Props) {
 
 
   const groupSchoolsById = useMemo(() => {
-    const filteredSchools = schoolList.filter(s => schoolsId.includes(s.id));
-
-    return filteredSchools.map((school) => {
-        const adminsDestaEscola = groupAdminsById.filter((admin) => 
-            admin.schools?.some((s: any) => {
-                const idToCheck = s.id ?? s; 
-                return String(idToCheck) === String(school.id);
-            })
+    const schoolMap = new Map(schoolList.map(s => [s.id, s]));
+    return (group.groupSchool ?? [])
+      .filter(gs => gs.school?.id)
+      .map((gs) => {
+        const extra = schoolMap.get(gs.school.id) ?? {};
+        const adminsDestaEscola = groupAdminsById.filter((admin) =>
+          admin.schools?.some((s: any) => String(s.id ?? s) === String(gs.school.id))
         );
-        return { ...school, admins: adminsDestaEscola };
-    });
-  }, [schoolList, schoolsId, groupAdminsById]);
+        return { ...extra, id: gs.school.id, name: gs.school.name, admins: adminsDestaEscola };
+      });
+  }, [group.groupSchool, schoolList, groupAdminsById]);
 
 
   const [openAddAdmin, setOpenAddAdmin] = useState(false);
