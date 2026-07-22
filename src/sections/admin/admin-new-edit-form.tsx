@@ -19,6 +19,7 @@ import { ProfileFormLayout } from 'src/components/hook-form/profile-form-layout'
 import type { AdminDetail } from 'src/types/services/admin';
 import { AdminService } from 'src/services/admin';
 import { GroupService } from 'src/services/group';
+import { SchoolService } from 'src/services/school';
 
 export type NewAdminSchemaType = zod.infer<typeof NewAdminSchema>;
 
@@ -34,9 +35,10 @@ export const NewAdminSchema = zod
     password: zod.string().optional(),
     passwordConfirmation: zod.string().optional(),
     groups: zod
-      .array(
-        zod.object({ id: zod.string(), name: zod.string() })
-      )
+      .array(zod.object({ id: zod.string(), name: zod.string() }))
+      .default([]),
+    schools: zod
+      .array(zod.object({ id: zod.string(), name: zod.string() }))
       .default([]),
   })
   .refine((data) => {
@@ -64,6 +66,7 @@ export function AdminNewEditForm({ currentAdmin }: Props) {
       password: '',
       passwordConfirmation: '',
       groups: currentAdmin?.groups || [],
+      schools: currentAdmin?.schools?.map((s: any) => typeof s === 'string' ? { id: s, name: '' } : s) || [],
     }),
     [currentAdmin]
   );
@@ -81,19 +84,24 @@ export function AdminNewEditForm({ currentAdmin }: Props) {
   } = methods;
 
   const [groupOptions, setGroupOptions] = useState<{ id: string; name: string }[]>([]);
+  const [schoolOptions, setSchoolOptions] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
-    const loadGroups = async () => {
+    const loadOptions = async () => {
       try {
-        const groups = await GroupService.listPagination();
+        const [groups, schoolsRes] = await Promise.all([
+          GroupService.listPagination(),
+          SchoolService.list({ hasPagination: false }),
+        ]);
         setGroupOptions(groups.map((g: any) => ({ id: g.id, name: g.name })));
+        setSchoolOptions((schoolsRes.schools ?? []).map((s: any) => ({ id: s.id, name: s.name })));
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error('Erro ao carregar grupos', error);
+        console.error('Erro ao carregar opções', error);
       }
     };
 
-    void loadGroups();
+    void loadOptions();
   }, []);
 
   const onSubmit = handleSubmit(async (data) => {
@@ -107,6 +115,7 @@ export function AdminNewEditForm({ currentAdmin }: Props) {
         name: data.name,
         email: data.email,
         groups: data.groups.map((g) => g.id),
+        schools: data.schools.map((s) => s.id),
       };
 
       if (currentAdmin) {
@@ -150,6 +159,17 @@ export function AdminNewEditForm({ currentAdmin }: Props) {
           multiple
           disableCloseOnSelect
           options={groupOptions}
+          getOptionLabel={(option: any) => option.name}
+          isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
+        />
+
+        <Field.Autocomplete
+          name="schools"
+          label="Escolas (acesso direto)"
+          placeholder="Selecione as escolas"
+          multiple
+          disableCloseOnSelect
+          options={schoolOptions}
           getOptionLabel={(option: any) => option.name}
           isOptionEqualToValue={(option: any, value: any) => option.id === value.id}
         />

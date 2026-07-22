@@ -29,6 +29,7 @@ export interface AdminCreatePayload {
   password: string;
   passwordConfirmation: string;
   groups: string[];
+  schools?: string[];
 }
 
 export interface AdminUpdatePayload {
@@ -37,6 +38,7 @@ export interface AdminUpdatePayload {
   password?: string;
   passwordConfirmation?: string;
   groups?: string[];
+  schools?: string[];
 }
 
 export interface AdminsIndexResponse {
