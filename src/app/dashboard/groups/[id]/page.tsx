@@ -37,6 +37,7 @@ export default function GroupDetailsPage({ params }: { params: { id: string } })
               name: admin.name,
               email: admin.email,
               status: admin.status,
+              schools: admin.schools,
             }))
           );
         }
