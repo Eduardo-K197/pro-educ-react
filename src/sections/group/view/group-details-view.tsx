@@ -61,7 +61,7 @@ export function GroupDetailsView({ group, adminList, schoolList }: Props) {
         const adminsDestaEscola = groupAdminsById.filter((admin) =>
           admin.schools?.some((s: any) => String(s.id ?? s) === String(gs.school.id))
         );
-        return { ...extra, id: gs.school.id, name: gs.school.name, admins: adminsDestaEscola };
+        return { ...extra, id: gs.school.id, name: gs.school.name, createdAt: (extra as ISchoolItem)?.createdAt ?? '', admins: adminsDestaEscola };
       });
   }, [group.groupSchool, schoolList, groupAdminsById]);
 
