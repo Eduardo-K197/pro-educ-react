@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
-import { Box, Card, Stack, Typography, Grid, Chip, Divider, Button, Alert, AlertTitle } from '@mui/material';
+import { Box, Card, Stack, Typography, Grid, Chip, Divider, Button, Tooltip, IconButton, Alert, AlertTitle } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
@@ -183,27 +183,29 @@ export function SchoolDetailsView() {
           {/* Admins x Employees */}
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-                <Typography variant="subtitle1">Administradores</Typography>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  startIcon={<Iconify icon="mingcute:add-line" />}
-                  onClick={() => setOpenAddAdmin(true)}
+              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+                <Typography
+                  variant="overline"
+                  sx={{ color: 'text.secondary', letterSpacing: 1.1, lineHeight: 1 }}
                 >
-                  Adicionar
-                </Button>
+                  Administradores
+                </Typography>
+                <Tooltip title="Vincular administrador">
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={() => setOpenAddAdmin(true)}
+                    sx={{ width: 28, height: 28 }}
+                  >
+                    <Iconify icon="mingcute:add-line" width={16} />
+                  </IconButton>
+                </Tooltip>
               </Stack>
 
               {school.admins?.length ? (
                 <Stack direction="row" flexWrap="wrap" gap={1}>
                   {school.admins.map((admin) => (
-                    <Chip
-                      key={admin.id}
-                      label={admin.name}
-                      size="small"
-                      sx={{ borderRadius: 999 }}
-                    />
+                    <Chip key={admin.id} label={admin.name} size="small" sx={{ borderRadius: 999 }} />
                   ))}
                 </Stack>
               ) : (
@@ -214,9 +216,12 @@ export function SchoolDetailsView() {
             </Grid>
 
             <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                  Funcionários
-                </Typography>
+              <Typography
+                variant="overline"
+                sx={{ color: 'text.secondary', letterSpacing: 1.1, lineHeight: 1, display: 'block', mb: 1.5 }}
+              >
+                Funcionários
+              </Typography>
 
               {school.employees?.length ? (
                 <Stack direction="row" flexWrap="wrap" gap={1}>
@@ -229,7 +234,7 @@ export function SchoolDetailsView() {
                     />
                   ))}
                 </Stack>
-                ) : (
+              ) : (
                 <Typography variant="body2" color="text.secondary">
                   Nenhum funcionário vinculado.
                 </Typography>
@@ -242,22 +247,20 @@ export function SchoolDetailsView() {
           {/* Materials x Categories */}
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                  Materiais
-                </Typography>
+              <Typography
+                variant="overline"
+                sx={{ color: 'text.secondary', letterSpacing: 1.1, lineHeight: 1, display: 'block', mb: 1.5 }}
+              >
+                Materiais
+              </Typography>
 
               {school.materials?.length ? (
                 <Stack direction="row" flexWrap="wrap" gap={1}>
                   {school.materials.map((material) => (
-                    <Chip
-                      key={material.id}
-                      label={material.name}
-                      size="small"
-                      sx={{ borderRadius: 999 }}
-                    />
+                    <Chip key={material.id} label={material.name} size="small" sx={{ borderRadius: 999 }} />
                   ))}
                 </Stack>
-                ) : (
+              ) : (
                 <Typography variant="body2" color="text.secondary">
                   Nenhum material cadastrado.
                 </Typography>
@@ -265,22 +268,20 @@ export function SchoolDetailsView() {
             </Grid>
 
             <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                  Categorias
-                </Typography>
+              <Typography
+                variant="overline"
+                sx={{ color: 'text.secondary', letterSpacing: 1.1, lineHeight: 1, display: 'block', mb: 1.5 }}
+              >
+                Categorias
+              </Typography>
 
               {school.categories?.length ? (
                 <Stack direction="row" flexWrap="wrap" gap={1}>
                   {school.categories.map((category) => (
-                    <Chip
-                      key={category.id}
-                      label={category.name}
-                      size="small"
-                      sx={{ borderRadius: 999 }}
-                    />
+                    <Chip key={category.id} label={category.name} size="small" sx={{ borderRadius: 999 }} />
                   ))}
                 </Stack>
-                ) : (
+              ) : (
                 <Typography variant="body2" color="text.secondary">
                   Nenhuma categoria cadastrada.
                 </Typography>
@@ -292,9 +293,12 @@ export function SchoolDetailsView() {
 
           {/* Groups */}
           <div>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                Grupos
-              </Typography>
+            <Typography
+              variant="overline"
+              sx={{ color: 'text.secondary', letterSpacing: 1.1, lineHeight: 1, display: 'block', mb: 1.5 }}
+            >
+              Grupos
+            </Typography>
 
             {school.groups?.length ? (
               <Stack direction="row" flexWrap="wrap" gap={1}>
@@ -302,11 +306,11 @@ export function SchoolDetailsView() {
                   <Chip key={group.id} label={group.name} size="small" sx={{ borderRadius: 999 }} />
                 ))}
               </Stack>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  Nenhum grupo vinculado.
-                </Typography>
-              )}
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                Nenhum grupo vinculado.
+              </Typography>
+            )}
           </div>
         </Stack>
       </Card>

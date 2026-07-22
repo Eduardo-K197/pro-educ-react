@@ -7,7 +7,6 @@ import List from '@mui/material/List';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Divider from '@mui/material/Divider';
 import ListItem from '@mui/material/ListItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -122,39 +121,44 @@ export function SchoolQuickAddAdmin({ open, onClose, schoolId, linkedAdminIds = 
               sx={{
                 maxHeight: 320,
                 overflowY: 'auto',
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 1,
-                p: 0,
+                borderRadius: 1.5,
+                bgcolor: 'background.neutral',
+                p: 0.5,
               }}
             >
-              {filtered.map((admin, idx) => (
-                <Box key={admin.id}>
-                  {idx > 0 && <Divider />}
-                  <ListItem disablePadding>
-                    <ListItemButton
-                      selected={selectedAdminId === admin.id}
-                      onClick={() =>
-                        setSelectedAdminId(selectedAdminId === admin.id ? null : admin.id)
-                      }
-                      sx={{ borderRadius: 0 }}
-                    >
-                      <ListItemText
-                        primary={admin.name}
-                        secondary={admin.email}
+              {filtered.map((admin) => (
+                <ListItem key={admin.id} disablePadding>
+                  <ListItemButton
+                    selected={selectedAdminId === admin.id}
+                    onClick={() =>
+                      setSelectedAdminId(selectedAdminId === admin.id ? null : admin.id)
+                    }
+                    sx={{
+                      borderRadius: 1,
+                      mb: 0.25,
+                      '&.Mui-selected': {
+                        bgcolor: 'primary.lighter',
+                        '&:hover': { bgcolor: 'primary.lighter' },
+                      },
+                    }}
+                  >
+                    <ListItemText
+                      primary={admin.name}
+                      secondary={admin.email}
+                      primaryTypographyProps={{ variant: 'body2', fontWeight: 600 }}
+                      secondaryTypographyProps={{ variant: 'caption' }}
+                    />
+                    {selectedAdminId === admin.id && (
+                      <Chip
+                        size="small"
+                        label="Selecionado"
+                        color="primary"
+                        variant="soft"
+                        sx={{ ml: 1, height: 20, fontSize: 11 }}
                       />
-                      {selectedAdminId === admin.id && (
-                        <Chip
-                          size="small"
-                          label="Selecionado"
-                          color="primary"
-                          variant="soft"
-                          sx={{ ml: 1 }}
-                        />
-                      )}
-                    </ListItemButton>
-                  </ListItem>
-                </Box>
+                    )}
+                  </ListItemButton>
+                </ListItem>
               ))}
             </List>
           )}
