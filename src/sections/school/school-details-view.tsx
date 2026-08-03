@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
-import { Box, Card, Stack, Typography, Grid, Chip, Divider, Button, Tooltip, IconButton, Alert, AlertTitle } from '@mui/material';
+import { Box, Card, Stack, Typography, Grid, Chip, Divider, Button, Tooltip, IconButton, Alert, AlertTitle, CircularProgress } from '@mui/material';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import { Iconify } from 'src/components/iconify';
 import { paths } from 'src/routes/paths';
+
+import { toast } from 'src/components/snackbar';
 
 import type { SchoolDetail } from 'src/types/services/school';
 import { SchoolService } from 'src/services/school';
@@ -25,6 +27,7 @@ export function SchoolDetailsView() {
   const [school, setSchool] = useState<SchoolDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [openAddAdmin, setOpenAddAdmin] = useState(false);
+  const [removingAdminId, setRemovingAdminId] = useState<string | null>(null);
 
   const loadSchool = useCallback(async () => {
     if (!id) return;
@@ -40,6 +43,20 @@ export function SchoolDetailsView() {
   }, [id]);
 
   useEffect(() => { void loadSchool(); }, [loadSchool]);
+
+  const handleRemoveAdmin = async (adminId: string) => {
+    if (!id) return;
+    setRemovingAdminId(adminId);
+    try {
+      await SchoolService.removeAdmin(id, adminId);
+      toast.success('Admin removido com sucesso!');
+      void loadSchool();
+    } catch {
+      toast.error('Erro ao remover admin');
+    } finally {
+      setRemovingAdminId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -205,7 +222,18 @@ export function SchoolDetailsView() {
               {school.admins?.length ? (
                 <Stack direction="row" flexWrap="wrap" gap={1}>
                   {school.admins.map((admin) => (
-                    <Chip key={admin.id} label={admin.name} size="small" sx={{ borderRadius: 999 }} />
+                    <Chip
+                      key={admin.id}
+                      label={admin.name}
+                      size="small"
+                      sx={{ borderRadius: 999 }}
+                      onDelete={() => handleRemoveAdmin(admin.id)}
+                      deleteIcon={
+                        removingAdminId === admin.id
+                          ? <CircularProgress size={14} color="inherit" />
+                          : undefined
+                      }
+                    />
                   ))}
                 </Stack>
               ) : (
