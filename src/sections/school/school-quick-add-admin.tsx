@@ -24,6 +24,7 @@ import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 
 import { AdminService } from 'src/services/admin';
+import { SchoolService } from 'src/services/school';
 
 type Props = {
   open: boolean;
@@ -68,12 +69,7 @@ export function SchoolQuickAddAdmin({ open, onClose, schoolId, linkedAdminIds = 
     if (!selectedAdminId) return;
     setLinking(true);
     try {
-      const detail = await AdminService.detail(selectedAdminId);
-      const currentSchools = (detail.schools ?? []).map((s: any) => s.id ?? s);
-      if (!currentSchools.includes(schoolId)) {
-        currentSchools.push(schoolId);
-      }
-      await AdminService.update(selectedAdminId, { schools: currentSchools });
+      await SchoolService.addAdmin(schoolId, selectedAdminId);
       toast.success('Admin vinculado com sucesso!');
       onRefresh?.();
       onClose();

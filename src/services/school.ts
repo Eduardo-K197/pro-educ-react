@@ -46,4 +46,28 @@ export class SchoolService {
       config
     );
   }
+
+  static addAdmin(schoolId: string, adminId: string, config?: AxiosRequestConfig): Promise<void> {
+    return ApiService.post<Record<string, never>, void>(
+      `${this.BASE_PATH}/${schoolId}/admins/${adminId}`,
+      {},
+      config
+    );
+  }
+
+  static removeAdmin(schoolId: string, adminId: string, config?: AxiosRequestConfig): Promise<void> {
+    return ApiService.delete<void>(`${this.BASE_PATH}/${schoolId}/admins/${adminId}`, config);
+  }
+
+  static addEmployee(schoolId: string, employeeId: string, config?: AxiosRequestConfig): Promise<void> {
+    return ApiService.post<Record<string, never>, void>(
+      `${this.BASE_PATH}/${schoolId}/employees/${employeeId}`,
+      {},
+      config
+    );
+  }
+
+  static removeEmployee(schoolId: string, employeeId: string, config?: AxiosRequestConfig): Promise<void> {
+    return ApiService.delete<void>(`${this.BASE_PATH}/${schoolId}/employees/${employeeId}`, config);
+  }
 }
