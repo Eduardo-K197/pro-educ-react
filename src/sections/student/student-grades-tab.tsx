@@ -38,14 +38,14 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 
 import { useAuthContext } from 'src/auth/hooks';
 
-type Props = { studentId: number; subscriptions?: StudentSubscription[] };
+type Props = { studentId: number; subscriptions?: StudentSubscription[]; initialView?: 'details' | 'overview'; onViewChange?: (view: 'details' | 'overview') => void };
 type Setting = { minGrade: number; maxGrade: number; step: number };
 const format = (value: number | null) =>
   value === null
     ? '—'
     : value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export function StudentGradesTab({ studentId, subscriptions = [] }: Props) {
+export function StudentGradesTab({ studentId, subscriptions = [], initialView = 'details', onViewChange }: Props) {
   const { user } = useAuthContext();
   const canWrite = ['superAdmin', 'admin', 'teacher'].includes(user?.role);
   const courses = useMemo(
@@ -62,7 +62,8 @@ export function StudentGradesTab({ studentId, subscriptions = [] }: Props) {
   );
   const [courseId, setCourseId] = useState(courses[0]?.id ?? '');
   const [periodId, setPeriodId] = useState('');
-  const [view, setView] = useState('details');
+  const [view, setView] = useState(initialView);
+  useEffect(() => { setView(initialView); }, [initialView]);
   const [subjects, setSubjects] = useState<{ id: string; name: string }[]>([]);
   const [periods, setPeriods] = useState<CoursePeriod[]>([]);
   const [grades, setGrades] = useState<Grade[]>([]);
@@ -277,7 +278,7 @@ export function StudentGradesTab({ studentId, subscriptions = [] }: Props) {
             select
             label="Visualização"
             value={view}
-            onChange={(event) => setView(event.target.value)}
+            onChange={(event) => { const value = event.target.value as 'details' | 'overview'; setView(value); onViewChange?.(value); }}
             sx={{ minWidth: 180 }}
           >
             <MenuItem value="details">Avaliações por período</MenuItem>

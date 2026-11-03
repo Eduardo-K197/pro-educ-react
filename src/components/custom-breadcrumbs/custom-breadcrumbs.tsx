@@ -13,6 +13,7 @@ export function CustomBreadcrumbs({
   links,
   action,
   heading,
+  description,
   moreLink,
   activeLast,
   slotProps,
@@ -42,7 +43,7 @@ export function CustomBreadcrumbs({
   const t = (s?: string) => (s && TRANSLATIONS[s]) || s || '';
 
   const renderHeading = (
-    <Typography variant="h4" sx={{ mb: 2, ...slotProps?.heading }}>{t(heading)}</Typography>
+    <Typography component="h1" variant="h4" sx={{ mb: description ? 1 : 2, overflowWrap: 'anywhere', ...slotProps?.heading }}>{t(heading)}</Typography>
   );
 
   const translatedLinks = links.map((l) => ({ ...l, name: t(l.name) }));
@@ -60,7 +61,7 @@ export function CustomBreadcrumbs({
     </Breadcrumbs>
   );
 
-  const renderAction = <Box sx={{ flexShrink: 0, ...slotProps?.action }}> {action} </Box>;
+  const renderAction = <Box sx={{ flexShrink: 0, width: { xs: '100%', md: 'auto' }, '& > .MuiStack-root': { flexWrap: 'wrap', gap: 1 }, ...slotProps?.action }}> {action} </Box>;
 
   const renderMoreLink = (
     <Box component="ul">
@@ -76,10 +77,11 @@ export function CustomBreadcrumbs({
 
   return (
     <Box gap={2} display="flex" flexDirection="column" sx={sx} {...other}>
-      <Box display="flex" alignItems="center">
+      <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'stretch', md: 'center' }} gap={2}>
         <Box sx={{ flexGrow: 1 }}>
           {heading && renderHeading}
 
+          {description && <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, maxWidth: '72ch' }}>{description}</Typography>}
           {!!links.length && renderLinks}
         </Box>
 

@@ -8,11 +8,11 @@ import { getTraducedStatus } from 'src/types/services/entry';
 import { ApiService } from './api/api';
 
 export class DashboardService {
-  static async getStats(): Promise<DashboardStats> {
+  static async getStats(includeFinancial = true): Promise<DashboardStats> {
     const [entriesRes, paymentsRes, studentsRes, teachersRes, coursesRes, classroomsRes] =
       await Promise.all([
-        ApiService.get<{ entries?: EntryListItem[] }>('/entries', { hasPagination: false }),
-        ApiService.get<{ entries?: EntryListItem[] }>('/payments'),
+        includeFinancial ? ApiService.get<{ entries?: EntryListItem[] }>('/entries', { hasPagination: false }) : Promise.resolve({ entries: [] }),
+        includeFinancial ? ApiService.get<{ entries?: EntryListItem[] }>('/payments') : Promise.resolve({ entries: [] }),
         ApiService.get<{ count: number }>('/students', { page: 1, perPage: 1 }),
         ApiService.get<{ count: number }>('/teachers', { page: 1, perPage: 1 }),
         ApiService.get<{ count: number }>('/courses', { page: 1, perPage: 1 }),

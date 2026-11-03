@@ -52,7 +52,7 @@ export function EmptyContent({
     >
       <Box
         component="img"
-        alt="empty content"
+        alt=""
         src={imgUrl ?? `${CONFIG.assetsDir}/assets/icons/empty/ic-content.svg`}
         sx={{ width: 1, maxWidth: 160, ...slotProps?.img }}
       />
@@ -61,7 +61,7 @@ export function EmptyContent({
         <Typography
           variant="h6"
           component="span"
-          sx={{ mt: 1, textAlign: 'center', ...slotProps?.title, color: 'text.disabled' }}
+          sx={{ mt: 1, textAlign: 'center', ...slotProps?.title, color: 'text.secondary' }}
         >
           {title}
         </Typography>
@@ -70,7 +70,7 @@ export function EmptyContent({
       {description && (
         <Typography
           variant="caption"
-          sx={{ mt: 1, textAlign: 'center', color: 'text.disabled', ...slotProps?.description }}
+          sx={{ mt: 1, textAlign: 'center', color: 'text.secondary', ...slotProps?.description }}
         >
           {description}
         </Typography>

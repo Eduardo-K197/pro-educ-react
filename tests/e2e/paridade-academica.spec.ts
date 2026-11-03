@@ -241,7 +241,7 @@ test('Entrega preserva histórico anterior e envia somente a matrícula escolhid
 }) => {
   const state = await fixture(page);
   await page.goto(`/dashboard/students/${studentId}/`);
-  await page.getByRole('tab', { name: 'Desempenho', exact: true }).click();
+  await page.getByRole('tab', { name: 'Histórico', exact: true }).click();
   await choose(page, 'Material a entregar', 'Apostila nova');
   await page.getByRole('button', { name: 'Registrar entrega' }).click();
   expect(state.writes).toHaveLength(0);
@@ -258,7 +258,7 @@ test('Entrega preserva histórico anterior e envia somente a matrícula escolhid
 test('Matrícula cancelada mantém histórico de materiais sem permitir entrega', async ({ page }) => {
   await fixture(page, { subscriptionDeleted: true });
   await page.goto(`/dashboard/students/${studentId}/`);
-  await page.getByRole('tab', { name: 'Desempenho', exact: true }).click();
+  await page.getByRole('tab', { name: 'Histórico', exact: true }).click();
   await expect(
     page.getByText('Matrícula cancelada: histórico disponível somente para consulta.')
   ).toBeVisible();
@@ -271,7 +271,7 @@ test('Certificado é baixado da API com autenticação, sem link relativo quebra
 }) => {
   await fixture(page);
   await page.goto(`/dashboard/students/${studentId}/`);
-  await page.getByRole('tab', { name: 'Desempenho', exact: true }).click();
+  await page.getByRole('tab', { name: 'Histórico', exact: true }).click();
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Ver certificado', exact: true }).click();
   expect((await download).suggestedFilename()).toBe('certificado.pdf');

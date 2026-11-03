@@ -5,6 +5,7 @@ import type { StudentListItem } from 'src/types/services/student';
 import Link from '@mui/material/Link';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
@@ -16,10 +17,12 @@ import Typography from '@mui/material/Typography';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
+import { RouterLink } from 'src/routes/components';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import { fDate } from 'src/utils/format-time';
+import { studentTask, studentTaskHref } from 'src/utils/student-journey';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -41,9 +44,10 @@ type Props = {
   onSelectRow: () => void;
   onDeleteRow: () => void;
   canDelete?: boolean;
+  task?: string;
 };
 
-export function StudentTableRow({ row, selected, onSelectRow, onDeleteRow, canDelete = true }: Props) {
+export function StudentTableRow({ row, selected, onSelectRow, onDeleteRow, canDelete = true, task = 'profile' }: Props) {
   const router = useRouter();
   const confirm = useBoolean();
   const popover = usePopover();
@@ -58,19 +62,21 @@ export function StudentTableRow({ row, selected, onSelectRow, onDeleteRow, canDe
         </TableCell>
 
         <TableCell>
-          <Stack direction="row" alignItems="center" spacing={2}>
+          <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }} sx={{ minWidth: { xs: 0, sm: 180 } }}>
             <Avatar src={row.picture?.url} sx={{ width: 36, height: 36 }}>
               {row.name?.charAt(0).toUpperCase() ?? '?'}
             </Avatar>
-            <Stack>
+            <Stack sx={{ minWidth: 0 }}>
               <Link
                 color="inherit"
-                sx={{ cursor: 'pointer', typography: 'body2', fontWeight: 600 }}
-                onClick={() => router.push(paths.dashboard.students.details(String(row.id)))}
+                sx={{ cursor: 'pointer', typography: 'body2', fontWeight: 600, overflowWrap: 'anywhere' }}
+                component={RouterLink}
+                href={studentTaskHref(row.id, task)}
               >
                 {row.name}
               </Link>
-              <Typography variant="caption" color="text.disabled">
+              <Label variant="soft" color={statusColor} sx={{ display: { xs: 'inline-flex', sm: 'none' }, alignSelf: 'flex-start', mt: 0.5 }}>{row.status ?? '—'}</Label>
+              <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' }, overflowWrap: 'anywhere' }}>
                 {row.email ?? '-'}
               </Typography>
             </Stack>
@@ -111,9 +117,12 @@ export function StudentTableRow({ row, selected, onSelectRow, onDeleteRow, canDe
         </TableCell>
 
         <TableCell align="right">
-          <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="flex-end" spacing={1}>
+          <Button component={RouterLink} href={studentTaskHref(row.id, task)} variant="outlined" size="small" sx={{ whiteSpace: 'nowrap', color: 'primary.dark' }}>{studentTask(task).action}</Button>
+          <IconButton aria-label={`Mais ações para ${row.name}`} sx={{ alignSelf: 'flex-end' }} color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
             <Iconify icon="eva:more-vertical-fill" />
           </IconButton>
+          </Stack>
         </TableCell>
       </TableRow>
 

@@ -3,14 +3,16 @@
 import type { StudentDetail } from 'src/types/services/student';
 
 import { useState, useEffect } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
+import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import Card from '@mui/material/Card';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
-import Avatar from '@mui/material/Avatar';
 import TableRow from '@mui/material/TableRow';
 import Grid from '@mui/material/Unstable_Grid2';
 import TableCell from '@mui/material/TableCell';
@@ -23,12 +25,12 @@ import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
 import { fDate } from 'src/utils/format-time';
+import { STUDENT_TABS, studentTabIndex } from 'src/utils/student-journey';
 
 import { StudentService } from 'src/services/student';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Label } from 'src/components/label';
-import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
@@ -36,6 +38,7 @@ import { StudentGradesTab } from '../student-grades-tab';
 import { StudentTurmasTab } from '../student-turmas-tab';
 import { StudentPagamentosTab } from '../student-pagamentos-tab';
 import { StudentDesempenhoTab } from '../student-desempenho-tab';
+import { StudentJourneySummary } from '../student-journey-summary';
 
 // ----------------------------------------------------------------------
 
@@ -56,14 +59,28 @@ type Props = { id: string };
 export function StudentDetailsView({ id }: Props) {
   const [student, setStudent] = useState<StudentDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState(0);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activeTab = studentTabIndex(searchParams.get('tab'));
+  const [revision, setRevision] = useState(0);
+  const [loadError, setLoadError] = useState(false);
+  const navigateTab = (tab: string, overview = false) => {
+    const query = new URLSearchParams(searchParams.toString());
+    query.set('tab', tab);
+    if (overview) query.set('view', 'overview'); else query.delete('view');
+    router.replace(`${pathname}?${query}`, { scroll: false });
+  };
 
   useEffect(() => {
-    StudentService.getById(id)
-      .then(setStudent)
-      .catch(() => toast.error('Erro ao carregar aluno'))
-      .finally(() => setLoading(false));
-  }, [id]);
+    const controller = new AbortController();
+    setLoading(true); setLoadError(false); setStudent(null);
+    StudentService.getById(id, { signal: controller.signal })
+      .then((data) => { if (!controller.signal.aborted) setStudent(data); })
+      .catch(() => { if (!controller.signal.aborted) setLoadError(true); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [id, revision]);
 
   if (loading) {
     return (
@@ -75,12 +92,13 @@ export function StudentDetailsView({ id }: Props) {
     );
   }
 
-  if (!student) return null;
+  if (!student || loadError) return <DashboardContent><Alert severity="error" action={<Button color="inherit" onClick={() => setRevision((value) => value + 1)}>Tentar novamente</Button>}>Não foi possível abrir a ficha do aluno. Tente novamente antes de continuar o atendimento.</Alert><Button component={RouterLink} href={paths.dashboard.students.root} sx={{ mt: 2, alignSelf: 'flex-start' }}>Voltar à lista de alunos</Button></DashboardContent>;
 
   return (
     <DashboardContent>
       <CustomBreadcrumbs
         heading={student.name}
+        description="Cadastro, matrículas, pagamentos e documentos reunidos na mesma ficha."
         links={[
           { name: 'Painel', href: paths.dashboard.root },
           { name: 'Alunos', href: paths.dashboard.students.root },
@@ -99,59 +117,26 @@ export function StudentDetailsView({ id }: Props) {
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
+      <StudentJourneySummary student={student} onNavigate={navigateTab} />
+
       <Tabs
         value={activeTab}
-        onChange={(_, v) => setActiveTab(v)}
+        onChange={(_, value) => navigateTab(STUDENT_TABS[value])}
+        variant="scrollable" scrollButtons="auto" allowScrollButtonsMobile
+        aria-label="Seções da ficha do aluno"
         sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
       >
         <Tab label="Detalhes" />
-        <Tab label="Turmas" />
+        <Tab label="Matrículas" />
         <Tab label="Notas" />
         <Tab label="Pagamentos" />
-        <Tab label="Desempenho" />
+        <Tab label="Histórico" />
       </Tabs>
 
       {activeTab === 0 && (
         <Grid container spacing={3}>
-          <Grid xs={12} md={4}>
-            <Card sx={{ p: 3, textAlign: 'center' }}>
-              <Stack alignItems="center" spacing={2}>
-                <Avatar
-                  src={student.picture?.url ?? student.pictureUrl ?? undefined}
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    bgcolor: 'primary.lighter',
-                    color: 'primary.main',
-                    fontSize: 32,
-                  }}
-                >
-                  {student.name.charAt(0).toUpperCase()}
-                </Avatar>
-
-                <Stack spacing={0.5}>
-                  <Typography variant="subtitle1">{student.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {student.email ?? '-'}
-                  </Typography>
-                </Stack>
-
-                <Label
-                  variant="soft"
-                  color={
-                    student.status === 'active' || student.status === 'ativo'
-                      ? 'success'
-                      : 'default'
-                  }
-                >
-                  {student.status ?? 'ativo'}
-                </Label>
-              </Stack>
-            </Card>
-          </Grid>
-
-          <Grid xs={12} md={8}>
-            <Stack spacing={3}>
+          <Grid xs={12}>
+            <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} gap={3} alignItems="start">
               <Card sx={{ p: 3 }}>
                 <Typography variant="h6" sx={{ mb: 2 }}>
                   Informações pessoais
@@ -243,15 +228,15 @@ export function StudentDetailsView({ id }: Props) {
                   </Stack>
                 </Card>
               )}
-            </Stack>
+            </Box>
           </Grid>
         </Grid>
       )}
 
-      {activeTab === 1 && <StudentTurmasTab onChanged={() => { StudentService.getById(id).then(setStudent).catch(() => toast.error('Não foi possível atualizar a ficha do aluno.')); }} studentId={student.id} />}
+      {activeTab === 1 && <StudentTurmasTab onChanged={() => setRevision((value) => value + 1)} studentId={student.id} />}
 
       {activeTab === 2 && (
-        <StudentGradesTab studentId={student.id} subscriptions={student.subscriptions} />
+        <StudentGradesTab initialView={searchParams.get('view') === 'overview' ? 'overview' : 'details'} onViewChange={(view) => { const query = new URLSearchParams(searchParams.toString()); query.set('view', view); router.replace(`${pathname}?${query}`, { scroll: false }); }} studentId={student.id} subscriptions={student.subscriptions} />
       )}
 
       {activeTab === 3 && <StudentPagamentosTab studentId={student.id} />}

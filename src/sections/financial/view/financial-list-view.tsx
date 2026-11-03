@@ -2,6 +2,7 @@
 
 import type { EntryListItem } from 'src/types/services/entry';
 
+import { useSearchParams } from 'next/navigation';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Tab from '@mui/material/Tab';
@@ -81,11 +82,19 @@ export function FinancialListView() {
   const [deleting, setDeleting] = useState(false);
   const [confirmPaymentRow, setConfirmPaymentRow] = useState<EntryListItem | null>(null);
 
-  const [status, setStatus] = useState('all');
+  const searchParams = useSearchParams();
+  const [status, setStatus] = useState(STATUS_OPTIONS.some((option) => option.value === searchParams.get('status')) ? searchParams.get('status')! : 'all');
   const [search, setSearch] = useState('');
-  const [yearFilter, setYearFilter] = useState<string>(String(CURRENT_YEAR));
+  const [yearFilter, setYearFilter] = useState<string>(searchParams.get('year') === 'all' ? '' : String(CURRENT_YEAR));
   const [dueDateStart, setDueDateStart] = useState('');
   const [dueDateEnd, setDueDateEnd] = useState('');
+
+  const incomingStatus = searchParams.get('status');
+  const incomingYear = searchParams.get('year');
+  useEffect(() => {
+    if (incomingStatus && STATUS_OPTIONS.some((option) => option.value === incomingStatus)) setStatus(incomingStatus);
+    if (incomingYear === 'all') setYearFilter('');
+  }, [incomingStatus, incomingYear]);
 
   const loadData = useCallback(async () => {
     try {
@@ -238,6 +247,7 @@ export function FinancialListView() {
     <DashboardContent>
       <CustomBreadcrumbs
         heading="Financeiro"
+        description="Confira a situação e o aluno antes de registrar um recebimento ou enviar uma cobrança."
         links={[
           { name: 'Painel', href: paths.dashboard.root },
           { name: 'Financeiro', href: paths.dashboard.financial.root },

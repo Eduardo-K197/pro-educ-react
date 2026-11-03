@@ -37,6 +37,10 @@ type Props = {
   children: ReactNode;
   filters?: ReactNode;
   notFound?: boolean;
+  studentMobileLayout?: boolean;
+  emptyTitle?: string;
+  emptyDescription?: string;
+  emptyAction?: ReactNode;
   loading?: boolean;
   onDeleteRows?: VoidFunction;
   totalCount?: number;
@@ -50,6 +54,10 @@ export function CustomTable({
   children,
   filters,
   notFound,
+  studentMobileLayout,
+  emptyTitle,
+  emptyDescription,
+  emptyAction,
   loading,
   onDeleteRows,
   totalCount,
@@ -119,10 +127,16 @@ export function CustomTable({
       />
 
       <Scrollbar>
-        <TableContainer sx={{ position: 'relative', overflow: 'unset', minWidth: 800 }}>
+        <TableContainer sx={{ position: 'relative', overflow: 'unset', minWidth: studentMobileLayout ? { xs: 0, sm: 800 } : 800 }}>
           <Table
             size={dense ? 'small' : 'medium'}
             sx={{
+              ...(studentMobileLayout ? { '@media (max-width:599.95px)': {
+                '& .MuiTableCell-paddingCheckbox': { display: 'none' },
+                '& tr > :nth-of-type(3), & tr > :nth-of-type(4), & tr > :nth-of-type(5), & tr > :nth-of-type(6)': { display: 'none' },
+                '& .MuiTableCell-root': { px: 1.5 },
+                '& tr > :nth-of-type(2)': { minWidth: 0, maxWidth: 190 },
+              } } : {}),
               '& .MuiTableHead-root .MuiTableCell-root': {
                 bgcolor: (theme) => varAlpha(theme.vars.palette.primary.mainChannel, 0.04),
                 color: 'text.primary',
@@ -171,7 +185,7 @@ export function CustomTable({
                 <TableEmptyRows height={dense ? 52 : 72} emptyRows={emptyRowCount} />
               )}
 
-              <TableNoData notFound={!!notFound && !loading} />
+              <TableNoData notFound={!!notFound && !loading} title={emptyTitle} description={emptyDescription} action={emptyAction} />
             </TableBody>
           </Table>
         </TableContainer>
@@ -179,8 +193,8 @@ export function CustomTable({
 
       {/* Footer */}
       <Stack
-        direction="row"
-        alignItems="center"
+        direction={studentMobileLayout ? { xs: 'column', sm: 'row' } : 'row'}
+        alignItems={studentMobileLayout ? { xs: 'stretch', sm: 'center' } : 'center'}
         justifyContent="space-between"
         sx={{
           px: 2,
@@ -217,6 +231,14 @@ export function CustomTable({
         </Stack>
 
         <TablePaginationCustom
+          sx={studentMobileLayout ? {
+            '@media (max-width:599.95px)': {
+              '& .MuiTablePagination-toolbar': { px: 0, gap: 1, justifyContent: 'space-between' },
+              '& .MuiTablePagination-spacer, & .MuiTablePagination-displayedRows': { display: 'none' },
+              '& .MuiTablePagination-actions': { ml: 0 },
+              '& .MuiTablePagination-select': { mr: 0 },
+            },
+          } : undefined}
           count={paginationCount}
           page={page}
           rowsPerPage={rowsPerPage}

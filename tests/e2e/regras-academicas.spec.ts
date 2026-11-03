@@ -22,7 +22,7 @@ test('Sem período e peso de período ausente seguem a fórmula do PDF', () => {
 });
 
 test('Bimestres padrão não recriam períodos e rejeitam correspondência ambígua', () => {
-  const complete = [1, 2, 3, 4].map((number) => ({ id: `p${number}`, courseId: 'course', name: `${number}º Bimestre`, shortName: `B${number}`, order: number }));
+  const complete = [1, 2, 3, 4].map((number) => ({ id: `p${number}`, courseId: 'course', schoolId: 'school-test', name: `${number}º Bimestre`, shortName: `B${number}`, order: number }));
   expect(missingStandardPeriods(complete)).toEqual([]);
   expect(missingStandardPeriods(complete.slice(0, 2)).map((period) => period.shortName)).toEqual(['B3', 'B4']);
   expect(() => missingStandardPeriods([complete[0], { ...complete[0], id: 'duplicate' }])).toThrow(/mais de um período/);
