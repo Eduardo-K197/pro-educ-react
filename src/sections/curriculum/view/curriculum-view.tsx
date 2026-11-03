@@ -10,6 +10,7 @@ import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
@@ -35,6 +36,7 @@ import { paths } from 'src/routes/paths';
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import { STORAGE_KEYS } from 'src/utils/axios';
+import { missingStandardPeriods } from 'src/utils/standard-periods';
 
 import { CourseService } from 'src/services/course';
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -47,6 +49,8 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
 import { useAuthContext } from 'src/auth/hooks';
+
+import { SubjectGroupsTab } from '../subject-groups-tab';
 
 // ── helpers ──────────────────────────────────────────────────────────────
 
@@ -229,7 +233,7 @@ function CourseSubjectsTab({ schoolId, courses }: { schoolId: string; courses: C
 
   useEffect(() => {
     if (schoolId) {
-      CurriculumService.listSubjects(schoolId).then((d) => setAllSubjects(Array.isArray(d) ? d : [])).catch(() => {});
+      CurriculumService.listSubjects(schoolId).then((d) => setAllSubjects(Array.isArray(d) ? d : [])).catch(() => toast.error('Não foi possível carregar as matérias. Atualize a página antes de alterar a grade.'));
     }
   }, [schoolId]);
 
@@ -380,6 +384,7 @@ function PeriodsTab({ courses }: { courses: CourseListItem[] }) {
   const [dialog, setDialog] = useState<{ open: boolean; item?: CoursePeriod }>({ open: false });
   const [form, setForm] = useState({ name: '', shortName: '', weight: '', startAt: '', endAt: '' });
   const [saving, setSaving] = useState(false);
+  const [seedConfirm, setSeedConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const confirmDelete = useBoolean();
 
@@ -395,8 +400,33 @@ function PeriodsTab({ courses }: { courses: CourseListItem[] }) {
     }
   }, []);
 
+  const seed = async () => {
+    if (saving || loading || !courseId) return;
+    setSaving(true);
+    try {
+      const existing = await CurriculumService.listPeriods(courseId);
+      const missing = missingStandardPeriods(existing);
+      await missing.reduce(async (previous, payload) => { await previous; await CurriculumService.createPeriod(courseId, payload); }, Promise.resolve());
+      setSeedConfirm(false); toast.success(missing.length ? 'Bimestres ausentes criados.' : 'Os quatro bimestres já estão cadastrados.');
+    } catch (error: any) { toast.error(error?.message ?? 'A criação não foi concluída. Confira os períodos; uma nova tentativa consulta o que já foi criado.'); }
+    finally { setSaving(false); await loadPeriods(courseId); }
+  };
+
+  const movePeriod = async (index: number, direction: number) => {
+    if (saving || loading) return;
+    const ordered = [...periods];
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= ordered.length) return;
+    [ordered[index], ordered[targetIndex]] = [ordered[targetIndex], ordered[index]];
+    setSaving(true);
+    try { setPeriods(await CurriculumService.reorderPeriods(courseId, ordered.map((period) => period.id))); toast.success('Ordem dos períodos atualizada.'); }
+    catch { toast.error('Não foi possível alterar a ordem. A ordem anterior foi preservada.'); }
+    finally { setSaving(false); }
+  };
+
   const handleCourseChange = (id: string) => {
     setCourseId(id);
+    setPeriods([]);
     if (id) loadPeriods(id);
     else setPeriods([]);
   };
@@ -411,8 +441,8 @@ function PeriodsTab({ courses }: { courses: CourseListItem[] }) {
       name: p.name,
       shortName: p.shortName ?? '',
       weight: p.weight ?? '',
-      startAt: p.startAt ?? '',
-      endAt: p.endAt ?? '',
+      startAt: p.startAt?.slice(0, 10) ?? '',
+      endAt: p.endAt?.slice(0, 10) ?? '',
     });
     setDialog({ open: true, item: p });
   };
@@ -421,6 +451,8 @@ function PeriodsTab({ courses }: { courses: CourseListItem[] }) {
 
   const handleSave = async () => {
     if (!form.name.trim()) { toast.error('Informe o nome'); return; }
+    if (form.startAt && form.endAt && form.startAt > form.endAt) { toast.error('A data de fim deve ser igual ou posterior ao início.'); return; }
+    if (form.weight !== '' && (!Number.isFinite(Number(form.weight)) || Number(form.weight) < 0)) { toast.error('Informe um peso válido, maior ou igual a zero.'); return; }
     setSaving(true);
     try {
       const payload = {
@@ -468,6 +500,7 @@ function PeriodsTab({ courses }: { courses: CourseListItem[] }) {
             select
             size="small"
             label="Curso"
+            disabled={loading || saving}
             value={courseId}
             onChange={(e) => handleCourseChange(e.target.value)}
             sx={{ minWidth: 240 }}
@@ -477,9 +510,10 @@ function PeriodsTab({ courses }: { courses: CourseListItem[] }) {
           </TextField>
         </Stack>
         {courseId && (
-          <Button variant="contained" startIcon={<Iconify icon="mingcute:add-line" />} onClick={openCreate}>
-            Novo período
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button variant="outlined" disabled={loading || saving} onClick={() => setSeedConfirm(true)}>Criar bimestres padrão</Button>
+            <Button variant="contained" disabled={loading || saving} startIcon={<Iconify icon="mingcute:add-line" />} onClick={openCreate}>Novo período</Button>
+          </Stack>
         )}
       </Stack>
 
@@ -511,10 +545,14 @@ function PeriodsTab({ courses }: { courses: CourseListItem[] }) {
                     </TableCell>
                   </TableRow>
                 )}
-                {periods.map((p) => (
+                {periods.map((p, index) => (
                   <TableRow key={p.id} hover>
                     <TableCell sx={{ width: 60 }}>
-                      <Chip label={p.order} size="small" />
+                      <Stack direction="row" alignItems="center" spacing={0.5}>
+                        <Chip label={p.order} size="small" />
+                        <IconButton aria-label={`Mover ${p.name} para cima`} size="small" disabled={saving || index === 0} onClick={() => movePeriod(index, -1)}><Iconify icon="solar:alt-arrow-up-bold" /></IconButton>
+                        <IconButton aria-label={`Mover ${p.name} para baixo`} size="small" disabled={saving || index === periods.length - 1} onClick={() => movePeriod(index, 1)}><Iconify icon="solar:alt-arrow-down-bold" /></IconButton>
+                      </Stack>
                     </TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>{p.name}</TableCell>
                     <TableCell>{p.shortName ?? '—'}</TableCell>
@@ -599,6 +637,7 @@ function PeriodsTab({ courses }: { courses: CourseListItem[] }) {
         </DialogActions>
       </Dialog>
 
+      <ConfirmDialog open={seedConfirm} onClose={() => { if (!saving) setSeedConfirm(false); }} title="Criar bimestres padrão" content="Criar os bimestres B1 a B4 que ainda não existem neste curso, com peso 25? Os períodos já cadastrados e suas notas não serão alterados." action={<LoadingButton loading={saving} variant="contained" onClick={seed}>Confirmar criação dos bimestres</LoadingButton>} />
       <ConfirmDialog
         open={confirmDelete.value}
         onClose={() => {
@@ -651,6 +690,10 @@ function GradeSettingTab({ courses }: { courses: CourseListItem[] }) {
 
   const handleSave = async () => {
     if (!courseId) return;
+    const values = [minGrade, maxGrade, step].map(Number);
+    if ([minGrade, maxGrade, step].some((value) => value.trim() === '') || values.some((value) => !Number.isFinite(value)) || values[0] < 0 || values[0] >= values[1] || values[2] <= 0) {
+      toast.error('Informe notas válidas: mínima menor que a máxima e incremento maior que zero.'); return;
+    }
     setSaving(true);
     try {
       await CurriculumService.saveGradeSetting(courseId, {
@@ -700,12 +743,12 @@ function GradeSettingTab({ courses }: { courses: CourseListItem[] }) {
           <Stack spacing={2.5}>
             <TextField
               fullWidth
-              label="Nota mínima (aprovação)"
+              label="Nota mínima da escala"
               type="number"
               value={minGrade}
               onChange={(e) => setMinGrade(e.target.value)}
               inputProps={{ step: 0.1, min: 0 }}
-              helperText="Nota mínima para o aluno ser aprovado"
+              helperText="Menor nota permitida. Este campo não define a média de aprovação."
             />
             <TextField
               fullWidth
@@ -748,12 +791,13 @@ function GradeSettingTab({ courses }: { courses: CourseListItem[] }) {
 export function CurriculumView() {
   const schoolId = useSchoolId();
   const [tab, setTab] = useState(0);
+  const [coursesError, setCoursesError] = useState(false);
   const [courses, setCourses] = useState<CourseListItem[]>([]);
 
   useEffect(() => {
-    CourseService.list({ page: 1, perPage: 200 })
+    CourseService.list({ hasPagination: false })
       .then((res) => setCourses((res as any).courses ?? []))
-      .catch(() => {});
+      .catch(() => setCoursesError(true));
   }, []);
 
   const tabs = [
@@ -761,6 +805,7 @@ export function CurriculumView() {
     { label: 'Grade por Curso', icon: 'solar:layers-bold-duotone' },
     { label: 'Períodos', icon: 'solar:calendar-date-bold-duotone' },
     { label: 'Config. de Notas', icon: 'solar:chart-2-bold-duotone' },
+    { label: 'Grupos de matérias', icon: 'solar:layers-bold-duotone' },
   ];
 
   return (
@@ -774,6 +819,7 @@ export function CurriculumView() {
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
+      {coursesError && <Alert severity="error" sx={{ mb: 3 }}>Não foi possível carregar os cursos. Atualize a página para continuar.</Alert>}
       <Card sx={{ mb: 3 }}>
         <Tabs
           value={tab}
@@ -796,11 +842,12 @@ export function CurriculumView() {
         </Tabs>
       </Card>
 
-      <Box>
+      <Box key={schoolId}>
         {tab === 0 && <SubjectsTab schoolId={schoolId} />}
         {tab === 1 && <CourseSubjectsTab schoolId={schoolId} courses={courses} />}
         {tab === 2 && <PeriodsTab courses={courses} />}
         {tab === 3 && <GradeSettingTab courses={courses} />}
+        {tab === 4 && <SubjectGroupsTab courses={courses} />}
       </Box>
     </DashboardContent>
   );

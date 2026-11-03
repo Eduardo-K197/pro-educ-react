@@ -70,17 +70,21 @@ export interface EntriesIndexResponse {
 export interface EntryCreatePayload {
   description?: string;
   value: number;
-  dueDate?: string;
-  billingType?: BillingType;
-  categoryId?: string;
-  studentId?: number;
-  discount?: number;
+  dueDate: string;
+  billingType: string;
+  entryCategoryId: string;
+  student: number;
+  paymentType: string;
+  status: string;
+  discount?: { value: number; type?: string };
   installmentCount?: number;
+  installmentValue?: number;
+  paymentDate?: string;
 }
 
 export interface EntryUpdatePayload {
   value?: number;
-  paidAt?: string;
+  paymentDate?: string;
   status?: string;
   description?: string;
 }
@@ -94,10 +98,10 @@ export interface IEntryTableFilters {
 
 // Normalises an entry to a simple display bucket regardless of gateway status
 export function getTraducedStatus(entry: EntryListItem): TraducedStatus {
-  if (entry.traducedStatus) return entry.traducedStatus;
-  const s = entry.status ?? '';
-  if (['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH', 'PAID'].includes(s)) return 'Pago';
+  const s = String(entry.status ?? '').toUpperCase();
+  if (['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH', 'PAID', 'PAGO'].includes(s)) return 'Pago';
   if (['OVERDUE', 'EXPIRED'].includes(s)) return 'Atrasado';
   if (['CANCELLED', 'CANCELED'].includes(s)) return 'Cancelado';
+  if (entry.traducedStatus) return entry.traducedStatus;
   return 'Pendente';
 }

@@ -54,6 +54,14 @@ export class CurriculumService {
     return ApiService.get<SubjectGroup[]>(`/courses/${courseId}/subject-groups`);
   }
 
+  static getSubjectGroup(courseId: string, groupId: string): Promise<SubjectGroup> {
+    return ApiService.get<SubjectGroup>(`/courses/${courseId}/subject-groups/${groupId}`);
+  }
+
+  static reorderPeriods(courseId: string, order: string[]): Promise<CoursePeriod[]> {
+    return ApiService.put<{ order: string[] }, CoursePeriod[]>(`/courses/${courseId}/periods/reorder`, { order });
+  }
+
   static createSubjectGroup(courseId: string, name: string): Promise<SubjectGroup> {
     return ApiService.post<{ name: string }, SubjectGroup>(
       `/courses/${courseId}/subject-groups`,

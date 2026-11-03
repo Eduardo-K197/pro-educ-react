@@ -1,7 +1,7 @@
 'use client';
 
+import type { EntryCategory } from 'src/types/services/entry';
 import type { StudentListItem } from 'src/types/services/student';
-import type { BillingType , EntryCategory, EntryCreatePayload } from 'src/types/services/entry';
 
 import { z as zod } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -20,6 +20,8 @@ import LoadingButton from '@mui/lab/LoadingButton';
 
 import { paths } from 'src/routes/paths';
 
+import { localDateString, buildEntryPayload } from 'src/utils/financial';
+
 import { EntryService } from 'src/services/entry';
 import { StudentService } from 'src/services/student';
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -33,11 +35,15 @@ import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 const EntrySchema = zod.object({
   description: zod.string().optional(),
   value: zod.coerce.number().min(0.01, 'Valor obrigatório'),
-  dueDate: zod.string().optional(),
+  dueDate: zod.string().min(1, 'Informe o vencimento'),
   billingType: zod.string().optional(),
-  categoryId: zod.string().optional(),
-  studentId: zod.coerce.number().optional().nullable(),
+  categoryId: zod.string().min(1, 'Selecione uma categoria'),
+  studentId: zod.coerce.number().int().positive('Selecione um aluno'),
+  installmentCount: zod.coerce.number().int().min(1, 'Informe ao menos uma parcela'),
   discount: zod.coerce.number().min(0).optional(),
+  amountMode: zod.string(),
+  status: zod.string(),
+  paymentDate: zod.string(),
 });
 
 type EntryFormValues = zod.infer<typeof EntrySchema>;
@@ -47,16 +53,19 @@ export function FinancialCreateView() {
 
   const [students, setStudents] = useState<StudentListItem[]>([]);
   const [categories, setCategories] = useState<EntryCategory[]>([]);
+  const [created, setCreated] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [referenceError, setReferenceError] = useState(false);
   const [invoiceUrl, setInvoiceUrl] = useState<string | null>(null);
   const [linhaDigitavel, setLinhaDigitavel] = useState<string | null>(null);
 
   useEffect(() => {
-    StudentService.list()
+    StudentService.list({ hasPagination: false })
       .then((r) => setStudents((r as any).students ?? []))
-      .catch(() => {});
+      .catch(() => setReferenceError(true));
     EntryService.listCategories()
       .then((r) => setCategories(r.categories ?? []))
-      .catch(() => {});
+      .catch(() => setReferenceError(true));
   }, []);
 
   const methods = useForm<EntryFormValues>({
@@ -67,8 +76,12 @@ export function FinancialCreateView() {
       dueDate: '',
       billingType: 'MONEY',
       categoryId: '',
-      studentId: null,
+      studentId: 0,
+      installmentCount: 1,
       discount: 0,
+      amountMode: 'installment',
+      status: 'PENDING',
+      paymentDate: localDateString(),
     },
   });
 
@@ -78,24 +91,20 @@ export function FinancialCreateView() {
     formState: { isSubmitting },
   } = methods;
 
+  const amountMode = watch('amountMode');
   const billingType = watch('billingType');
-  const usesGateway = billingType === 'BOLETO' || billingType === 'PIX';
+  const manualStatus = watch('status');
+  const usesGateway = billingType === 'BOLETO';
 
   const onSubmit = handleSubmit(async (data) => {
+    if (created || referenceError) return;
     try {
-      const payload: EntryCreatePayload = {
-        description: data.description || undefined,
-        value: data.value,
-        dueDate: data.dueDate || undefined,
-        billingType: (data.billingType as BillingType) || undefined,
-        categoryId: data.categoryId || undefined,
-        studentId: data.studentId ?? undefined,
-        discount: data.discount || undefined,
-      };
+      const payload = buildEntryPayload({ ...data, billingType: data.billingType ?? 'MONEY', discount: data.discount ?? 0 });
 
       let result: any;
       if (usesGateway) {
         result = await EntryService.createPayment(payload);
+        setProcessing(!!result?.processing);
         if (result?.source === 'sicredi') {
           const linha = result?.bankSlipUrl ?? result?.invoiceUrl;
           if (linha) setLinhaDigitavel(linha);
@@ -110,7 +119,8 @@ export function FinancialCreateView() {
         result = await EntryService.createEntry(payload);
       }
 
-      toast.success('Lançamento criado com sucesso!');
+      setCreated(true);
+      toast.success(result?.processing ? 'Carnê em processamento. Acompanhe os pagamentos na ficha do aluno.' : 'Lançamento criado com sucesso!');
 
       if (!usesGateway) {
         router.push(paths.dashboard.financial.root);
@@ -138,14 +148,17 @@ export function FinancialCreateView() {
             <Card sx={{ p: 3 }}>
               <Typography variant="h6" sx={{ mb: 3 }}>Dados do lançamento</Typography>
               <Stack spacing={2}>
+                {referenceError && <Alert severity="error">Não foi possível carregar alunos ou categorias. Atualize a página antes de salvar.</Alert>}
+                {created && <Alert severity="success">{processing ? 'Carnê em processamento. Não envie outra cobrança para o mesmo aluno; acompanhe o resultado na ficha dele.' : 'Lançamento criado. Volte ao Financeiro para consultar o resultado.'}</Alert>}
                 <Field.Text name="description" label="Descrição" />
+                {usesGateway && <Field.Select name="amountMode" label="O valor informado representa"><MenuItem value="installment">Valor de cada parcela</MenuItem><MenuItem value="total">Valor total do carnê</MenuItem></Field.Select>}
 
                 <Grid container spacing={2}>
                   <Grid xs={12} sm={6}>
-                    <Field.Text name="value" label="Valor (R$) *" type="number" />
+                    <Field.Text name="value" label={usesGateway ? amountMode === 'total' ? "Valor total (R$) *" : "Valor de cada parcela (R$) *" : "Valor (R$) *"} type="number" inputProps={{ min: 0.01, step: 0.01 }} />
                   </Grid>
                   <Grid xs={12} sm={6}>
-                    <Field.Text name="discount" label="Desconto (R$)" type="number" />
+                    <Field.Text name="discount" label="Desconto por pontualidade (R$)" type="number" inputProps={{ min: 0, step: 0.01 }} />
                   </Grid>
                 </Grid>
 
@@ -163,24 +176,31 @@ export function FinancialCreateView() {
                   </Grid>
                 </Grid>
 
-                <Field.Select name="categoryId" label="Categoria">
-                  <MenuItem value="">Sem categoria</MenuItem>
+                <Field.Select name="categoryId" label="Categoria *">
+                  <MenuItem value="">Selecione a categoria</MenuItem>
                   {categories.map((c) => (
                     <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
                   ))}
                 </Field.Select>
 
-                <Field.Select name="studentId" label="Aluno (opcional)">
-                  <MenuItem value="">Sem aluno</MenuItem>
+                <Field.Select name="studentId" label="Aluno *">
+                  <MenuItem value={0}>Selecione o aluno</MenuItem>
                   {students.map((s) => (
                     <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
                   ))}
                 </Field.Select>
 
+                {usesGateway && <Field.Text name="installmentCount" label="Número de parcelas *" type="number" inputProps={{ min: 1, step: 1 }} helperText={amountMode === 'total' ? 'O total será dividido em parcelas iguais, sem arredondamento silencioso.' : 'O valor informado será cobrado em cada parcela mensal.'} />}
+                {!usesGateway && <Field.Select name="status" label="Situação do lançamento">
+                  <MenuItem value="PENDING">Pendente</MenuItem>
+                  <MenuItem value="RECEIVED_IN_CASH">Já recebido</MenuItem>
+                </Field.Select>}
+                {!usesGateway && manualStatus === 'RECEIVED_IN_CASH' && <Field.Text name="paymentDate" label="Data do recebimento *" type="date" InputLabelProps={{ shrink: true }} />}
+                {!usesGateway && <Alert severity="info">Este lançamento registra um pagamento manual. Nenhuma cobrança bancária ou chave PIX será emitida.</Alert>}
                 {usesGateway && (
                   <Alert severity="info">
                     {billingType === 'BOLETO'
-                      ? 'Um boleto será gerado e aberto automaticamente após salvar.'
+                      ? 'O boleto ou carnê será solicitado ao banco. A geração de carnês pode levar alguns minutos.'
                       : 'Um link PIX será gerado e aberto automaticamente após salvar.'}
                   </Alert>
                 )}
@@ -228,11 +248,11 @@ export function FinancialCreateView() {
           <Grid xs={12} md={4}>
             <Card sx={{ p: 3 }}>
               <Stack spacing={1.5}>
-                <LoadingButton fullWidth type="submit" variant="contained" color="primary" loading={isSubmitting}>
+                <LoadingButton fullWidth type="submit" variant="contained" color="primary" loading={isSubmitting} disabled={created || referenceError}>
                   {usesGateway ? 'Gerar cobrança' : 'Criar lançamento'}
                 </LoadingButton>
                 <Button fullWidth variant="outlined" color="inherit" onClick={() => router.push(paths.dashboard.financial.root)}>
-                  Cancelar
+                  {created ? 'Voltar ao Financeiro' : 'Cancelar'}
                 </Button>
               </Stack>
             </Card>

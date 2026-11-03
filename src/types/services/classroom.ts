@@ -24,7 +24,7 @@ export interface ClassroomsIndexResponse {
 // Campos exatos aceitos pela API (ClassroomController)
 export interface ClassroomCreatePayload {
   name: string;
-  course?: string;           // course ID (API usa "course", não "courseId")
+  course: string;           // course ID (API usa "course", não "courseId")
   startAt: string;           // required, data de início
   maxStudentCount?: number;
   minStudentAge?: number;

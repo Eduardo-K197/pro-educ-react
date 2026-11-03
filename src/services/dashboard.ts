@@ -1,6 +1,8 @@
 import type { EntryListItem } from 'src/types/services/entry';
 import type { DashboardStats } from 'src/types/services/dashboard-stats';
 
+import { mergeFinancialEntries } from 'src/utils/financial';
+
 import { getTraducedStatus } from 'src/types/services/entry';
 
 import { ApiService } from './api/api';
@@ -9,21 +11,15 @@ export class DashboardService {
   static async getStats(): Promise<DashboardStats> {
     const [entriesRes, paymentsRes, studentsRes, teachersRes, coursesRes, classroomsRes] =
       await Promise.all([
-        ApiService.get<{ entries?: EntryListItem[] }>('/entries', { hasPagination: false }).catch(() => ({ entries: [] })),
-        ApiService.get<{ entries?: EntryListItem[] }>('/payments').catch(() => ({ entries: [] })),
-        ApiService.get<{ count: number }>('/students', { page: 1, perPage: 1 }).catch(() => ({ count: 0 })),
-        ApiService.get<{ count: number }>('/teachers', { page: 1, perPage: 1 }).catch(() => ({ count: 0 })),
-        ApiService.get<{ count: number }>('/courses', { page: 1, perPage: 1 }).catch(() => ({ count: 0 })),
-        ApiService.get<{ count: number }>('/classrooms', { page: 1, perPage: 1 }).catch(() => ({ count: 0 })),
+        ApiService.get<{ entries?: EntryListItem[] }>('/entries', { hasPagination: false }),
+        ApiService.get<{ entries?: EntryListItem[] }>('/payments'),
+        ApiService.get<{ count: number }>('/students', { page: 1, perPage: 1 }),
+        ApiService.get<{ count: number }>('/teachers', { page: 1, perPage: 1 }),
+        ApiService.get<{ count: number }>('/courses', { page: 1, perPage: 1 }),
+        ApiService.get<{ count: number }>('/classrooms', { page: 1, perPage: 1 }),
       ]);
 
-    // /entries e /payments retornam o mesmo lançamento pra provedores de
-    // gateway (Cora, Sicredi, Asaas) — deduplica por id antes de somar,
-    // senão os totais do painel saem em dobro (mesmo bug da tela Financeiro).
-    const byId = new Map<string, EntryListItem>();
-    ((entriesRes as any).entries ?? []).forEach((e: EntryListItem) => byId.set(e.id, e));
-    ((paymentsRes as any).entries ?? []).forEach((p: EntryListItem) => byId.set(p.id, p));
-    const allEntries: EntryListItem[] = Array.from(byId.values());
+    const allEntries = mergeFinancialEntries(entriesRes.entries ?? [], paymentsRes.entries ?? []);
 
     const totalPending = allEntries
       .filter((e) => getTraducedStatus(e) === 'Pendente')

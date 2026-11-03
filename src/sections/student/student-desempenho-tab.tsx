@@ -7,6 +7,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
@@ -29,12 +30,17 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import axios from 'src/utils/axios';
 import { fDate } from 'src/utils/format-time';
+import { downloadAuthenticatedPdf } from 'src/utils/download-document';
 
 import { SubscriptionService } from 'src/services/subscription';
 
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
+
+import { useAuthContext } from 'src/auth/hooks';
+
+import { StudentMaterials } from './student-materials';
 
 // ----------------------------------------------------------------------
 
@@ -51,6 +57,10 @@ interface Props {
 }
 
 export function StudentDesempenhoTab({ studentId }: Props) {
+  const { user } = useAuthContext();
+  const canGenerate = ['admin', 'superAdmin'].includes(user?.role);
+  const [subsError, setSubsError] = useState(false);
+  const [subsRevision, setSubsRevision] = useState(0);
   const [subscriptions, setSubscriptions] = useState<SubscriptionDetail[]>([]);
   const [selectedSubId, setSelectedSubId] = useState<string>('');
   const [comments, setComments] = useState<Comment[]>([]);
@@ -66,25 +76,26 @@ export function StudentDesempenhoTab({ studentId }: Props) {
   const loadComments = useCallback(() => {
     setLoadingComments(true);
     axios
-      .get('/comments', { params: { studentId } })
+      .get('/comments', { params: { studentId, hasPagination: false } })
       .then((res) => setComments(res.data?.comments ?? []))
       .catch(() => toast.error('Erro ao carregar comentários'))
       .finally(() => setLoadingComments(false));
   }, [studentId]);
 
   useEffect(() => {
-    // include deleted subscriptions so historic presences remain visible
-    SubscriptionService.list({ student: String(studentId) })
-      .then((res) => {
-        const list = res.subscriptions ?? [];
-        setSubscriptions(list);
-        if (list.length > 0) setSelectedSubId(list[0].id);
+    let active = true;
+    setLoadingSubs(true); setSubsError(false); setSubscriptions([]);
+    SubscriptionService.list({ student: String(studentId), deleted: 'true', hasPagination: false })
+      .then((response) => {
+        if (!active) return;
+        setSubscriptions(response.subscriptions ?? []);
+        setSelectedSubId((previous) => response.subscriptions.some((sub) => sub.id === previous) ? previous : response.subscriptions[0]?.id ?? '');
       })
-      .catch(() => {})
-      .finally(() => setLoadingSubs(false));
-
-    loadComments();
-  }, [studentId, loadComments]);
+      .catch(() => { if (active) setSubsError(true); })
+      .finally(() => { if (active) setLoadingSubs(false); });
+    return () => { active = false; };
+  }, [studentId, subsRevision]);
+  useEffect(() => { loadComments(); }, [loadComments]);
 
   const selectedSub = subscriptions.find((s) => s.id === selectedSubId);
   const presences: SubscriptionPresence[] = selectedSub?.presences ?? [];
@@ -135,7 +146,7 @@ export function StudentDesempenhoTab({ studentId }: Props) {
       await axios.post(`/certificates/${selectedSub.id}`);
       toast.success('Certificado gerado!');
       // Reload subscriptions to get updated certificate field
-      SubscriptionService.list({ student: String(studentId) })
+      SubscriptionService.list({ student: String(studentId), deleted: 'true', hasPagination: false })
         .then((res) => {
           const list = res.subscriptions ?? [];
           setSubscriptions(list);
@@ -151,12 +162,14 @@ export function StudentDesempenhoTab({ studentId }: Props) {
 
   return (
     <Stack spacing={3}>
+      {subsError && <Alert severity="error" action={<Button color="inherit" onClick={() => setSubsRevision((value) => value + 1)}>Tentar novamente</Button>}>Não foi possível carregar matrículas e materiais. O histórico está indisponível.</Alert>}
       {/* Turma selector + attendance summary */}
       <Card sx={{ p: 2.5 }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
           <FormControl size="small" sx={{ minWidth: 260 }}>
-            <InputLabel>Turma</InputLabel>
+            <InputLabel id="performance-class-label">Turma</InputLabel>
             <Select
+              labelId="performance-class-label"
               value={selectedSubId}
               label="Turma"
               onChange={(e) => setSelectedSubId(e.target.value)}
@@ -190,14 +203,15 @@ export function StudentDesempenhoTab({ studentId }: Props) {
                   variant="soft"
                   color="success"
                   startIcon={<Iconify icon="solar:diploma-bold-duotone" width={14} />}
-                  component="a"
-                  href={`/certificates/${selectedSub.certificate?.id}/view`}
-                  target="_blank"
+                  onClick={async () => {
+                                try { await downloadAuthenticatedPdf(`/certificates/${selectedSub.certificate?.id}/view`, 'certificado.pdf'); }
+                                catch { toast.error('Não foi possível baixar o certificado.'); }
+                              }}
                 >
                   Ver certificado
                 </Button>
               </Tooltip>
-            ) : (
+            ) : canGenerate ? (
               <Tooltip title="Gerar certificado para esta turma">
                 <span>
                   <Button
@@ -218,11 +232,14 @@ export function StudentDesempenhoTab({ studentId }: Props) {
                   </Button>
                 </span>
               </Tooltip>
-            )
+            ) : null
           )}
         </Stack>
       </Card>
 
+      <StudentMaterials subscription={selectedSub} onSaved={() => {
+        SubscriptionService.list({ student: String(studentId), deleted: 'true', hasPagination: false }).then((response) => setSubscriptions(response.subscriptions)).catch(() => toast.error('Não foi possível atualizar o histórico de materiais.'));
+      }} />
       {/* Presences table */}
       <Card>
         <Typography variant="subtitle2" sx={{ px: 2.5, pt: 2.5, pb: 1.5 }}>

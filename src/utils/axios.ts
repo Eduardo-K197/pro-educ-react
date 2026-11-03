@@ -64,7 +64,11 @@ axiosInstance.interceptors.request.use((config) => {
 
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error) => Promise.reject((error.response && error.response.data) || error)
+  (error) => {
+    const message = error.response?.data?.message;
+    if (typeof message === 'string') error.message = message;
+    return Promise.reject(error);
+  }
 );
 
 export default axiosInstance;

@@ -31,6 +31,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import axiosInstance from 'src/utils/axios';
 import { fDate } from 'src/utils/format-time';
+import { downloadAuthenticatedPdf } from 'src/utils/download-document';
 
 import { ClassroomService } from 'src/services/classroom';
 import { SubscriptionService } from 'src/services/subscription';
@@ -39,13 +40,18 @@ import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 
+import { useAuthContext } from 'src/auth/hooks';
+
 // ----------------------------------------------------------------------
 
 interface Props {
   studentId: number;
+  onChanged?: () => void;
 }
 
-export function StudentTurmasTab({ studentId }: Props) {
+export function StudentTurmasTab({ studentId, onChanged }: Props) {
+  const { user } = useAuthContext();
+  const canGenerate = ['admin', 'superAdmin'].includes(user?.role);
   const [subscriptions, setSubscriptions] = useState<SubscriptionDetail[]>([]);
   const [classrooms, setClassrooms] = useState<ClassroomListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +75,7 @@ export function StudentTurmasTab({ studentId }: Props) {
 
   useEffect(() => {
     loadSubscriptions();
-    ClassroomService.list({ perPage: '100' })
+    ClassroomService.list({ hasPagination: false })
       .then((res) => setClassrooms(res.classrooms ?? []))
       .catch(() => {});
   }, [loadSubscriptions]);
@@ -86,6 +92,7 @@ export function StudentTurmasTab({ studentId }: Props) {
       toast.error('Selecione a turma');
       return;
     }
+    if (formStartAt && formEndAt && formStartAt > formEndAt) { toast.error('A conclusão deve ser igual ou posterior ao início.'); return; }
     setSaving(true);
     try {
       await SubscriptionService.create({
@@ -94,6 +101,7 @@ export function StudentTurmasTab({ studentId }: Props) {
         startAt: formStartAt || undefined,
         endAt: formEndAt || undefined,
       });
+      onChanged?.();
       toast.success('Matrícula realizada!');
       setDialogOpen(false);
       loadSubscriptions();
@@ -114,6 +122,7 @@ export function StudentTurmasTab({ studentId }: Props) {
     setDeleting(true);
     try {
       await SubscriptionService.delete(pendingDelete.id);
+      onChanged?.();
       toast.success('Matrícula cancelada');
       loadSubscriptions();
     } catch {
@@ -226,15 +235,16 @@ export function StudentTurmasTab({ studentId }: Props) {
                               variant="soft"
                               color="success"
                               startIcon={<Iconify icon="solar:diploma-bold-duotone" width={14} />}
-                              component="a"
-                              href={`/certificates/${(sub.certificate as any)?.id ?? sub.certificate}/view`}
-                              target="_blank"
+                              onClick={async () => {
+                                try { await downloadAuthenticatedPdf(`/certificates/${(sub.certificate as any)?.id ?? sub.certificate}/view`, 'certificado.pdf'); }
+                                catch { toast.error('Não foi possível baixar o certificado.'); }
+                              }}
                               sx={{ fontSize: 11, height: 26, px: 1 }}
                             >
                               Ver
                             </Button>
                           </Tooltip>
-                        ) : (
+                        ) : canGenerate ? (
                           <Tooltip title="Gerar certificado">
                             <span>
                               <Button
@@ -256,7 +266,7 @@ export function StudentTurmasTab({ studentId }: Props) {
                               </Button>
                             </span>
                           </Tooltip>
-                        )}
+                        ) : null}
                       </TableCell>
                       <TableCell align="right">
                         <Tooltip title="Remover da turma">

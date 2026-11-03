@@ -18,6 +18,7 @@ import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
+import { SchoolEmployees } from './school-employees';
 import { SchoolQuickAddAdmin } from './school-quick-add-admin';
 
 export function SchoolDetailsView() {
@@ -247,29 +248,7 @@ export function SchoolDetailsView() {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Typography
-                variant="overline"
-                sx={{ color: 'text.secondary', letterSpacing: 1.1, lineHeight: 1, display: 'block', mb: 1.5 }}
-              >
-                Funcionários
-              </Typography>
-
-              {school.employees?.length ? (
-                <Stack direction="row" flexWrap="wrap" gap={1}>
-                  {school.employees.map((employee) => (
-                    <Chip
-                      key={employee.id}
-                      label={employee.name || 'Sem nome'}
-                      size="small"
-                      sx={{ borderRadius: 999 }}
-                    />
-                  ))}
-                </Stack>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  Nenhum funcionário vinculado.
-                </Typography>
-              )}
+              <SchoolEmployees schoolId={school.id} employees={school.employees ?? []} onRefresh={loadSchool} />
             </Grid>
           </Grid>
 

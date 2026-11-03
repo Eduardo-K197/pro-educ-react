@@ -66,6 +66,8 @@ export function FinancialTableRow({
   const statusColor = STATUS_COLOR[displayStatus] ?? 'default';
   const isOverdue = displayStatus === 'Atrasado';
   const isPending = displayStatus === 'Pendente';
+  const canReceive = (row.source === 'proeduc' || row.source === 'manual') && (isPending || isOverdue);
+  const canRemove = canDelete && displayStatus !== 'Pago';
 
   const invoiceUrl = row.bankSlipUrl ?? row.invoiceUrl;
   const isSicredi = row.source === 'sicredi';
@@ -110,7 +112,7 @@ export function FinancialTableRow({
             fontWeight={600}
             color={isOverdue ? 'error.main' : 'text.primary'}
           >
-            {row.paymentDate ? fCurrency(row.value) : '—'}
+            {fCurrency(row.value)}
           </Typography>
         </TableCell>
 
@@ -133,7 +135,7 @@ export function FinancialTableRow({
         {/* Data Pagamento */}
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
           <Typography variant="body2" color={row.paymentDate ? 'success.main' : 'text.disabled'}>
-            {row.paymentDate ? fDate(row.paymentDate) : 'Não pago'}
+            {row.paymentDate ? fDate(row.paymentDate) : displayStatus === 'Pago' ? 'Data não informada' : 'Não pago'}
           </Typography>
         </TableCell>
 
@@ -171,7 +173,7 @@ export function FinancialTableRow({
         {/* Ações */}
         <TableCell align="right">
           <Stack direction="row" justifyContent="flex-end" spacing={0.5}>
-            {isPending && onConfirmPayment && (
+            {canReceive && onConfirmPayment && (
               <Tooltip title="Confirmar recebimento">
                 <IconButton size="small" color="success" onClick={() => onConfirmPayment(row)}>
                   <Iconify icon="solar:check-circle-bold-duotone" />
@@ -239,7 +241,7 @@ export function FinancialTableRow({
         slotProps={{ arrow: { placement: 'right-top' } }}
       >
         <MenuList>
-          {isPending && onConfirmPayment && (
+          {canReceive && onConfirmPayment && (
             <MenuItem
               onClick={() => { onConfirmPayment(row); popover.onClose(); }}
               sx={{ color: 'success.main' }}
@@ -248,7 +250,7 @@ export function FinancialTableRow({
               Confirmar recebimento
             </MenuItem>
           )}
-          {canDelete && (
+          {canRemove && (
             <MenuItem onClick={() => { confirm.onTrue(); popover.onClose(); }} sx={{ color: 'error.main' }}>
               <Iconify icon="solar:trash-bin-trash-bold" />
               Excluir

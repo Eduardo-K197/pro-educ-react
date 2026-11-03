@@ -2,9 +2,10 @@
 
 import type { DashboardStats } from 'src/types/services/dashboard-stats';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Card from '@mui/material/Card';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Unstable_Grid2';
@@ -88,6 +89,7 @@ export function SchoolDashboardView() {
   const { user } = useAuthContext();
   const [stats, setStats] = useState<DashboardStats>(EMPTY_STATS);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [activeSchoolId, setActiveSchoolId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -97,12 +99,15 @@ export function SchoolDashboardView() {
     }
   }, [user]);
 
-  useEffect(() => {
-    DashboardService.getStats()
-      .then(setStats)
-      .catch(() => setStats(EMPTY_STATS))
-      .finally(() => setLoading(false));
+  const loadStats = useCallback(async () => {
+    setLoading(true);
+    setLoadError(false);
+    try { setStats(await DashboardService.getStats()); }
+    catch { setLoadError(true); }
+    finally { setLoading(false); }
   }, []);
+
+  useEffect(() => { void loadStats(); }, [loadStats]);
 
   if (loading) {
     return (
@@ -129,11 +134,14 @@ export function SchoolDashboardView() {
         </Typography>
       </Stack>
 
+      {loadError && <Alert severity="error" sx={{ mb: 3 }} action={<Button color="inherit" onClick={loadStats}>Tentar novamente</Button>}>
+        Não foi possível carregar o resumo. Os valores estão indisponíveis; isso não significa saldo zero.
+      </Alert>}
       <Grid container spacing={3}>
         <Grid xs={12} sm={6} md={3}>
           <StatCard
             title="Alunos"
-            value={stats.studentCount}
+            value={loadError ? '—' : stats.studentCount}
             icon="solar:users-group-rounded-bold"
             color="primary.main"
             href={paths.dashboard.students.root}
@@ -143,7 +151,7 @@ export function SchoolDashboardView() {
         <Grid xs={12} sm={6} md={3}>
           <StatCard
             title="Professores"
-            value={stats.teacherCount}
+            value={loadError ? '—' : stats.teacherCount}
             icon="solar:user-id-bold-duotone"
             color="info.main"
             href={paths.dashboard.teachers.root}
@@ -153,7 +161,7 @@ export function SchoolDashboardView() {
         <Grid xs={12} sm={6} md={3}>
           <StatCard
             title="Cursos"
-            value={stats.courseCount}
+            value={loadError ? '—' : stats.courseCount}
             icon="solar:book-2-bold-duotone"
             color="success.main"
             href={paths.dashboard.courses.root}
@@ -163,7 +171,7 @@ export function SchoolDashboardView() {
         <Grid xs={12} sm={6} md={3}>
           <StatCard
             title="Turmas"
-            value={stats.classroomCount}
+            value={loadError ? '—' : stats.classroomCount}
             icon="solar:calendar-mark-bold-duotone"
             color="warning.main"
             href={paths.dashboard.classrooms.root}
@@ -195,7 +203,7 @@ export function SchoolDashboardView() {
             iconColor: 'error.light',
           },
           {
-            label: 'Recebido (ano)',
+            label: 'Recebido (todos os períodos)',
             value: stats.totalReceived,
             borderColor: 'success.main',
             textColor: 'success.dark',
@@ -209,7 +217,7 @@ export function SchoolDashboardView() {
                 <Stack>
                   <Typography variant="body2" color="text.secondary">{item.label}</Typography>
                   <Typography variant="h5" color={item.textColor}>
-                    {fCurrency(item.value)}
+                    {loadError ? '—' : fCurrency(item.value)}
                   </Typography>
                 </Stack>
                 <Iconify icon={item.icon} width={40} sx={{ color: item.iconColor }} />

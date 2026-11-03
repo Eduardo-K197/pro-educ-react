@@ -5,6 +5,7 @@ import { ApiService } from './api/api';
 export interface Grade {
   id: string;
   studentId: number;
+  subscription?: { studentId?: number; classroom?: { courseId?: string } };
   subjectId?: string;
   value: number;
   kind?: string;

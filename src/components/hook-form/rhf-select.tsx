@@ -115,7 +115,7 @@ export function RHFMultiSelect({
       render={({ field, fieldState: { error } }) => (
         <FormControl error={!!error} {...other}>
           {label && (
-            <InputLabel htmlFor={labelId} {...slotProps?.inputLabel}>
+            <InputLabel id={labelId} htmlFor={`${name}-select`} {...slotProps?.inputLabel}>
               {label}
             </InputLabel>
           )}
@@ -123,6 +123,8 @@ export function RHFMultiSelect({
           <Select
             {...field}
             multiple
+            labelId={labelId}
+            id={`${name}-select`}
             displayEmpty={!!placeholder}
             label={label}
             renderValue={(selected) => {
@@ -153,7 +155,7 @@ export function RHFMultiSelect({
               return selectedItems.map((item) => item.label).join(', ');
             }}
             {...slotProps?.select}
-            inputProps={{ id: labelId, ...slotProps?.select?.inputProps }}
+            inputProps={{ ...slotProps?.select?.inputProps }}
           >
             {options.map((option) => (
               <MenuItem key={option.value} value={option.value}>

@@ -63,16 +63,21 @@ export function StudentListView() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const [search, setSearch] = useState('');
+  const [birthStart, setBirthStart] = useState('');
+  const [birthEnd, setBirthEnd] = useState('');
   const [status, setStatus] = useState('Ativo');
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    if (birthStart && birthEnd && birthStart > birthEnd) { setTableData([]); setTotal(0); setLoading(false); return undefined; }
 
     const params: Record<string, any> = {
       page: table.page + 1,
       perPage: table.rowsPerPage,
     };
+    if (birthStart) params['birthDate[ge]'] = birthStart;
+    if (birthEnd) params['birthDate[le]'] = birthEnd;
     if (search) params.search = search;
     if (status !== 'all') params.status = status;
 
@@ -86,7 +91,7 @@ export function StudentListView() {
       .finally(() => { if (!cancelled) setLoading(false); });
 
     return () => { cancelled = true; };
-  }, [table.page, table.rowsPerPage, search, status, refreshKey]);
+  }, [table.page, table.rowsPerPage, search, status, refreshKey, birthStart, birthEnd]);
 
   const reload = useCallback(() => setRefreshKey((k) => k + 1), []);
 
@@ -205,7 +210,7 @@ export function StudentListView() {
               ))}
             </Tabs>
 
-            <Stack sx={{ p: 2.5 }}>
+            <Stack sx={{ p: 2.5 }} direction={{ xs: 'column', md: 'row' }} spacing={2}>
               <TextField
                 size="small"
                 value={search}
@@ -220,6 +225,9 @@ export function StudentListView() {
                 }}
                 sx={{ maxWidth: 400 }}
               />
+              <TextField size="small" type="date" label="Nascimento de" InputLabelProps={{ shrink: true }} value={birthStart} onChange={(event) => { table.onResetPage(); setBirthStart(event.target.value); }} />
+              <TextField size="small" type="date" label="Nascimento até" InputLabelProps={{ shrink: true }} value={birthEnd} onChange={(event) => { table.onResetPage(); setBirthEnd(event.target.value); }} error={!!birthStart && !!birthEnd && birthStart > birthEnd} helperText={birthStart && birthEnd && birthStart > birthEnd ? 'O fim deve ser igual ou posterior ao início.' : undefined} />
+              {(birthStart || birthEnd) && <Button onClick={() => { setBirthStart(''); setBirthEnd(''); table.onResetPage(); }}>Limpar datas</Button>}
             </Stack>
           </>
         }

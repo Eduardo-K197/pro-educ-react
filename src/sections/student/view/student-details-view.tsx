@@ -248,7 +248,7 @@ export function StudentDetailsView({ id }: Props) {
         </Grid>
       )}
 
-      {activeTab === 1 && <StudentTurmasTab studentId={student.id} />}
+      {activeTab === 1 && <StudentTurmasTab onChanged={() => { StudentService.getById(id).then(setStudent).catch(() => toast.error('Não foi possível atualizar a ficha do aluno.')); }} studentId={student.id} />}
 
       {activeTab === 2 && (
         <StudentGradesTab studentId={student.id} subscriptions={student.subscriptions} />

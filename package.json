@@ -19,7 +19,8 @@
     "dev:ts": "yarn dev & yarn ts:watch",
     "ts": "tsc --noEmit --incremental",
     "ts:watch": "yarn ts --watch",
-    "start:out": "npx serve@latest out -p 8082"
+    "start:out": "npx serve@latest out -p 8082",
+    "test:ui": "playwright test"
   },
   "engines": {
     "node": "20.x"

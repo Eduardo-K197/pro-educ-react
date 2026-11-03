@@ -6,6 +6,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -25,6 +26,7 @@ import { useRolePermissions } from 'src/hooks/use-role-permissions';
 
 import { fDate } from 'src/utils/format-time';
 import { fCurrency } from 'src/utils/format-number';
+import { localDateString, mergeFinancialEntries } from 'src/utils/financial';
 
 import { varAlpha } from 'src/theme/styles';
 import { EntryService } from 'src/services/entry';
@@ -75,6 +77,8 @@ export function FinancialListView() {
 
   const [tableData, setTableData] = useState<EntryListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [confirmPaymentRow, setConfirmPaymentRow] = useState<EntryListItem | null>(null);
 
   const [status, setStatus] = useState('all');
@@ -86,24 +90,16 @@ export function FinancialListView() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
+      setLoadError(false);
       const [entriesRes, paymentsRes] = await Promise.all([
-        EntryService.listEntries({ hasPagination: false }).catch(() => ({ entries: [] })),
-        EntryService.listPayments().catch(() => ({ entries: [] })),
+        EntryService.listEntries({ hasPagination: false }),
+        EntryService.listPayments(),
       ]);
-      const entries = (entriesRes as any).entries ?? [];
-      const payments = (paymentsRes as any).entries ?? [];
-
-      // /entries e /payments retornam o MESMO lançamento pra provedores de
-      // gateway (Cora, Sicredi, e também Asaas sem filtro) — sem isso, todo
-      // valor e toda linha aparecia em dobro na tela (lista e cards de
-      // total). Deduplica por id; prioriza a versão de /payments, que traz
-      // campos específicos do provedor.
-      const byId = new Map<string, EntryListItem>();
-      entries.forEach((e: EntryListItem) => byId.set(e.id, e));
-      payments.forEach((p: EntryListItem) => byId.set(p.id, p));
-      setTableData(Array.from(byId.values()));
+      setTableData(mergeFinancialEntries(entriesRes.entries ?? [], paymentsRes.entries ?? []));
     } catch {
-      toast.error('Erro ao carregar lançamentos');
+      setTableData([]);
+      setLoadError(true);
+      toast.error('Não foi possível carregar todos os lançamentos');
     } finally {
       setLoading(false);
     }
@@ -141,31 +137,28 @@ export function FinancialListView() {
     }
 
     if (dueDateStart) {
-      data = data.filter((e) => e.dueDate && e.dueDate >= dueDateStart);
+      data = data.filter((e) => e.dueDate && e.dueDate.slice(0, 10) >= dueDateStart);
     }
     if (dueDateEnd) {
-      data = data.filter((e) => e.dueDate && e.dueDate <= dueDateEnd);
+      data = data.filter((e) => e.dueDate && e.dueDate.slice(0, 10) <= dueDateEnd);
     }
 
     return data;
   }, [tableData, search, status, yearFilter, dueDateStart, dueDateEnd, table.order, table.orderBy]);
 
   // Summary from filtered data
-  const totalPending = dataFiltered.filter((e) => getTraducedStatus(e) === 'Pendente').reduce((s, e) => s + (e.value ?? 0), 0);
-  const totalOverdue = dataFiltered.filter((e) => getTraducedStatus(e) === 'Atrasado').reduce((s, e) => s + (e.value ?? 0), 0);
-  const totalReceived = dataFiltered.filter((e) => getTraducedStatus(e) === 'Pago').reduce((s, e) => s + (e.value ?? 0), 0);
+  const totalPending = dataFiltered.filter((e) => getTraducedStatus(e) === 'Pendente').reduce((s, e) => s + (Number(e.value) || 0), 0);
+  const totalOverdue = dataFiltered.filter((e) => getTraducedStatus(e) === 'Atrasado').reduce((s, e) => s + (Number(e.value) || 0), 0);
+  const totalReceived = dataFiltered.filter((e) => getTraducedStatus(e) === 'Pago').reduce((s, e) => s + (Number(e.value) || 0), 0);
 
   const dataInPage = dataFiltered.slice(table.page * table.rowsPerPage, (table.page + 1) * table.rowsPerPage);
 
   const handleDeleteRow = useCallback(
     async (id: string) => {
       const row = tableData.find((r) => r.id === id);
+      if (!row || getTraducedStatus(row) === 'Pago') { toast.error('Pagamentos recebidos devem ser preservados.'); return; }
       try {
-        if (row?.source === 'asaas' || row?.bankSlipUrl) {
-          await EntryService.deletePayment(id);
-        } else {
-          await EntryService.deleteEntry(id);
-        }
+        await EntryService.deleteEntry(id);
         setTableData((prev) => prev.filter((r) => r.id !== id));
         toast.success('Lançamento excluído');
         table.onUpdatePageDeleteRow(dataInPage.length);
@@ -177,35 +170,33 @@ export function FinancialListView() {
   );
 
   const handleDeleteRows = useCallback(async () => {
-    try {
-      await Promise.all(
-        table.selected.map((id) => {
-          const row = tableData.find((r) => r.id === id);
-          return row?.source === 'asaas' || row?.bankSlipUrl
-            ? EntryService.deletePayment(id)
-            : EntryService.deleteEntry(id);
-        })
-      );
-      setTableData((prev) => prev.filter((r) => !table.selected.includes(r.id)));
-      toast.success('Lançamentos excluídos');
-      table.onUpdatePageDeleteRows({
-        totalRowsInPage: dataInPage.length,
-        totalRowsFiltered: dataFiltered.length,
-      });
-    } catch {
-      toast.error('Erro ao excluir');
+    if (deleting) return;
+    const selected = tableData.filter((row) => table.selected.includes(row.id));
+    if (selected.some((row) => getTraducedStatus(row) === 'Pago')) {
+      toast.error('A seleção contém pagamentos recebidos. Remova-os da seleção para continuar.');
+      return;
     }
-  }, [dataFiltered.length, dataInPage.length, table, tableData]);
+    setDeleting(true);
+    let failed = 0;
+    // Sequential: avoid flooding banking providers during a bulk operation.
+    await selected.reduce(async (previous, row) => {
+      await previous;
+      try { await EntryService.deleteEntry(row.id); }
+      catch { failed += 1; }
+    }, Promise.resolve());
+    setDeleting(false);
+    confirm.onFalse();
+    table.onSelectAllRows(false, []);
+    await loadData();
+    if (failed) toast.error(`${failed} lançamento(s) não foram excluídos. Confira a lista atualizada antes de tentar novamente.`);
+    else toast.success('Lançamentos excluídos');
+  }, [confirm, deleting, loadData, table, tableData]);
 
   const handleConfirmPayment = useCallback(async (value: number) => {
     if (!confirmPaymentRow) return;
     try {
-      const isGateway = confirmPaymentRow.source === 'asaas' || !!confirmPaymentRow.bankSlipUrl;
-      if (isGateway) {
-        await EntryService.updatePayment(confirmPaymentRow.id, { value, paidAt: new Date().toISOString(), status: 'received' });
-      } else {
-        await EntryService.updateEntry(confirmPaymentRow.id, { value, paidAt: new Date().toISOString(), status: 'received' });
-      }
+      if (confirmPaymentRow.source !== 'proeduc' && confirmPaymentRow.source !== 'manual') return;
+      await EntryService.updateEntry(confirmPaymentRow.id, { value, paymentDate: localDateString(), status: 'RECEIVED_IN_CASH' });
       toast.success('Pagamento confirmado!');
       setConfirmPaymentRow(null);
       loadData();
@@ -259,7 +250,7 @@ export function FinancialListView() {
               color="inherit"
               startIcon={<Iconify icon="solar:export-bold" />}
               onClick={handleExport}
-              disabled={dataFiltered.length === 0}
+              disabled={loading || loadError || dataFiltered.length === 0}
             >
               Exportar CSV
             </Button>
@@ -278,6 +269,9 @@ export function FinancialListView() {
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
+      {loadError && <Alert severity="error" sx={{ mb: 3 }} action={<Button color="inherit" onClick={loadData}>Tentar novamente</Button>}>
+        Não foi possível carregar todos os lançamentos. Os totais estão indisponíveis. Tente novamente antes de cobrar um responsável.
+      </Alert>}
       {/* Resumo financeiro (reflete filtros ativos) */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
         {[
@@ -297,7 +291,7 @@ export function FinancialListView() {
               <Label variant="soft" color={item.color === 'success.main' ? 'success' : item.color === 'error.main' ? 'error' : 'warning'}>
                 {item.label}
               </Label>
-              <span style={{ fontWeight: 700, fontSize: 18 }}>{fCurrency(item.value)}</span>
+              <span style={{ fontWeight: 700, fontSize: 18 }}>{loadError || loading ? '—' : fCurrency(item.value)}</span>
             </Stack>
           </Stack>
         ))}
@@ -307,10 +301,10 @@ export function FinancialListView() {
         table={table}
         dataFiltered={dataFiltered}
         tableHead={TABLE_HEAD}
-        notFound={!loading && dataFiltered.length === 0}
+        notFound={!loading && !loadError && dataFiltered.length === 0}
         loading={loading}
         totalCount={dataFiltered.length}
-        onDeleteRows={canDeleteFinancial ? confirm.onTrue : undefined}
+        onDeleteRows={canDeleteFinancial && !loadError ? confirm.onTrue : undefined}
         filters={
           <>
             {/* Tabs de status */}

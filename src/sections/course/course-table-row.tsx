@@ -58,8 +58,8 @@ export function CourseTableRow({ row, selected, onSelectRow, onDeleteRow }: Prop
           {row.workload != null ? `${row.workload}h` : '-'}
         </TableCell>
 
-        <TableCell>{row.teacherCount ?? 0} professor(es)</TableCell>
-        <TableCell>{row.studentCount ?? 0} aluno(s)</TableCell>
+        <TableCell>{row.teacherCount != null ? `${row.teacherCount} professor(es)` : 'Não informado'}</TableCell>
+        <TableCell>{row.studentCount != null ? `${row.studentCount} aluno(s)` : 'Não informado'}</TableCell>
 
         <TableCell align="right">
           <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>

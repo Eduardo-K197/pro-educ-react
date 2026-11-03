@@ -30,6 +30,10 @@ export class EntryService {
     return ApiService.get<EntriesIndexResponse>(this.PAYMENT_PATH, params, config);
   }
 
+  static getPaymentById(id: string): Promise<EntryDetail> {
+    return ApiService.get<EntryDetail>(`${this.PAYMENT_PATH}/${id}`);
+  }
+
   static getEntryById(id: string, config?: AxiosRequestConfig): Promise<EntryDetail> {
     return ApiService.get<EntryDetail>(`${this.BASE_PATH}/${id}`, undefined, config);
   }
