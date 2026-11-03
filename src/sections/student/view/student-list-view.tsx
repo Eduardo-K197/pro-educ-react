@@ -35,6 +35,7 @@ import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomTable } from 'src/components/list-table/list-table';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+import { ExportButton } from 'src/components/export-table/export-button';
 
 import { StudentTableRow } from '../student-table-row';
 
@@ -171,36 +172,8 @@ export function StudentListView() {
           { name: 'Listagem' },
         ]}
         action={
-          <Stack direction="row" spacing={1}>
-            <Button
-              variant="soft"
-              color="inherit"
-              startIcon={<Iconify icon="solar:export-bold" />}
-              onClick={() => {
-                if (!tableData.length) return;
-                const rows = tableData.map((s) => ({
-                  Nome: s.name ?? '',
-                  Email: s.email ?? '',
-                  Telefone: s.phone ?? s.phoneNumber ?? '',
-                  Nascimento: s.birthDate ? s.birthDate.substring(0, 10) : '',
-                  Status: s.status ?? '',
-                }));
-                const headers = Object.keys(rows[0]);
-                const csv = [
-                  headers.join(';'),
-                  ...rows.map((r) => headers.map((h) => `"${(r as any)[h]}"`).join(';')),
-                ].join('\n');
-                const blob = new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'alunos.csv';
-                a.click();
-                URL.revokeObjectURL(url);
-              }}
-            >
-              Exportar CSV
-            </Button>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            <ExportButton resource="students" disabled={loading || loadError} initialFilters={{ search, status, ...(birthStart || birthEnd ? { dateField: 'birthDate', from: birthStart || undefined, to: birthEnd || undefined } : {}) }} />
             {canCreateStudent && (
               <Button
                 component={RouterLink}

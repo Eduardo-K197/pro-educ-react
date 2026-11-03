@@ -23,6 +23,7 @@ import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomTable } from 'src/components/list-table/list-table';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+import { ExportButton } from 'src/components/export-table/export-button';
 
 import { CourseTableRow } from '../course-table-row';
 
@@ -106,10 +107,14 @@ export function CourseListView() {
           { name: 'Listagem' },
         ]}
         action={
-          <Button component={RouterLink} href={paths.dashboard.courses.new} variant="contained" startIcon={<Iconify icon="mingcute:add-line" />}>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            <ExportButton resource="courses" initialFilters={{ search }} disabled={loading} />
+            <Button component={RouterLink} href={paths.dashboard.courses.new} variant="contained" startIcon={<Iconify icon="mingcute:add-line" />}>
             Novo curso
           </Button>
+          </Stack>
         }
+
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 

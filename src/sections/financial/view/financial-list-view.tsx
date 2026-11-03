@@ -40,6 +40,7 @@ import { ConfirmDialog } from 'src/components/custom-dialog';
 import { useTable, getComparator } from 'src/components/table';
 import { CustomTable } from 'src/components/list-table/list-table';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+import { ExportButton } from 'src/components/export-table/export-button';
 
 import { getTraducedStatus } from 'src/types/services/entry';
 
@@ -214,33 +215,6 @@ export function FinancialListView() {
     }
   }, [confirmPaymentRow, loadData]);
 
-  const handleExport = useCallback(() => {
-    const rows = dataFiltered.map((e) => ({
-      Descrição: e.description ?? '',
-      Aluno: e.student?.name ?? '',
-      Valor: e.value ?? 0,
-      Vencimento: e.dueDate ? fDate(e.dueDate) : '',
-      'Dt. Pagamento': e.paymentDate ? fDate(e.paymentDate) : '',
-      Status: getTraducedStatus(e),
-      Tipo: e.billingType ?? '',
-      Parcela: e.installmentNumber ?? '',
-    }));
-
-    const headers = Object.keys(rows[0] ?? {});
-    const csvContent = [
-      headers.join(';'),
-      ...rows.map((r) => headers.map((h) => `"${(r as any)[h]}"`).join(';')),
-    ].join('\n');
-
-    const blob = new Blob([`\ufeff${csvContent}`], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `financeiro-${yearFilter || 'todos'}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [dataFiltered, yearFilter]);
-
   const hasActiveFilters = dueDateStart || dueDateEnd || (yearFilter !== String(CURRENT_YEAR));
 
   return (
@@ -254,16 +228,8 @@ export function FinancialListView() {
           { name: 'Lançamentos' },
         ]}
         action={
-          <Stack direction="row" spacing={1}>
-            <Button
-              variant="soft"
-              color="inherit"
-              startIcon={<Iconify icon="solar:export-bold" />}
-              onClick={handleExport}
-              disabled={loading || loadError || dataFiltered.length === 0}
-            >
-              Exportar CSV
-            </Button>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            <ExportButton resource="financial" disabled={loading || loadError} initialFilters={{ search, status, dateField: 'dueDate', from: [dueDateStart, yearFilter ? `${yearFilter}-01-01` : ''].filter(Boolean).sort().at(-1), to: [dueDateEnd, yearFilter ? `${yearFilter}-12-31` : ''].filter(Boolean).sort().at(0) }} />
             {canCreateFinancial && (
               <Button
                 component={RouterLink}

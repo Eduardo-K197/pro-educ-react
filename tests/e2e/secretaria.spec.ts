@@ -58,7 +58,7 @@ test('Falha financeira aparece como indisponibilidade e permite nova tentativa',
   await mockSchool(page, { financialError: true });
   await page.goto('/dashboard/financial/');
   await expect(page.getByRole('alert').filter({ hasText: 'Os totais estão indisponíveis' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Exportar CSV' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Exportar Excel' })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Tentar novamente' })).toBeVisible();
 });
 

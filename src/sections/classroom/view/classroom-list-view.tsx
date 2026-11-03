@@ -23,6 +23,7 @@ import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomTable } from 'src/components/list-table/list-table';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+import { ExportButton } from 'src/components/export-table/export-button';
 
 import { ClassroomTableRow } from '../classroom-table-row';
 
@@ -110,10 +111,14 @@ export function ClassroomListView() {
           { name: 'Listagem' },
         ]}
         action={
-          <Button component={RouterLink} href={paths.dashboard.classrooms.new} variant="contained" startIcon={<Iconify icon="mingcute:add-line" />}>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            <ExportButton resource="classrooms" initialFilters={{ search }} disabled={loading} />
+            <Button component={RouterLink} href={paths.dashboard.classrooms.new} variant="contained" startIcon={<Iconify icon="mingcute:add-line" />}>
             Nova turma
           </Button>
+          </Stack>
         }
+
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 

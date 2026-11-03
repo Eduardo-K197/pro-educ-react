@@ -1,0 +1,524 @@
+{
+  "students": {
+    "title": "Alunos",
+    "filename": "alunos",
+    "columns": [
+      {
+        "id": "name",
+        "label": "Nome",
+        "group": "Identificação",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "status",
+        "label": "Status",
+        "group": "Identificação",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "birthDate",
+        "label": "Nascimento",
+        "group": "Identificação",
+        "default": true,
+        "type": "date"
+      },
+      {
+        "id": "cpf",
+        "label": "CPF",
+        "group": "Identificação",
+        "default": false,
+        "type": "text"
+      },
+      {
+        "id": "gender",
+        "label": "Gênero",
+        "group": "Identificação",
+        "default": false,
+        "type": "text"
+      },
+      {
+        "id": "phone",
+        "label": "Telefone",
+        "group": "Contato",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "email",
+        "label": "E-mail",
+        "group": "Contato",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "guardianName",
+        "label": "Responsável",
+        "group": "Responsável",
+        "default": false,
+        "type": "text"
+      },
+      {
+        "id": "guardianPhone",
+        "label": "Telefone do responsável",
+        "group": "Responsável",
+        "default": false,
+        "type": "text"
+      },
+      {
+        "id": "guardianEmail",
+        "label": "E-mail do responsável",
+        "group": "Responsável",
+        "default": false,
+        "type": "text"
+      },
+      {
+        "id": "updatedAt",
+        "label": "Última atualização",
+        "group": "Outras informações",
+        "default": false,
+        "type": "date"
+      },
+      {
+        "id": "id",
+        "label": "Código do aluno",
+        "group": "Outras informações",
+        "default": false,
+        "type": "text"
+      }
+    ],
+    "dates": [
+      {
+        "id": "enrollmentDate",
+        "label": "Data de início da matrícula"
+      },
+      {
+        "id": "birthDate",
+        "label": "Data de nascimento"
+      },
+      {
+        "id": "updatedAt",
+        "label": "Última atualização"
+      }
+    ],
+    "statuses": [
+      {
+        "value": "Ativo",
+        "label": "Ativo"
+      },
+      {
+        "value": "Inativo",
+        "label": "Inativo"
+      },
+      {
+        "value": "Interessado",
+        "label": "Interessado"
+      },
+      {
+        "value": "Cancelado",
+        "label": "Cancelado"
+      }
+    ],
+    "limit": 20000
+  },
+  "financial": {
+    "title": "Financeiro",
+    "filename": "financeiro",
+    "columns": [
+      {
+        "id": "description",
+        "label": "Descrição",
+        "group": "Lançamento",
+        "default": true,
+        "type": "text",
+        "width": 42
+      },
+      {
+        "id": "studentName",
+        "label": "Aluno",
+        "group": "Lançamento",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "value",
+        "label": "Valor",
+        "group": "Valores",
+        "default": true,
+        "type": "money"
+      },
+      {
+        "id": "originalValue",
+        "label": "Valor original",
+        "group": "Valores",
+        "default": false,
+        "type": "money"
+      },
+      {
+        "id": "dueDate",
+        "label": "Vencimento",
+        "group": "Datas",
+        "default": true,
+        "type": "date"
+      },
+      {
+        "id": "paymentDate",
+        "label": "Data do pagamento",
+        "group": "Datas",
+        "default": true,
+        "type": "date"
+      },
+      {
+        "id": "status",
+        "label": "Situação",
+        "group": "Lançamento",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "installmentNumber",
+        "label": "Parcela",
+        "group": "Lançamento",
+        "default": false,
+        "type": "number"
+      },
+      {
+        "id": "billingType",
+        "label": "Forma de pagamento",
+        "group": "Lançamento",
+        "default": false,
+        "type": "text"
+      },
+      {
+        "id": "category",
+        "label": "Categoria",
+        "group": "Lançamento",
+        "default": false,
+        "type": "text"
+      },
+      {
+        "id": "source",
+        "label": "Origem",
+        "group": "Outras informações",
+        "default": false,
+        "type": "text"
+      },
+      {
+        "id": "dateCreated",
+        "label": "Data do lançamento",
+        "group": "Datas",
+        "default": false,
+        "type": "date"
+      },
+      {
+        "id": "id",
+        "label": "Código do lançamento",
+        "group": "Outras informações",
+        "default": false,
+        "type": "text"
+      }
+    ],
+    "dates": [
+      {
+        "id": "dueDate",
+        "label": "Vencimento"
+      },
+      {
+        "id": "paymentDate",
+        "label": "Data do pagamento"
+      },
+      {
+        "id": "dateCreated",
+        "label": "Data do lançamento"
+      }
+    ],
+    "statuses": [
+      {
+        "value": "Pendente",
+        "label": "Pendente"
+      },
+      {
+        "value": "Atrasado",
+        "label": "Em atraso"
+      },
+      {
+        "value": "Pago",
+        "label": "Recebido"
+      },
+      {
+        "value": "Cancelado",
+        "label": "Cancelado"
+      }
+    ],
+    "limit": 20000
+  },
+  "courses": {
+    "title": "Cursos",
+    "filename": "cursos",
+    "columns": [
+      {
+        "id": "name",
+        "label": "Curso",
+        "group": "Curso",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "workload",
+        "label": "Carga horária (h)",
+        "group": "Curso",
+        "default": true,
+        "type": "number"
+      },
+      {
+        "id": "description",
+        "label": "Descrição",
+        "group": "Curso",
+        "default": false,
+        "type": "text",
+        "width": 48
+      },
+      {
+        "id": "teacherCount",
+        "label": "Professores vinculados",
+        "group": "Indicadores",
+        "default": false,
+        "type": "number"
+      },
+      {
+        "id": "studentCount",
+        "label": "Alunos matriculados",
+        "group": "Indicadores",
+        "default": false,
+        "type": "number"
+      },
+      {
+        "id": "id",
+        "label": "Código do curso",
+        "group": "Outras informações",
+        "default": false,
+        "type": "text"
+      }
+    ],
+    "dates": [],
+    "limit": 20000
+  },
+  "classrooms": {
+    "title": "Turmas",
+    "filename": "turmas",
+    "columns": [
+      {
+        "id": "name",
+        "label": "Turma",
+        "group": "Turma",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "course",
+        "label": "Curso",
+        "group": "Turma",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "startAt",
+        "label": "Data de início",
+        "group": "Turma",
+        "default": true,
+        "type": "date"
+      },
+      {
+        "id": "studentCount",
+        "label": "Matriculados",
+        "group": "Vagas",
+        "default": true,
+        "type": "number"
+      },
+      {
+        "id": "maxStudentCount",
+        "label": "Capacidade",
+        "group": "Vagas",
+        "default": true,
+        "type": "number"
+      },
+      {
+        "id": "available",
+        "label": "Vagas livres",
+        "group": "Vagas",
+        "default": false,
+        "type": "number"
+      },
+      {
+        "id": "minStudentAge",
+        "label": "Idade mínima",
+        "group": "Turma",
+        "default": false,
+        "type": "number"
+      },
+      {
+        "id": "id",
+        "label": "Código da turma",
+        "group": "Outras informações",
+        "default": false,
+        "type": "text"
+      }
+    ],
+    "dates": [
+      {
+        "id": "startAt",
+        "label": "Data de início da turma"
+      }
+    ],
+    "limit": 20000
+  },
+  "teachers": {
+    "title": "Professores",
+    "filename": "professores",
+    "columns": [
+      {
+        "id": "name",
+        "label": "Nome",
+        "group": "Professor",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "email",
+        "label": "E-mail",
+        "group": "Contato",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "phone",
+        "label": "Telefone",
+        "group": "Contato",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "startDate",
+        "label": "Data de início",
+        "group": "Professor",
+        "default": true,
+        "type": "date"
+      },
+      {
+        "id": "birthDate",
+        "label": "Nascimento",
+        "group": "Professor",
+        "default": false,
+        "type": "date"
+      },
+      {
+        "id": "observations",
+        "label": "Observações",
+        "group": "Outras informações",
+        "default": false,
+        "type": "text",
+        "width": 48
+      },
+      {
+        "id": "id",
+        "label": "Código do professor",
+        "group": "Outras informações",
+        "default": false,
+        "type": "text"
+      }
+    ],
+    "dates": [
+      {
+        "id": "startDate",
+        "label": "Data de início"
+      },
+      {
+        "id": "birthDate",
+        "label": "Data de nascimento"
+      }
+    ],
+    "limit": 20000
+  },
+  "lessons": {
+    "title": "Aulas",
+    "filename": "aulas",
+    "columns": [
+      {
+        "id": "date",
+        "label": "Data da aula",
+        "group": "Aula",
+        "default": true,
+        "type": "date"
+      },
+      {
+        "id": "classroom",
+        "label": "Turma",
+        "group": "Aula",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "teacher",
+        "label": "Professor",
+        "group": "Aula",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "startTime",
+        "label": "Início",
+        "group": "Horário",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "endTime",
+        "label": "Término",
+        "group": "Horário",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "status",
+        "label": "Status",
+        "group": "Aula",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "details",
+        "label": "Descrição",
+        "group": "Outras informações",
+        "default": false,
+        "type": "text",
+        "width": 48
+      },
+      {
+        "id": "createdAt",
+        "label": "Data do cadastro",
+        "group": "Outras informações",
+        "default": false,
+        "type": "date"
+      },
+      {
+        "id": "id",
+        "label": "Código da aula",
+        "group": "Outras informações",
+        "default": false,
+        "type": "text"
+      }
+    ],
+    "dates": [
+      {
+        "id": "date",
+        "label": "Data da aula"
+      },
+      {
+        "id": "createdAt",
+        "label": "Data do cadastro"
+      }
+    ],
+    "limit": 20000
+  }
+}

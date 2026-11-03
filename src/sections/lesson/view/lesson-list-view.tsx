@@ -23,6 +23,7 @@ import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomTable } from 'src/components/list-table/list-table';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+import { ExportButton } from 'src/components/export-table/export-button';
 
 import { LessonTableRow } from '../lesson-table-row';
 
@@ -111,10 +112,14 @@ export function LessonListView() {
           { name: 'Listagem' },
         ]}
         action={
-          <Button component={RouterLink} href={paths.dashboard.lessons.new} variant="contained" startIcon={<Iconify icon="mingcute:add-line" />}>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            <ExportButton resource="lessons" initialFilters={{ search }} disabled={loading} />
+            <Button component={RouterLink} href={paths.dashboard.lessons.new} variant="contained" startIcon={<Iconify icon="mingcute:add-line" />}>
             Nova aula
           </Button>
+          </Stack>
         }
+
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
