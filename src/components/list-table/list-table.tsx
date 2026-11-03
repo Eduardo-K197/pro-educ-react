@@ -127,10 +127,11 @@ export function CustomTable({
       />
 
       <Scrollbar>
-        <TableContainer sx={{ position: 'relative', overflow: 'unset', minWidth: studentMobileLayout ? { xs: 0, sm: 800 } : 800 }}>
+        <TableContainer sx={{ position: 'relative', overflow: 'unset', minWidth: studentMobileLayout || notFound ? { xs: 0, sm: 800 } : 800 }}>
           <Table
             size={dense ? 'small' : 'medium'}
             sx={{
+              ...(notFound && !loading ? { '@media (max-width:599.95px)': { '& .MuiTableHead-root': { display: 'none' } } } : {}),
               ...(studentMobileLayout ? { '@media (max-width:599.95px)': {
                 '& .MuiTableCell-paddingCheckbox': { display: 'none' },
                 '& tr > :nth-of-type(3), & tr > :nth-of-type(4), & tr > :nth-of-type(5), & tr > :nth-of-type(6)': { display: 'none' },
@@ -193,8 +194,8 @@ export function CustomTable({
 
       {/* Footer */}
       <Stack
-        direction={studentMobileLayout ? { xs: 'column', sm: 'row' } : 'row'}
-        alignItems={studentMobileLayout ? { xs: 'stretch', sm: 'center' } : 'center'}
+        direction={{ xs: 'column', sm: 'row' }}
+        alignItems={{ xs: 'stretch', sm: 'center' }}
         justifyContent="space-between"
         sx={{
           px: 2,
@@ -231,14 +232,15 @@ export function CustomTable({
         </Stack>
 
         <TablePaginationCustom
-          sx={studentMobileLayout ? {
+          sx={{
             '@media (max-width:599.95px)': {
-              '& .MuiTablePagination-toolbar': { px: 0, gap: 1, justifyContent: 'space-between' },
+              '& .MuiTablePagination-toolbar': { px: 0, gap: 0, flexWrap: 'wrap', justifyContent: 'space-between' },
               '& .MuiTablePagination-spacer, & .MuiTablePagination-displayedRows': { display: 'none' },
-              '& .MuiTablePagination-actions': { ml: 0 },
-              '& .MuiTablePagination-select': { mr: 0 },
+              '& .MuiTablePagination-selectLabel': { fontSize: 12 },
+              '& .MuiTablePagination-input': { mr: 0, ml: 0 },
+              '& .MuiTablePagination-actions': { ml: 1 },
             },
-          } : undefined}
+          }}
           count={paginationCount}
           page={page}
           rowsPerPage={rowsPerPage}

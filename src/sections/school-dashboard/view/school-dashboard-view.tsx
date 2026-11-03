@@ -118,7 +118,7 @@ export function SchoolDashboardView() {
           }}
         >
           <Stack spacing={2.5}>
-            <Stack direction="row" spacing={1.5} alignItems="center">
+            <Stack direction="row" spacing={1.5} alignItems={{ xs: 'flex-start', sm: 'center' }}>
               <Box
                 sx={{
                   display: 'grid',
@@ -128,6 +128,7 @@ export function SchoolDashboardView() {
                   borderRadius: 1.5,
                   width: 44,
                   height: 44,
+                  flexShrink: 0,
                 }}
               >
                 <Iconify icon="solar:users-group-rounded-bold" width={25} />

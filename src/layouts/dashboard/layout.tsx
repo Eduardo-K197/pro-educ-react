@@ -6,11 +6,9 @@ import type { Theme, SxProps, Breakpoint } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import { useTheme } from '@mui/material/styles';
-import { iconButtonClasses } from '@mui/material/IconButton';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 
-import { Logo } from 'src/components/logo';
 import { useSettingsContext } from 'src/components/settings';
 
 import { useAuthContext } from 'src/auth/hooks';
@@ -21,6 +19,7 @@ import { layoutClasses } from '../classes';
 import { NavVertical } from './nav-vertical';
 import { NavHorizontal } from './nav-horizontal';
 import { Searchbar } from '../components/searchbar';
+import { MenuBrand } from '../components/menu-brand';
 import { MenuButton } from '../components/menu-button';
 import { LayoutSection } from '../core/layout-section';
 import { HeaderSection } from '../core/header-section';
@@ -69,19 +68,18 @@ export function DashboardLayout({ sx, children, header, data }: DashboardLayoutP
       headerSection={
         <HeaderSection
           layoutQuery={layoutQuery}
+          disableOffset
           disableElevation={isNavVertical}
           slotProps={{
             toolbar: {
               sx: {
-                ...(isNavHorizontal && {
-                  bgcolor: 'var(--layout-nav-bg)',
-                  [`& .${iconButtonClasses.root}`]: {
-                    color: 'var(--layout-nav-text-secondary-color)',
-                  },
-                  [theme.breakpoints.up(layoutQuery)]: {
-                    height: 'var(--layout-nav-horizontal-height)',
-                  },
-                }),
+                bgcolor: '#0F62C2',
+                color: 'common.white',
+                '& .MuiIconButton-root': {
+                  color: 'common.white',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.14)' },
+                  '&:focus-visible': { outline: '2px solid white', outlineOffset: 2 },
+                },
               },
             },
             container: {
@@ -91,7 +89,12 @@ export function DashboardLayout({ sx, children, header, data }: DashboardLayoutP
               },
             },
           }}
-          sx={header?.sx}
+          sx={{
+            bgcolor: '#0F62C2',
+            color: 'common.white',
+            boxShadow: '0 1px 0 rgba(0,0,0,0.08)',
+            ...header?.sx,
+          }}
           slots={{
             topArea: (
               <Alert severity="info" sx={{ display: 'none', borderRadius: 0 }}>
@@ -109,6 +112,7 @@ export function DashboardLayout({ sx, children, header, data }: DashboardLayoutP
               <>
                 {/* -- Nav mobile -- */}
                 <MenuButton
+                  aria-label="Abrir menu"
                   onClick={mobileNavOpen.onTrue}
                   sx={{
                     mr: 1,
@@ -122,9 +126,16 @@ export function DashboardLayout({ sx, children, header, data }: DashboardLayoutP
                   onClose={mobileNavOpen.onFalse}
                   cssVars={navColorVars.section}
                 />
+                <MenuBrand
+                  sx={{
+                    width: 112,
+                    height: 40,
+                    display: { xs: 'inline-flex', [layoutQuery]: 'none' },
+                  }}
+                />
                 {/* -- Logo (horizontal nav only) -- */}
                 {isNavHorizontal && (
-                  <Logo
+                  <MenuBrand
                     sx={{
                       display: 'none',
                       [theme.breakpoints.up(layoutQuery)]: { display: 'inline-flex' },
@@ -141,6 +152,9 @@ export function DashboardLayout({ sx, children, header, data }: DashboardLayoutP
                   <SchoolSwitcher
                     sx={{
                       display: 'none',
+                      color: 'common.white',
+                      bgcolor: 'rgba(255,255,255,0.14)',
+                      '& .iconify': { color: 'inherit' },
                       [theme.breakpoints.up(layoutQuery)]: { display: 'flex' },
                     }}
                   />
@@ -150,7 +164,7 @@ export function DashboardLayout({ sx, children, header, data }: DashboardLayoutP
             rightArea: (
               <Box display="flex" alignItems="center" gap={{ xs: 0, sm: 0.75 }}>
                 {/* -- Searchbar -- */}
-                <Searchbar data={navData} />
+                <Searchbar data={navData} sx={{ bgcolor: { sm: 'rgba(255,255,255,0.12)' } }} />
                 {/* -- Theme toggle -- */}
                 <SettingsButton />
                 {/* -- Account -- */}

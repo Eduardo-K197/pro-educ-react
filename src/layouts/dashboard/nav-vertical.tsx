@@ -6,10 +6,10 @@ import { useTheme } from '@mui/material/styles';
 
 import { varAlpha, hideScrollY } from 'src/theme/styles';
 
-import { Logo } from 'src/components/logo';
 import { Scrollbar } from 'src/components/scrollbar';
 import { NavSectionMini, NavSectionVertical } from 'src/components/nav-section';
 
+import { MenuBrand } from '../components/menu-brand';
 import { NavUpgrade } from '../components/nav-upgrade';
 import { NavToggleButton } from '../components/nav-toggle-button';
 
@@ -39,8 +39,17 @@ export function NavVertical({
   const renderNavVertical = (
     <>
       {slots?.topArea ?? (
-        <Box sx={{ pl: 3.5, pt: 2.5, pb: 1 }}>
-          <Logo />
+        <Box
+          sx={{
+            minHeight: 72,
+            bgcolor: '#0F62C2',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            px: 3,
+          }}
+        >
+          <MenuBrand />
         </Box>
       )}
 
@@ -55,8 +64,16 @@ export function NavVertical({
   const renderNavMini = (
     <>
       {slots?.topArea ?? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 2.5 }}>
-          <Logo />
+        <Box
+          sx={{
+            minHeight: 72,
+            bgcolor: '#0F62C2',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <MenuBrand compact />
         </Box>
       )}
 
@@ -94,10 +111,15 @@ export function NavVertical({
       }}
     >
       <NavToggleButton
+        aria-label={isNavMini ? 'Expandir menu' : 'Recolher menu'}
         isNavMini={isNavMini}
         onClick={onToggleNav}
         sx={{
           display: 'none',
+          color: 'common.white',
+          bgcolor: '#0F62C2',
+          borderColor: 'rgba(255,255,255,0.35)',
+          '&:hover': { bgcolor: '#0B4F9D', color: 'common.white' },
           [theme.breakpoints.up(layoutQuery)]: {
             display: 'inline-flex',
           },
