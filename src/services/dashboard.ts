@@ -17,10 +17,13 @@ export class DashboardService {
         ApiService.get<{ count: number }>('/classrooms', { page: 1, perPage: 1 }).catch(() => ({ count: 0 })),
       ]);
 
-    const allEntries: EntryListItem[] = [
-      ...((entriesRes as any).entries ?? []),
-      ...((paymentsRes as any).entries ?? []),
-    ];
+    // /entries e /payments retornam o mesmo lançamento pra provedores de
+    // gateway (Cora, Sicredi, Asaas) — deduplica por id antes de somar,
+    // senão os totais do painel saem em dobro (mesmo bug da tela Financeiro).
+    const byId = new Map<string, EntryListItem>();
+    ((entriesRes as any).entries ?? []).forEach((e: EntryListItem) => byId.set(e.id, e));
+    ((paymentsRes as any).entries ?? []).forEach((p: EntryListItem) => byId.set(p.id, p));
+    const allEntries: EntryListItem[] = Array.from(byId.values());
 
     const totalPending = allEntries
       .filter((e) => getTraducedStatus(e) === 'Pendente')
