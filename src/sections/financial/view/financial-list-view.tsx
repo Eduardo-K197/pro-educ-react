@@ -92,7 +92,16 @@ export function FinancialListView() {
       ]);
       const entries = (entriesRes as any).entries ?? [];
       const payments = (paymentsRes as any).entries ?? [];
-      setTableData([...entries, ...payments]);
+
+      // /entries e /payments retornam o MESMO lançamento pra provedores de
+      // gateway (Cora, Sicredi, e também Asaas sem filtro) — sem isso, todo
+      // valor e toda linha aparecia em dobro na tela (lista e cards de
+      // total). Deduplica por id; prioriza a versão de /payments, que traz
+      // campos específicos do provedor.
+      const byId = new Map<string, EntryListItem>();
+      entries.forEach((e: EntryListItem) => byId.set(e.id, e));
+      payments.forEach((p: EntryListItem) => byId.set(p.id, p));
+      setTableData(Array.from(byId.values()));
     } catch {
       toast.error('Erro ao carregar lançamentos');
     } finally {
