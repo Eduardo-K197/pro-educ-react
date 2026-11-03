@@ -20,16 +20,17 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import { RouterLink } from 'src/routes/components';
+
 import { GroupService } from 'src/services/group';
 import { AdminService } from 'src/services/admin';
 import { SchoolService } from 'src/services/school';
-
 import { DashboardContent } from 'src/layouts/dashboard';
 import { SeoIllustration } from 'src/assets/illustrations';
 
 import { svgColorClasses } from 'src/components/svg-color';
+
 import { useAuthContext } from 'src/auth/hooks';
-import { RouterLink } from 'src/routes/components';
 
 import { AppWidget } from '../app-widget';
 import { AppWelcome } from '../app-welcome';

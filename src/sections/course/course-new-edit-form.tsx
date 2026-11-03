@@ -3,22 +3,24 @@
 import type { CourseDetail, CourseCreatePayload } from 'src/types/services/course';
 
 import { z as zod } from 'zod';
+import { useForm } from 'react-hook-form';
 import { useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 
-import Grid from '@mui/material/Unstable_Grid2';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 
 import { paths } from 'src/routes/paths';
+
+import { CourseService } from 'src/services/course';
+
 import { toast } from 'src/components/snackbar';
 import { Form, Field } from 'src/components/hook-form';
-import { CourseService } from 'src/services/course';
 
 const CourseSchema = zod.object({
   name: zod.string().min(2, 'Nome obrigatório'),

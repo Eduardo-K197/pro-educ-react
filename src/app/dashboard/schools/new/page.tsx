@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+
 import { SchoolCreateView } from 'src/sections/school/school-create-view';
 
 export const metadata: Metadata = {

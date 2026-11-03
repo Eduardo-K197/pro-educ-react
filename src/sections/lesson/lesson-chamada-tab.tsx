@@ -1,5 +1,8 @@
 'use client';
 
+import type { PresenceStatus } from 'src/services/presence';
+import type { LessonDetail, LessonPresence, LessonSubscription } from 'src/types/services/lesson';
+
 import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
@@ -17,15 +20,12 @@ import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import TableContainer from '@mui/material/TableContainer';
-import CircularProgress from '@mui/material/CircularProgress';
 
-import { Iconify } from 'src/components/iconify';
+import { PresenceService } from 'src/services/presence';
+
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
-
-import type { LessonDetail, LessonSubscription, LessonPresence } from 'src/types/services/lesson';
-import type { PresenceStatus } from 'src/services/presence';
-import { PresenceService } from 'src/services/presence';
+import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 

@@ -1,16 +1,20 @@
 'use client';
 
+import type { TeacherDetail } from 'src/types/services/teacher';
+
 import { useState, useEffect } from 'react';
-import CircularProgress from '@mui/material/CircularProgress';
+
 import Stack from '@mui/material/Stack';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import { paths } from 'src/routes/paths';
-import { DashboardContent } from 'src/layouts/dashboard';
-import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import { toast } from 'src/components/snackbar';
 
-import type { TeacherDetail } from 'src/types/services/teacher';
 import { TeacherService } from 'src/services/teacher';
+import { DashboardContent } from 'src/layouts/dashboard';
+
+import { toast } from 'src/components/snackbar';
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+
 import { TeacherNewEditForm } from '../teacher-new-edit-form';
 
 type Props = { id: string };

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+
 import { StudentDetailsView } from 'src/sections/student/view';
 
 export const metadata: Metadata = { title: 'Detalhes do aluno' };

@@ -1,8 +1,11 @@
 'use client';
 
-import { DashboardContent } from 'src/layouts/dashboard';
-import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import { paths } from 'src/routes/paths';
+
+import { DashboardContent } from 'src/layouts/dashboard';
+
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+
 import { SchoolNewEditForm } from './school-new-edit-form';
 
 export function SchoolCreateView() {

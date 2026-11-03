@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
-import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import Chip from '@mui/material/Chip';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import ListItem from '@mui/material/ListItem';
@@ -18,13 +18,12 @@ import DialogContent from '@mui/material/DialogContent';
 import InputAdornment from '@mui/material/InputAdornment';
 import ListItemButton from '@mui/material/ListItemButton';
 import CircularProgress from '@mui/material/CircularProgress';
-import Stack from '@mui/material/Stack';
-
-import { toast } from 'src/components/snackbar';
-import { Iconify } from 'src/components/iconify';
 
 import { AdminService } from 'src/services/admin';
 import { SchoolService } from 'src/services/school';
+
+import { toast } from 'src/components/snackbar';
+import { Iconify } from 'src/components/iconify';
 
 type Props = {
   open: boolean;

@@ -1,29 +1,30 @@
-import { boolean, z as zod } from 'zod';
-import { useEffect, useMemo, useState } from 'react';
+import type { IGroupItem } from 'src/types/group';
+import type { AdminListItem } from 'src/types/services/admin';
+import type { SchoolListItem } from 'src/types/services/school';
+
+import { z as zod } from 'zod';
 import { useForm } from 'react-hook-form';
+import { useMemo, useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
+import Switch from '@mui/material/Switch';
+import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
-import Switch from '@mui/material/Switch';
 import FormControlLabel from '@mui/material/FormControlLabel';
-
-import { Field, Form } from 'src/components/hook-form';
-import { toast } from 'src/components/snackbar';
 
 import { GroupService } from 'src/services/group';
 import { AdminService } from 'src/services/admin';
 import { SchoolService } from 'src/services/school';
-import { IGroupItem } from 'src/types/group';
-import type { SchoolListItem } from 'src/types/services/school';
-import type { AdminListItem } from 'src/types/services/admin';
+
+import { toast } from 'src/components/snackbar';
+import { Form, Field } from 'src/components/hook-form';
 
 // ----------------------------------------------------------------------
 

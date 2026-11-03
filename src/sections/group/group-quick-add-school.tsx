@@ -1,6 +1,9 @@
+import type { IGroupItem } from 'src/types/group';
+import type { SchoolCreatePayload, SchoolUpdatePayload } from 'src/types/services/school';
+
 import { z as zod } from 'zod';
-import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useMemo, useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import Box from '@mui/material/Box';
@@ -8,12 +11,15 @@ import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import Chip from '@mui/material/Chip';
 import List from '@mui/material/List';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
+import Switch from '@mui/material/Switch';
 import Divider from '@mui/material/Divider';
 import ListItem from '@mui/material/ListItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import InputLabel from '@mui/material/InputLabel';
 import LoadingButton from '@mui/lab/LoadingButton';
 import DialogTitle from '@mui/material/DialogTitle';
 import ListItemText from '@mui/material/ListItemText';
@@ -22,20 +28,14 @@ import DialogContent from '@mui/material/DialogContent';
 import InputAdornment from '@mui/material/InputAdornment';
 import ListItemButton from '@mui/material/ListItemButton';
 import CircularProgress from '@mui/material/CircularProgress';
-import Stack from '@mui/material/Stack';
-import Switch from '@mui/material/Switch';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import InputLabel from '@mui/material/InputLabel';
-
-import { toast } from 'src/components/snackbar';
-import { Form, RHFTextField, RHFSwitch } from 'src/components/hook-form';
-import { Iconify } from 'src/components/iconify';
 
 import { GroupService } from 'src/services/group';
 import { SchoolService } from 'src/services/school';
-import { IGroupItem } from 'src/types/group';
 
-import type { SchoolCreatePayload, SchoolUpdatePayload } from 'src/types/services/school';
+import { toast } from 'src/components/snackbar';
+import { Iconify } from 'src/components/iconify';
+import { Form, RHFSwitch, RHFTextField } from 'src/components/hook-form';
 
 // ----------------------------------------------------------------------
 
@@ -87,6 +87,31 @@ export function GroupQuickAddSchool({
   const [selectedGroups, setSelectedGroups] = useState<Set<string>>(
     new Set(groupId ? [groupId] : [])
   );
+
+  const defaultValues = useMemo(
+    () => ({
+      name: currentSchool?.name || '',
+      asaasToken: currentSchool?.asaasToken || '',
+      asaasSandboxMode: currentSchool?.asaasSandboxMode || false,
+      asaasHomologationMode: currentSchool?.asaasHomologationMode || false,
+      materialsText: '',
+      categoriesText: '',
+    }),
+    [currentSchool]
+  );
+
+  const methods = useForm<GroupQuickAddSchoolSchemaType>({
+    mode: 'all',
+    resolver: zodResolver(GroupQuickAddSchoolSchema),
+    defaultValues,
+  });
+
+  const {
+    reset,
+    handleSubmit,
+    watch,
+    formState: { isSubmitting },
+  } = methods;
 
   // Quando abre, busca escolas disponíveis e grupos (para criação sem groupId)
   useEffect(() => {
@@ -147,32 +172,7 @@ export function GroupQuickAddSchool({
       setSelectedGroups(new Set(groupId ? [groupId] : []));
       setCertificateFile(null);
     }
-  }, [currentSchool, open, groupId]);
-
-  const defaultValues = useMemo(
-    () => ({
-      name: currentSchool?.name || '',
-      asaasToken: currentSchool?.asaasToken || '',
-      asaasSandboxMode: currentSchool?.asaasSandboxMode || false,
-      asaasHomologationMode: currentSchool?.asaasHomologationMode || false,
-      materialsText: '',
-      categoriesText: '',
-    }),
-    [currentSchool]
-  );
-
-  const methods = useForm<GroupQuickAddSchoolSchemaType>({
-    mode: 'all',
-    resolver: zodResolver(GroupQuickAddSchoolSchema),
-    defaultValues,
-  });
-
-  const {
-    reset,
-    handleSubmit,
-    watch,
-    formState: { isSubmitting },
-  } = methods;
+  }, [currentSchool, open, groupId, reset]);
 
   const sandbox = watch('asaasSandboxMode');
   const homolog = watch('asaasHomologationMode');

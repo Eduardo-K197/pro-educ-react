@@ -1,7 +1,7 @@
 import { CONFIG } from 'src/config-global';
+import { RoleAwareDashboardLayout } from 'src/layouts/dashboard/role-aware-layout';
 
 import { AuthGuard } from 'src/auth/guard';
-import { RoleAwareDashboardLayout } from 'src/layouts/dashboard/role-aware-layout';
 
 // ----------------------------------------------------------------------
 

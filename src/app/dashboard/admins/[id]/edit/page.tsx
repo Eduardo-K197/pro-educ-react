@@ -1,4 +1,5 @@
 import { CONFIG } from 'src/config-global';
+
 import { AdminEditView } from 'src/sections/admin/view';
 
 // ----------------------------------------------------------------------

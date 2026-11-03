@@ -1,5 +1,7 @@
 'use client';
 
+import type { SchoolListItem } from 'src/types/services/school';
+
 import { useMemo } from 'react';
 
 import Box from '@mui/material/Box';
@@ -18,14 +20,13 @@ import ListItemText from '@mui/material/ListItemText';
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
-import { Iconify } from 'src/components/iconify';
-import { Label } from 'src/components/label';
-import { usePopover, CustomPopover } from 'src/components/custom-popover';
-
-import { fDateTime } from 'src/utils/format-time';
 import { useSchoolMode } from 'src/hooks/use-school-mode';
 
-import type { SchoolListItem } from 'src/types/services/school';
+import { fDateTime } from 'src/utils/format-time';
+
+import { Label } from 'src/components/label';
+import { Iconify } from 'src/components/iconify';
+import { usePopover, CustomPopover } from 'src/components/custom-popover';
 
 type SchoolStatus = 'ok' | 'pending' | 'overdue';
 

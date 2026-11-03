@@ -4,12 +4,9 @@ import type { Theme, SxProps, Breakpoint } from '@mui/material/styles';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
-import Button from '@mui/material/Button';
 import { useTheme } from '@mui/material/styles';
 
 import { usePathname } from 'src/routes/hooks';
-
-import { CONFIG } from 'src/config-global';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 

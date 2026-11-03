@@ -1,5 +1,8 @@
 'use client';
 
+import type { Grade, CoursePeriod } from 'src/services/grade';
+import type { StudentSubscription } from 'src/types/services/student';
+
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -23,16 +26,14 @@ import DialogTitle from '@mui/material/DialogTitle';
 import FormControl from '@mui/material/FormControl';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-import CircularProgress from '@mui/material/CircularProgress';
 import TableContainer from '@mui/material/TableContainer';
+import CircularProgress from '@mui/material/CircularProgress';
 
-import { Iconify } from 'src/components/iconify';
-import { toast } from 'src/components/snackbar';
-
-import { CourseService } from 'src/services/course';
-import type { Grade, CoursePeriod } from 'src/services/grade';
 import { GradeService } from 'src/services/grade';
-import type { StudentSubscription } from 'src/types/services/student';
+import { CourseService } from 'src/services/course';
+
+import { toast } from 'src/components/snackbar';
+import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 

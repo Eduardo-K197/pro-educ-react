@@ -1,5 +1,6 @@
-import { ReactNode } from 'react';
-import { useFormContext, Controller } from 'react-hook-form';
+import type { ReactNode } from 'react';
+
+import { Controller, useFormContext } from 'react-hook-form';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -11,6 +12,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { fData } from 'src/utils/format-number';
+
 import { Label } from 'src/components/label';
 import { Field } from 'src/components/hook-form';
 

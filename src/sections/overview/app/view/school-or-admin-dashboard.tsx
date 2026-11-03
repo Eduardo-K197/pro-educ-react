@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useAuthContext } from 'src/auth/hooks';
-import { SchoolDashboardView } from 'src/sections/school-dashboard/view';
+import { useState, useEffect } from 'react';
+
 import { SchoolListView } from 'src/sections/school/school-list-view';
+import { SchoolDashboardView } from 'src/sections/school-dashboard/view';
+
+import { useAuthContext } from 'src/auth/hooks';
 
 const SCHOOL_MODE_KEY = 'proeduc-school-mode';
 

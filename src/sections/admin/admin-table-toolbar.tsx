@@ -1,5 +1,5 @@
-import type { IAdminTableFilters } from 'src/types/services/admin';
 import type { UseSetStateReturn } from 'src/hooks/use-set-state';
+import type { IAdminTableFilters } from 'src/types/services/admin';
 
 import { useCallback } from 'react';
 
@@ -12,7 +12,6 @@ import { Iconify } from 'src/components/iconify';
 // ----------------------------------------------------------------------
 
 type Props = {
-  dateError: boolean;
   onResetPage: () => void;
   filters: UseSetStateReturn<IAdminTableFilters>;
 };
@@ -28,8 +27,7 @@ export function AdminTableToolbar({ filters, onResetPage }: Props) {
   );
 
   return (
-    <>
-      <Stack
+    <Stack
         spacing={2}
         alignItems={{ xs: 'flex-end', md: 'center' }}
         direction={{ xs: 'column', md: 'row' }}
@@ -52,6 +50,5 @@ export function AdminTableToolbar({ filters, onResetPage }: Props) {
           }}
         />
       </Stack>
-    </>
   );
 }

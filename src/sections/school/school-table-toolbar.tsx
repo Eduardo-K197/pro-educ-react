@@ -1,14 +1,13 @@
 'use client';
 
-import type { SxProps } from '@mui/material/styles';
 import type { Dayjs } from 'dayjs';
+import type { SxProps } from '@mui/material/styles';
 
 import dayjs from 'dayjs';
 
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
-
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { Iconify } from 'src/components/iconify';
@@ -23,8 +22,6 @@ type ISchoolTableFilters = {
 type Props = {
   filters: ISchoolTableFilters;
   onFiltersChange: (name: keyof ISchoolTableFilters, value: any) => void;
-  onResetFilters: () => void;
-  onResetPage: () => void;
   dateError: boolean;
   sx?: SxProps;
 };

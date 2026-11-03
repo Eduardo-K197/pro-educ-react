@@ -1,6 +1,6 @@
-import type { IAdminTableFilters } from 'src/types/services/admin';
 import type { Theme, SxProps } from '@mui/material/styles';
 import type { UseSetStateReturn } from 'src/hooks/use-set-state';
+import type { IAdminTableFilters } from 'src/types/services/admin';
 
 import { useCallback } from 'react';
 

@@ -1,5 +1,4 @@
 import type { AxiosRequestConfig } from 'axios';
-
 import type {
   LessonDetail,
   LessonCreatePayload,

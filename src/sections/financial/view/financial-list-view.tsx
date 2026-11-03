@@ -1,41 +1,44 @@
 'use client';
 
 import type { EntryListItem } from 'src/types/services/entry';
-import { getTraducedStatus } from 'src/types/services/entry';
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
-import Stack from '@mui/material/Stack';
-import InputAdornment from '@mui/material/InputAdornment';
 import TextField from '@mui/material/TextField';
-import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
+import InputAdornment from '@mui/material/InputAdornment';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
+
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useRolePermissions } from 'src/hooks/use-role-permissions';
 
-import { varAlpha } from 'src/theme/styles';
-import { fCurrency } from 'src/utils/format-number';
 import { fDate } from 'src/utils/format-time';
+import { fCurrency } from 'src/utils/format-number';
 
+import { varAlpha } from 'src/theme/styles';
 import { EntryService } from 'src/services/entry';
-
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
-import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+import { ConfirmDialog } from 'src/components/custom-dialog';
 import { useTable, getComparator } from 'src/components/table';
 import { CustomTable } from 'src/components/list-table/list-table';
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+
+import { getTraducedStatus } from 'src/types/services/entry';
 
 import { FinancialTableRow } from '../financial-table-row';
 
@@ -220,7 +223,7 @@ export function FinancialListView() {
       ...rows.map((r) => headers.map((h) => `"${(r as any)[h]}"`).join(';')),
     ].join('\n');
 
-    const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([`\ufeff${csvContent}`], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -298,7 +301,7 @@ export function FinancialListView() {
         notFound={!loading && dataFiltered.length === 0}
         loading={loading}
         totalCount={dataFiltered.length}
-        onDeleteRows={canDeleteFinancial ? handleDeleteRows : undefined}
+        onDeleteRows={canDeleteFinancial ? confirm.onTrue : undefined}
         filters={
           <>
             {/* Tabs de status */}
@@ -442,6 +445,18 @@ export function FinancialListView() {
         description={confirmPaymentRow?.description ?? undefined}
         onClose={() => setConfirmPaymentRow(null)}
         onConfirm={handleConfirmPayment}
+      />
+
+      <ConfirmDialog
+        open={confirm.value}
+        onClose={confirm.onFalse}
+        title="Excluir lançamentos"
+        content={<>Tem certeza? <strong>{table.selected.length}</strong> lançamento(s) serão excluídos.</>}
+        action={
+          <Button variant="contained" color="error" onClick={() => { handleDeleteRows(); confirm.onFalse(); }}>
+            Excluir
+          </Button>
+        }
       />
     </DashboardContent>
   );

@@ -36,6 +36,10 @@ module.exports = {
     'no-restricted-exports': 0,
     'no-promise-executor-return': 0,
     'import/prefer-default-export': 0,
+    // "void fn()" é o jeito recomendado de chamar uma async function sem
+    // aguardar dentro de um useEffect (callback não pode ser async) — já é
+    // o padrão usado no projeto, só libera como statement.
+    'no-void': [2, { allowAsStatement: true }],
     'prefer-destructuring': [1, { object: true, array: false }],
     // typescript
     '@typescript-eslint/naming-convention': 0,

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+
 import { LessonEditView } from 'src/sections/lesson/view';
 
 export const metadata: Metadata = { title: 'Editar aula' };

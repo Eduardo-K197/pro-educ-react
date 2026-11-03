@@ -1,7 +1,7 @@
 'use client';
 
-import type { Subject, CoursePeriod, CourseGradeSetting } from 'src/types/services/curriculum';
 import type { CourseListItem } from 'src/types/services/course';
+import type { Subject, CoursePeriod } from 'src/types/services/curriculum';
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -23,25 +23,30 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+import LoadingButton from '@mui/lab/LoadingButton';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import TableContainer from '@mui/material/TableContainer';
 import CircularProgress from '@mui/material/CircularProgress';
-import LoadingButton from '@mui/lab/LoadingButton';
-
-import { STORAGE_KEYS } from 'src/utils/axios';
-import { useAuthContext } from 'src/auth/hooks';
-
-import { CourseService } from 'src/services/course';
-import { CurriculumService } from 'src/services/curriculum';
-import { DashboardContent } from 'src/layouts/dashboard';
-import { toast } from 'src/components/snackbar';
-import { Iconify } from 'src/components/iconify';
-import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import { Label } from 'src/components/label';
 
 import { paths } from 'src/routes/paths';
+
+import { useBoolean } from 'src/hooks/use-boolean';
+
+import { STORAGE_KEYS } from 'src/utils/axios';
+
+import { CourseService } from 'src/services/course';
+import { DashboardContent } from 'src/layouts/dashboard';
+import { CurriculumService } from 'src/services/curriculum';
+
+import { Label } from 'src/components/label';
+import { toast } from 'src/components/snackbar';
+import { Iconify } from 'src/components/iconify';
+import { ConfirmDialog } from 'src/components/custom-dialog';
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+
+import { useAuthContext } from 'src/auth/hooks';
 
 // ── helpers ──────────────────────────────────────────────────────────────
 
@@ -65,6 +70,8 @@ function SubjectsTab({ schoolId }: { schoolId: string }) {
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [saving, setSaving] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const confirmDelete = useBoolean();
 
   const load = useCallback(async () => {
     if (!schoolId) return;
@@ -106,13 +113,15 @@ function SubjectsTab({ schoolId }: { schoolId: string }) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Excluir matéria?')) return;
     try {
       await CurriculumService.deleteSubject(schoolId, id);
       toast.success('Matéria excluída');
       load();
     } catch {
       toast.error('Erro ao excluir matéria');
+    } finally {
+      confirmDelete.onFalse();
+      setDeleteId(null);
     }
   };
 
@@ -158,7 +167,14 @@ function SubjectsTab({ schoolId }: { schoolId: string }) {
                       <IconButton size="small" onClick={() => openEdit(s)}>
                         <Iconify icon="solar:pen-bold" width={16} />
                       </IconButton>
-                      <IconButton size="small" color="error" onClick={() => handleDelete(s.id)}>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => {
+                          setDeleteId(s.id);
+                          confirmDelete.onTrue();
+                        }}
+                      >
                         <Iconify icon="solar:trash-bin-trash-bold" width={16} />
                       </IconButton>
                     </TableCell>
@@ -183,6 +199,21 @@ function SubjectsTab({ schoolId }: { schoolId: string }) {
           <LoadingButton loading={saving} variant="contained" onClick={handleSave}>Salvar</LoadingButton>
         </DialogActions>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmDelete.value}
+        onClose={() => {
+          confirmDelete.onFalse();
+          setDeleteId(null);
+        }}
+        title="Excluir matéria"
+        content="Tem certeza que deseja excluir esta matéria?"
+        action={
+          <Button variant="contained" color="error" onClick={() => deleteId && handleDelete(deleteId)}>
+            Excluir
+          </Button>
+        }
+      />
     </>
   );
 }
@@ -289,7 +320,7 @@ function CourseSubjectsTab({ schoolId, courses }: { schoolId: string; courses: C
                   {allSubjects.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={4} align="center" sx={{ py: 4, color: 'text.disabled' }}>
-                        Nenhuma matéria cadastrada para a escola. Crie em "Matérias" primeiro.
+                        Nenhuma matéria cadastrada para a escola. Crie em &quot;Matérias&quot; primeiro.
                       </TableCell>
                     </TableRow>
                   )}
@@ -349,6 +380,8 @@ function PeriodsTab({ courses }: { courses: CourseListItem[] }) {
   const [dialog, setDialog] = useState<{ open: boolean; item?: CoursePeriod }>({ open: false });
   const [form, setForm] = useState({ name: '', shortName: '', weight: '', startAt: '', endAt: '' });
   const [saving, setSaving] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const confirmDelete = useBoolean();
 
   const loadPeriods = useCallback(async (cId: string) => {
     setLoading(true);
@@ -414,13 +447,15 @@ function PeriodsTab({ courses }: { courses: CourseListItem[] }) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Excluir período?')) return;
     try {
       await CurriculumService.deletePeriod(courseId, id);
       toast.success('Período excluído');
       loadPeriods(courseId);
     } catch {
       toast.error('Erro ao excluir período');
+    } finally {
+      confirmDelete.onFalse();
+      setDeleteId(null);
     }
   };
 
@@ -490,7 +525,14 @@ function PeriodsTab({ courses }: { courses: CourseListItem[] }) {
                       <IconButton size="small" onClick={() => openEdit(p)}>
                         <Iconify icon="solar:pen-bold" width={16} />
                       </IconButton>
-                      <IconButton size="small" color="error" onClick={() => handleDelete(p.id)}>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => {
+                          setDeleteId(p.id);
+                          confirmDelete.onTrue();
+                        }}
+                      >
                         <Iconify icon="solar:trash-bin-trash-bold" width={16} />
                       </IconButton>
                     </TableCell>
@@ -556,6 +598,21 @@ function PeriodsTab({ courses }: { courses: CourseListItem[] }) {
           <LoadingButton loading={saving} variant="contained" onClick={handleSave}>Salvar</LoadingButton>
         </DialogActions>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmDelete.value}
+        onClose={() => {
+          confirmDelete.onFalse();
+          setDeleteId(null);
+        }}
+        title="Excluir período"
+        content="Tem certeza que deseja excluir este período?"
+        action={
+          <Button variant="contained" color="error" onClick={() => deleteId && handleDelete(deleteId)}>
+            Excluir
+          </Button>
+        }
+      />
     </>
   );
 }
@@ -564,7 +621,6 @@ function PeriodsTab({ courses }: { courses: CourseListItem[] }) {
 
 function GradeSettingTab({ courses }: { courses: CourseListItem[] }) {
   const [courseId, setCourseId] = useState('');
-  const [setting, setSetting] = useState<CourseGradeSetting | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [minGrade, setMinGrade] = useState('');
@@ -575,12 +631,10 @@ function GradeSettingTab({ courses }: { courses: CourseListItem[] }) {
     setLoading(true);
     try {
       const data = await CurriculumService.getGradeSetting(cId);
-      setSetting(data);
       setMinGrade(data.minGrade != null ? String(data.minGrade) : '');
       setMaxGrade(data.maxGrade != null ? String(data.maxGrade) : '');
       setStep(data.step != null ? String(data.step) : '');
     } catch {
-      setSetting(null);
       setMinGrade('0');
       setMaxGrade('10');
       setStep('0.5');
@@ -592,7 +646,7 @@ function GradeSettingTab({ courses }: { courses: CourseListItem[] }) {
   const handleCourseChange = (id: string) => {
     setCourseId(id);
     if (id) loadSetting(id);
-    else { setSetting(null); setMinGrade(''); setMaxGrade(''); setStep(''); }
+    else { setMinGrade(''); setMaxGrade(''); setStep(''); }
   };
 
   const handleSave = async () => {

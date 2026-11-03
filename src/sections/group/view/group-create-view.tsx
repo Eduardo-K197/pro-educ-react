@@ -1,20 +1,21 @@
 'use client';
 
+import type { IGroupCreatePayload, IGroupUpdatePayload } from 'src/types/group';
+
 import { useState } from 'react';
+
 import Button from '@mui/material/Button';
-import Stack from '@mui/material/Stack';
 
-import { DashboardContent } from 'src/layouts/dashboard';
-import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import { Iconify } from 'src/components/iconify';
-import { RouterLink } from 'src/routes/components';
 import { paths } from 'src/routes/paths';
-
-import { GroupNewEditForm } from 'src/sections/group/group-new-edit-form';
+import { RouterLink } from 'src/routes/components';
 
 import { GroupService } from 'src/services/group';
+import { DashboardContent } from 'src/layouts/dashboard';
 
-import type { IGroupCreatePayload, IGroupUpdatePayload } from 'src/types/group';
+import { Iconify } from 'src/components/iconify';
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+
+import { GroupNewEditForm } from 'src/sections/group/group-new-edit-form';
 
 export function GroupCreateView() {
   const [loading, setLoading] = useState(false);

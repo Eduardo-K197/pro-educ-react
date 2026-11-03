@@ -1,12 +1,12 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
-import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import TableBody from '@mui/material/TableBody';
 import IconButton from '@mui/material/IconButton';
@@ -19,13 +19,13 @@ import { varAlpha } from 'src/theme/styles';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 import {
+  emptyRows,
+  TableNoData,
+  TableSkeleton,
+  TableEmptyRows,
   TableHeadCustom,
   TableSelectedAction,
   TablePaginationCustom,
-  TableNoData,
-  TableEmptyRows,
-  TableSkeleton,
-  emptyRows,
 } from 'src/components/table';
 
 // ----------------------------------------------------------------------
@@ -124,7 +124,7 @@ export function CustomTable({
             size={dense ? 'small' : 'medium'}
             sx={{
               '& .MuiTableHead-root .MuiTableCell-root': {
-                bgcolor: (theme) => varAlpha(theme.vars.palette.primary['mainChannel'], 0.04),
+                bgcolor: (theme) => varAlpha(theme.vars.palette.primary.mainChannel, 0.04),
                 color: 'text.primary',
                 fontWeight: 700,
                 fontSize: 12,
@@ -133,12 +133,12 @@ export function CustomTable({
                 whiteSpace: 'nowrap',
                 py: dense ? 1 : 1.5,
                 borderBottom: (theme) =>
-                  `2px solid ${varAlpha(theme.vars.palette.primary['mainChannel'], 0.12)}`,
+                  `2px solid ${varAlpha(theme.vars.palette.primary.mainChannel, 0.12)}`,
               },
               '& .MuiTableBody-root .MuiTableRow-root': {
                 transition: 'background-color 0.15s',
                 '&:hover': {
-                  bgcolor: (theme) => varAlpha(theme.vars.palette.primary['mainChannel'], 0.04),
+                  bgcolor: (theme) => varAlpha(theme.vars.palette.primary.mainChannel, 0.04),
                 },
                 '&:last-child .MuiTableCell-root': { borderBottom: 0 },
               },

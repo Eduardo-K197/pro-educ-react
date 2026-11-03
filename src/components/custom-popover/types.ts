@@ -1,6 +1,6 @@
 import type { PopoverProps } from '@mui/material/Popover';
 import type { Theme, SxProps } from '@mui/material/styles';
-import type { MouseEvent, Dispatch, SetStateAction } from 'react';
+import type { Dispatch, MouseEvent, SetStateAction } from 'react';
 
 export type CustomPopoverArrowProps = {
   hide?: boolean;

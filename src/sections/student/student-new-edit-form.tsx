@@ -3,13 +3,12 @@
 import type { StudentDetail } from 'src/types/services/student';
 
 import { z as zod } from 'zod';
-import { useRef, useState, useMemo, useEffect, useCallback } from 'react';
+import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Unstable_Grid2';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
@@ -18,20 +17,21 @@ import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
+import Grid from '@mui/material/Unstable_Grid2';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import TextField from '@mui/material/TextField';
 import LoadingButton from '@mui/lab/LoadingButton';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { paths } from 'src/routes/paths';
 
 import { varAlpha } from 'src/theme/styles';
-import { toast } from 'src/components/snackbar';
-import { Form, Field } from 'src/components/hook-form';
-import { Iconify } from 'src/components/iconify';
-
 import { StudentService } from 'src/services/student';
+
+import { toast } from 'src/components/snackbar';
+import { Iconify } from 'src/components/iconify';
+import { Form, Field } from 'src/components/hook-form';
 
 // ----------------------------------------------------------------------
 
@@ -71,7 +71,11 @@ const emptyAddress = (): AddressFields => ({
 function parseAddressFromApi(raw: any): AddressFields {
   if (!raw) return emptyAddress();
   if (typeof raw === 'string') {
-    try { return parseAddressFromApi(JSON.parse(raw)); } catch {}
+    try {
+      return parseAddressFromApi(JSON.parse(raw));
+    } catch {
+      // string não é JSON válido — cai no fallback abaixo
+    }
     return emptyAddress();
   }
   return {
@@ -227,7 +231,6 @@ export function StudentNewEditForm({ currentStudent }: Props) {
   const {
     handleSubmit,
     reset,
-    watch,
     formState: { isSubmitting },
   } = methods;
 

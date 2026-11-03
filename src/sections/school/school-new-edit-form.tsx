@@ -2,45 +2,47 @@
 
 import type {
   SchoolDetail,
+  PaymentProvider,
   SchoolCreatePayload,
   SchoolUpdatePayload,
-  PaymentProvider,
 } from 'src/types/services/school';
 
 import { z as zod } from 'zod';
-import { useMemo, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, FormProvider as RHFFormProvider, Controller } from 'react-hook-form';
+import { useRef, useMemo, useState, useEffect } from 'react';
+import { useForm, Controller, FormProvider as RHFFormProvider } from 'react-hook-form';
 
-import Grid from '@mui/material/Unstable_Grid2';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
-import Typography from '@mui/material/Typography';
-import Alert from '@mui/material/Alert';
-import AlertTitle from '@mui/material/AlertTitle';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import TextField from '@mui/material/TextField';
-import FormControl from '@mui/material/FormControl';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
-import LoadingButton from '@mui/lab/LoadingButton';
 import Chip from '@mui/material/Chip';
-import MenuItem from '@mui/material/MenuItem';
+import Stack from '@mui/material/Stack';
+import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
+import Switch from '@mui/material/Switch';
 import Select from '@mui/material/Select';
+import Divider from '@mui/material/Divider';
+import MenuItem from '@mui/material/MenuItem';
+import Grid from '@mui/material/Unstable_Grid2';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import AlertTitle from '@mui/material/AlertTitle';
 import InputLabel from '@mui/material/InputLabel';
+import LoadingButton from '@mui/lab/LoadingButton';
+import FormControl from '@mui/material/FormControl';
+import ToggleButton from '@mui/material/ToggleButton';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { paths } from 'src/routes/paths';
+
+import axiosInstance from 'src/utils/axios';
+
+import { CoraService } from 'src/services/cora';
+import { SchoolService } from 'src/services/school';
+
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
-
-import { SchoolService } from 'src/services/school';
-import { CoraService } from 'src/services/cora';
-import axiosInstance from 'src/utils/axios';
 
 // ----------------------------------------------------------------------
 
@@ -430,8 +432,7 @@ export function SchoolNewEditForm({ currentSchool }: Props) {
                 {provider === 'cora' && (
                   <Stack spacing={2}>
                     {coraConfigured && !coraSetupOpen ? (
-                      <>
-                        <Alert
+                      <Alert
                           severity="success"
                           action={
                             <Button size="small" onClick={() => setCoraSetupOpen(true)}>
@@ -448,7 +449,6 @@ export function SchoolNewEditForm({ currentSchool }: Props) {
                             color={currentSchool?.coraAccount?.environment === 'production' ? 'success' : 'warning'}
                           />
                         </Alert>
-                      </>
                     ) : (
                       <>
                         {!coraConfigured && (

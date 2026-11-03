@@ -1,30 +1,33 @@
 'use client';
 
-import Grid from '@mui/material/Unstable_Grid2';
-import Button from '@mui/material/Button';
+import type { IGroupItem } from 'src/types/group';
+import type { IAdminItem } from '@/types/services/admin';
+import type { ISchoolItem } from '@/types/services/school';
+
+import { useMemo, useState, useCallback } from 'react';
+
+import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
+
+import { paths } from 'src/routes/paths';
+import { useRouter } from 'src/routes/hooks';
+import { RouterLink } from 'src/routes/components';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+
 import { Iconify } from 'src/components/iconify';
-import { RouterLink } from 'src/routes/components';
-import { useRouter } from 'src/routes/hooks';
-import { paths } from 'src/routes/paths';
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs'; // Adicione useMemo
+import { toast } from 'sonner';
+import { GroupService } from '@/services/group';
 
-import { IAdminItem } from '@/types/services/admin';
-import { ISchoolItem } from '@/types/services/school';
-import type { IGroupItem } from 'src/types/group';
-
-import { useState, useCallback, useMemo } from 'react'; // Adicione useMemo
-import { GroupDetailsViewCard } from '../group-details-view-card';
+import { GroupQuickEdit } from '../group-quick-edit-form';
 import { GroupQuickAddAdmin } from '../group-quick-add-admin';
 import { GroupQuickAddSchool } from '../group-quick-add-school';
-import { GroupQuickEdit } from '../group-quick-edit-form';
-import { GroupService } from '@/services/group';
-import { toast } from 'sonner';
+import { GroupDetailsViewCard } from '../group-details-view-card';
 
 
 type Props = {
@@ -93,7 +96,7 @@ export function GroupDetailsView({ group, adminList, schoolList }: Props) {
       console.error(error);
       toast.error('Erro ao remover admin')
     }
-  }, [group.id, adminsId, schoolsId, handleRefresh])
+  }, [group.id, group.name, adminsId, schoolsId, handleRefresh])
 
   const handleDeleteSchool = useCallback(async (schoolId: string) => {
     try {
@@ -115,13 +118,12 @@ export function GroupDetailsView({ group, adminList, schoolList }: Props) {
       console.error(error);
       toast.error('Erro ao remover escola')
     }
-  }, [group.id, adminsId, schoolsId, handleRefresh])
+  }, [group.id, group.name, adminsId, schoolsId, handleRefresh])
 
   return (
     <DashboardContent>
       
-      <Stack direction="row" spacing={1} sx={{ mb: 2 }} flexWrap="wrap">
-      </Stack>
+      <Stack direction="row" spacing={1} sx={{ mb: 2 }} flexWrap="wrap" />
 
       <CustomBreadcrumbs
         heading={group.name}
@@ -155,7 +157,7 @@ export function GroupDetailsView({ group, adminList, schoolList }: Props) {
       <Card sx={{ p: 2 }}>
         <Box sx={{ mt: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="subtitle2" fontSize={20} fontWeight={"bold"} sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" fontSize={20} fontWeight="bold" sx={{ mb: 1 }}>
               Administradores
             </Typography>
             <Button
@@ -189,7 +191,7 @@ export function GroupDetailsView({ group, adminList, schoolList }: Props) {
 
         <Box sx={{ mt: 1 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3}}>
-            <Typography variant="subtitle2" fontSize={20} fontWeight={"bold"} sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" fontSize={20} fontWeight="bold" sx={{ mb: 1 }}>
               Escolas
             </Typography>
             <Button

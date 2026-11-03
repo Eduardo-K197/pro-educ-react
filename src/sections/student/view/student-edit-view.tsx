@@ -1,16 +1,20 @@
 'use client';
 
+import type { StudentDetail } from 'src/types/services/student';
+
 import { useState, useEffect } from 'react';
-import CircularProgress from '@mui/material/CircularProgress';
+
 import Stack from '@mui/material/Stack';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import { paths } from 'src/routes/paths';
-import { DashboardContent } from 'src/layouts/dashboard';
-import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import { toast } from 'src/components/snackbar';
 
-import type { StudentDetail } from 'src/types/services/student';
 import { StudentService } from 'src/services/student';
+import { DashboardContent } from 'src/layouts/dashboard';
+
+import { toast } from 'src/components/snackbar';
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+
 import { StudentNewEditForm } from '../student-new-edit-form';
 
 // ----------------------------------------------------------------------

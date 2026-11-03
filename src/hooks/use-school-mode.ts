@@ -1,7 +1,9 @@
 'use client';
 
 import { useCallback } from 'react';
+
 import { useRouter } from 'src/routes/hooks';
+
 import { STORAGE_KEYS } from 'src/utils/axios';
 
 const SCHOOL_MODE_KEY = 'proeduc-school-mode';

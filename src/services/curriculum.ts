@@ -1,10 +1,10 @@
 import type {
   Subject,
-  SubjectCreatePayload,
   SubjectGroup,
   CoursePeriod,
-  PeriodCreatePayload,
   CourseGradeSetting,
+  PeriodCreatePayload,
+  SubjectCreatePayload,
 } from 'src/types/services/curriculum';
 
 import { ApiService } from './api/api';

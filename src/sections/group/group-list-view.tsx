@@ -1,18 +1,19 @@
 'use client';
 
 import type { IGroupItem } from 'src/types/group';
-import { useState, useCallback, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 
 import Card from '@mui/material/Card';
-import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hooks'; 
 
 import { useSetState } from 'src/hooks/use-set-state';
 
+import { GroupService } from 'src/services/group';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { toast } from 'src/components/snackbar';
@@ -24,22 +25,12 @@ import {
   TablePaginationCustom,
 } from 'src/components/table';
 
-import { GroupService } from 'src/services/group';
 import { GroupTableToolbar } from './group-table-toolbar';
-import { GroupTableFiltersResult } from './group-table-filters-result';
-
 import { GroupQuickAddGroup } from './group-quick-add-group';
-
-const TABLE_HEAD = [
-  { id: 'name', label: 'Nome' },
-  { id: 'description', label: 'Descrição' },
-  { id: 'active', label: 'Status' },
-  { id: '', width: 88 },
-];
+import { GroupTableFiltersResult } from './group-table-filters-result';
 
 export function GroupListView() {
   const table = useTable();
-  const router = useRouter();
 
   const [tableData, setTableData] = useState<IGroupItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,7 +101,6 @@ export function GroupListView() {
         <GroupTableToolbar
           filters={filters}
           onResetPage={table.onResetPage}
-          options={{ status: [{ value: 'all', label: 'Todos' }] }}
         />
 
         {canReset && (

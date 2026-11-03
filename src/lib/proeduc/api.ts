@@ -1,6 +1,8 @@
 'use client';
+
 import { apiFetch } from './fetcher';
-import type { Group, School, Admin } from './types';
+
+import type { Group, Admin, School } from './types';
 
 export const Groups = {
   list: () => apiFetch<Group[]>('/group?hasPagination=false'),

@@ -3,6 +3,7 @@ import type { AxiosRequestConfig } from 'axios';
 import axios from 'axios';
 
 import { CONFIG } from 'src/config-global';
+
 import { STORAGE_KEY as JWT_STORAGE_KEY } from 'src/auth/context/jwt/constant';
 
 export const STORAGE_KEYS = {

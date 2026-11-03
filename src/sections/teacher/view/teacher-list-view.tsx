@@ -2,7 +2,7 @@
 
 import type { TeacherListItem } from 'src/types/services/teacher';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -11,17 +11,18 @@ import InputAdornment from '@mui/material/InputAdornment';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
+
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import { TeacherService } from 'src/services/teacher';
-
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { toast } from 'src/components/snackbar';
+import { useTable } from 'src/components/table';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
-import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import { useTable } from 'src/components/table';
 import { CustomTable } from 'src/components/list-table/list-table';
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
 import { TeacherTableRow } from '../teacher-table-row';
 
@@ -131,7 +132,7 @@ export function TeacherListView() {
         notFound={notFound}
         loading={loading}
         totalCount={total}
-        onDeleteRows={handleDeleteRows}
+        onDeleteRows={confirm.onTrue}
         filters={
           <Stack sx={{ p: 2.5 }}>
             <TextField

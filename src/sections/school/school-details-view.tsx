@@ -1,25 +1,28 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import type { SchoolDetail } from 'src/types/services/school';
+
 import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
 
-import { Box, Card, Stack, Typography, Grid, Chip, Divider, Button, Tooltip, IconButton, Alert, AlertTitle, CircularProgress } from '@mui/material';
+import { Box, Card, Grid, Chip, Stack, Alert, Button, Divider, Tooltip, Typography, IconButton, AlertTitle, CircularProgress } from '@mui/material';
 
-import { DashboardContent } from 'src/layouts/dashboard';
-import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import { Iconify } from 'src/components/iconify';
 import { paths } from 'src/routes/paths';
 
-import { toast } from 'src/components/snackbar';
-
-import type { SchoolDetail } from 'src/types/services/school';
-import { SchoolService } from 'src/services/school';
 import { useSchoolMode } from 'src/hooks/use-school-mode';
+
+import { SchoolService } from 'src/services/school';
+import { DashboardContent } from 'src/layouts/dashboard';
+
+import { toast } from 'src/components/snackbar';
+import { Iconify } from 'src/components/iconify';
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+
 import { SchoolQuickAddAdmin } from './school-quick-add-admin';
 
 export function SchoolDetailsView() {
   const params = useParams();
-  const id = (params as { id?: string }).id;
+  const {id} = (params as { id?: string });
 
   const router = useRouter();
   const { enterSchool } = useSchoolMode();

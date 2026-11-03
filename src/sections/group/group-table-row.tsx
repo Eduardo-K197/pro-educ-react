@@ -44,7 +44,7 @@ export function GroupTableRow({
 
         <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.name}</TableCell>
 
-        {/*<TableCell sx={{ whiteSpace: 'nowrap' }}>{row.description}</TableCell>*/}
+        {/* <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.description}</TableCell> */}
 
         <TableCell>
           <Label

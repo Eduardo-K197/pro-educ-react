@@ -1,6 +1,7 @@
 import type { IGroupSortOption } from 'src/types/group';
-import TextField from '@mui/material/TextField';
+
 import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
 
 type Props = {
   sort: string;

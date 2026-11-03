@@ -1,11 +1,12 @@
 import type { AxiosRequestConfig } from 'axios';
-import { ApiService } from './api/api';
 import type {
   AdminDetail,
   AdminCreatePayload,
   AdminUpdatePayload,
   AdminsIndexResponse,
 } from 'src/types/services/admin';
+
+import { ApiService } from './api/api';
 
 export class AdminService {
   private static readonly BASE_PATH = '/admins';

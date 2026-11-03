@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import type { SubscriptionDetail, SubscriptionPresence } from 'src/services/subscription';
+
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -9,8 +11,8 @@ import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
-import Divider from '@mui/material/Divider';
 import Select from '@mui/material/Select';
+import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
@@ -25,15 +27,14 @@ import FormControl from '@mui/material/FormControl';
 import TableContainer from '@mui/material/TableContainer';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import { fDate, fTime } from 'src/utils/format-time';
-import { Iconify } from 'src/components/iconify';
+import axios from 'src/utils/axios';
+import { fDate } from 'src/utils/format-time';
+
+import { SubscriptionService } from 'src/services/subscription';
+
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
-
-import axios from 'src/utils/axios';
-
-import type { SubscriptionDetail, SubscriptionPresence } from 'src/services/subscription';
-import { SubscriptionService } from 'src/services/subscription';
+import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
@@ -252,7 +253,6 @@ export function StudentDesempenhoTab({ studentId }: Props) {
               <TableBody>
                 {presences.map((p) => {
                   const cls = p.class;
-                  const isPresent = p.status === 'present';
                   return (
                     <TableRow key={p.id} hover>
                       <TableCell>

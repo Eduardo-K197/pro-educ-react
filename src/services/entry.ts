@@ -1,18 +1,19 @@
 import type { AxiosRequestConfig } from 'axios';
-
 import type {
   EntryDetail,
+  EntryCategory,
   EntryCreatePayload,
   EntryUpdatePayload,
   EntriesIndexResponse,
-  EntryCategory,
 } from 'src/types/services/entry';
 
 import { ApiService, type QueryParams } from './api/api';
 
 export class EntryService {
   private static readonly BASE_PATH = '/entries';
+
   private static readonly PAYMENT_PATH = '/payments';
+
   private static readonly CATEGORY_PATH = '/entry-categories';
 
   static listEntries(

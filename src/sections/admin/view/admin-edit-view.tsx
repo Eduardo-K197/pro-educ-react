@@ -2,14 +2,16 @@
 
 import type { AdminDetail } from 'src/types/services/admin';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+
 import { Typography } from '@mui/material';
 
 import { paths } from 'src/routes/paths';
-import { AdminService } from 'src/services/admin';
 
+import { AdminService } from 'src/services/admin';
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
 import { AdminNewEditForm } from '../admin-new-edit-form';

@@ -2,7 +2,7 @@
 
 import type { StudentListItem } from 'src/types/services/student';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
@@ -13,20 +13,20 @@ import InputAdornment from '@mui/material/InputAdornment';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
+
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useRolePermissions } from 'src/hooks/use-role-permissions';
 
 import { varAlpha } from 'src/theme/styles';
-
 import { StudentService } from 'src/services/student';
-
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { toast } from 'src/components/snackbar';
+import { useTable } from 'src/components/table';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
-import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import { useTable } from 'src/components/table';
 import { CustomTable } from 'src/components/list-table/list-table';
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
 import { StudentTableRow } from '../student-table-row';
 
@@ -155,7 +155,7 @@ export function StudentListView() {
                   headers.join(';'),
                   ...rows.map((r) => headers.map((h) => `"${(r as any)[h]}"`).join(';')),
                 ].join('\n');
-                const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+                const blob = new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -188,7 +188,7 @@ export function StudentListView() {
         notFound={notFound}
         loading={loading}
         totalCount={total}
-        onDeleteRows={canDeleteStudent ? handleDeleteRows : undefined}
+        onDeleteRows={canDeleteStudent ? confirm.onTrue : undefined}
         filters={
           <>
             <Tabs

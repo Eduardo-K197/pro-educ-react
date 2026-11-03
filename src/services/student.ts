@@ -1,13 +1,12 @@
 import type { AxiosRequestConfig } from 'axios';
-
-import axiosInstance from 'src/utils/axios';
-
 import type {
   StudentDetail,
   StudentCreatePayload,
   StudentUpdatePayload,
   StudentsIndexResponse,
 } from 'src/types/services/student';
+
+import axiosInstance from 'src/utils/axios';
 
 import { ApiService, type QueryParams } from './api/api';
 

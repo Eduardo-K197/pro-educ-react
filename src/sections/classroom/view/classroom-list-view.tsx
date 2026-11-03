@@ -2,7 +2,7 @@
 
 import type { ClassroomListItem } from 'src/types/services/classroom';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -12,13 +12,17 @@ import InputAdornment from '@mui/material/InputAdornment';
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
-import { ClassroomService } from 'src/services/classroom';
+import { useBoolean } from 'src/hooks/use-boolean';
+
 import { DashboardContent } from 'src/layouts/dashboard';
+import { ClassroomService } from 'src/services/classroom';
+
 import { toast } from 'src/components/snackbar';
-import { Iconify } from 'src/components/iconify';
-import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import { useTable } from 'src/components/table';
+import { Iconify } from 'src/components/iconify';
+import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomTable } from 'src/components/list-table/list-table';
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
 import { ClassroomTableRow } from '../classroom-table-row';
 
@@ -33,6 +37,7 @@ const TABLE_HEAD = [
 
 export function ClassroomListView() {
   const table = useTable({ defaultOrderBy: 'name', defaultRowsPerPage: 10 });
+  const confirm = useBoolean();
 
   const [tableData, setTableData] = useState<ClassroomListItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -119,7 +124,7 @@ export function ClassroomListView() {
         notFound={notFound}
         loading={loading}
         totalCount={total}
-        onDeleteRows={handleDeleteRows}
+        onDeleteRows={confirm.onTrue}
         filters={
           <Stack sx={{ p: 2.5 }}>
             <TextField
@@ -143,6 +148,18 @@ export function ClassroomListView() {
           />
         ))}
       </CustomTable>
+
+      <ConfirmDialog
+        open={confirm.value}
+        onClose={confirm.onFalse}
+        title="Excluir turmas"
+        content={<>Tem certeza? <strong>{table.selected.length}</strong> turma(s) serão excluídas.</>}
+        action={
+          <Button variant="contained" color="error" onClick={() => { handleDeleteRows(); confirm.onFalse(); }}>
+            Excluir
+          </Button>
+        }
+      />
     </DashboardContent>
   );
 }

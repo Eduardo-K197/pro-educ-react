@@ -1,18 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Button from '@mui/material/Button';
-import Stack from '@mui/material/Stack';
+import type { IGroupItem, IGroupUpdatePayload } from 'src/types/group';
 
-import { DashboardContent } from 'src/layouts/dashboard';
-import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import { Iconify } from 'src/components/iconify';
-import { RouterLink } from 'src/routes/components';
+import { useState, useEffect } from 'react';
+
+import Button from '@mui/material/Button';
+
 import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
+
+import { GroupService } from 'src/services/group';
+import { DashboardContent } from 'src/layouts/dashboard';
+
+import { Iconify } from 'src/components/iconify';
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
 import { GroupNewEditForm } from 'src/sections/group/group-new-edit-form';
-import { GroupService } from 'src/services/group';
-import type { IGroupItem, IGroupUpdatePayload } from 'src/types/group';
 
 type Props = {
   id: string;

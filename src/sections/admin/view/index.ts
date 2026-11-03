@@ -1,7 +1,8 @@
 export * from './admin-edit-view';
 
+export * from './admin-list-view';
+
 export * from './admin-create-view';
 
-export * from './admin-details-view';
-
-export * from './admin-list-view';
+// admin-details-view.tsx é só stub (default export, "em construção") — nada
+// a reexportar daqui até a página de detalhes do admin ser implementada.

@@ -1,5 +1,7 @@
 'use client';
+
 import { apiFetch } from './fetcher';
+
 import type { MeResponse } from './types';
 
 export async function signIn(email: string, password: string) {

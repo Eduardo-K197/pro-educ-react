@@ -1,6 +1,6 @@
-import { CONFIG } from 'src/config-global';
-
 import { AdminCreateView } from '@/sections/admin/view';
+
+import { CONFIG } from 'src/config-global';
 
 // ----------------------------------------------------------------------
 

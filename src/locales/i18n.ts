@@ -2,6 +2,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import ptBRNavbar from 'src/locales/langs/pt-BR/navbar.json';
+
 import enNavbar from './langs/en/navbar.json';
 
 i18n.use(initReactI18next).init({

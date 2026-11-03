@@ -1,26 +1,25 @@
 import type { AdminListItem } from 'src/types/services/admin';
 
+import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
-import Link from '@mui/material/Link';
 import Tooltip from '@mui/material/Tooltip';
+import { Box, Button } from '@mui/material';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
-import TableCell from '@mui/material/TableCell';
 import MenuList from '@mui/material/MenuList';
 import MenuItem from '@mui/material/MenuItem';
+import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
-import { Box, Button } from '@mui/material';
-import { useRouter } from 'src/routes/hooks';
-import { paths } from 'src/routes/paths';
+
 import { useBoolean } from 'src/hooks/use-boolean';
+
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
-import { Label } from 'src/components/label';
 import { usePopover, CustomPopover } from 'src/components/custom-popover';
 
 import { AdminQuickEditForm } from './admin-quick-edit-form';
-import { ISchoolItem } from '@/types/services/school';
 
 
 // ----------------------------------------------------------------------
@@ -36,18 +35,13 @@ type Props = {
 };
 
 export function AdminTableRow({ row, selected, onViewRow, onEditRow, onSelectRow, onDeleteRow, onRefresh }: Props) {
-  const router = useRouter();
   const confirm = useBoolean();
 
   const quickEdit = useBoolean();
   const popover = usePopover();
   const SchoolPopover = usePopover();
 
-  const { name, email, schools, id } = row;
-
-  const handleEdit = () => {
-    router.push(paths.dashboard.admins.edit(row.id));
-  };
+  const { schools } = row;
 
   return (
     <>

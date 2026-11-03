@@ -1,4 +1,5 @@
 import type { UseSetStateReturn } from 'src/hooks/use-set-state';
+
 import { useCallback } from 'react';
 
 import Stack from '@mui/material/Stack';
@@ -10,9 +11,6 @@ import { Iconify } from 'src/components/iconify';
 type Props = {
   filters: UseSetStateReturn<any>;
   onResetPage: () => void;
-  options: {
-    status: { value: string; label: string }[];
-  };
 };
 
 export function GroupTableToolbar({ filters, onResetPage }: Props) {

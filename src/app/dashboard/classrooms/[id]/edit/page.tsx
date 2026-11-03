@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+
 import { ClassroomEditView } from 'src/sections/classroom/view';
 
 export const metadata: Metadata = { title: 'Editar turma' };

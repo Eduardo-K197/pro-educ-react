@@ -1,8 +1,11 @@
 'use client';
 
 import { paths } from 'src/routes/paths';
+
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+
 import { ClassroomNewEditForm } from '../classroom-new-edit-form';
 
 export function ClassroomCreateView() {

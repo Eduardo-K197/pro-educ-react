@@ -1,6 +1,10 @@
 'use client';
 
+import type { IAdminItem } from '@/types/services/admin';
+import type { ISchoolItem } from '@/types/services/school';
+
 import { useState } from 'react';
+import { ConfirmDialog } from '@/components/custom-dialog';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -11,19 +15,16 @@ import Divider from '@mui/material/Divider';
 import Collapse from '@mui/material/Collapse';
 import Typography from '@mui/material/Typography';
 
-import { usePopover } from 'src/components/custom-popover';
-import { useBoolean } from 'src/hooks/use-boolean';
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
-import { Iconify } from 'src/components/iconify';
+import { useBoolean } from 'src/hooks/use-boolean';
 
-import { IAdminItem } from '@/types/services/admin';
-import { ISchoolItem } from '@/types/services/school';
+import { Iconify } from 'src/components/iconify';
+import { usePopover } from 'src/components/custom-popover';
 
 import { GroupQuickAddAdmin } from './group-quick-add-admin';
 import { GroupQuickAddSchool } from './group-quick-add-school';
-import { ConfirmDialog } from '@/components/custom-dialog';
 
 interface GroupDetailsViewCardProps {
   item?: IAdminItem | ISchoolItem;
@@ -233,15 +234,13 @@ export function GroupDetailsViewCard({ type, item, onRefresh, groupId, onDeleteR
             color='error'
             onClick={() => {
               onDeleteRow();
-              confirm.onFalse;
+              confirm.onFalse();
             }}
           >
             Deletar
           </Button>
         }
-      >
-
-      </ConfirmDialog>
+       />
       
       {editingAdmin && (
         <GroupQuickAddAdmin

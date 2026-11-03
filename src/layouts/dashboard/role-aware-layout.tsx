@@ -1,17 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { useAuthContext } from 'src/auth/hooks';
 import { Iconify } from 'src/components/iconify';
 
-import { navAdmin, navSuperAdmin } from '../config-nav-dashboard';
+import { useAuthContext } from 'src/auth/hooks';
+
 import { DashboardLayout } from './layout';
+import { navAdmin, navSuperAdmin } from '../config-nav-dashboard';
 
 const SCHOOL_MODE_KEY = 'proeduc-school-mode';
 const SCHOOL_ID_KEY = 'proeduc-school-id';

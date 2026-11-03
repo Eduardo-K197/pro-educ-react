@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import type { BillingType, EntryListItem, EntryCategory } from 'src/types/services/entry';
 
-import Box from '@mui/material/Box';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
@@ -11,9 +12,9 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Select from '@mui/material/Select';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
-import Tooltip from '@mui/material/Tooltip';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
@@ -31,13 +32,13 @@ import DialogContentText from '@mui/material/DialogContentText';
 
 import { fDate } from 'src/utils/format-time';
 import { fCurrency } from 'src/utils/format-number';
+
 import { varAlpha } from 'src/theme/styles';
-import { Iconify } from 'src/components/iconify';
+import { EntryService } from 'src/services/entry';
+
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
-
-import type { EntryListItem, EntryCategory, BillingType } from 'src/types/services/entry';
-import { EntryService } from 'src/services/entry';
+import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
@@ -66,7 +67,7 @@ interface Props {
 function downloadPdfBase64(base64: string, filename: string) {
   const binaryString = atob(base64);
   const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+  for (let i = 0; i < binaryString.length; i += 1) bytes[i] = binaryString.charCodeAt(i);
   const blob = new Blob([bytes], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

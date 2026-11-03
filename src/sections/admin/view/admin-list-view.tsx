@@ -1,34 +1,34 @@
 'use client';
 
-import type { AdminListItem, IAdminTableFilters, IAdminItem } from 'src/types/services/admin';
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import type { AdminListItem, IAdminTableFilters } from 'src/types/services/admin';
 
-import Button from '@mui/material/Button';
+import { useMemo, useState, useEffect, useCallback } from 'react';
+
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
-import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
+
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useSetState } from 'src/hooks/use-set-state';
 
-import { fIsAfter, fIsBetween } from 'src/utils/format-time';
-import { varAlpha } from 'src/theme/styles';
+import { fIsBetween } from 'src/utils/format-time';
 
+import { varAlpha } from 'src/theme/styles';
 import { AdminService } from 'src/services/admin';
 import { ApiService } from 'src/services/api/api';
-
 import { DashboardContent } from 'src/layouts/dashboard';
+
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
-import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-
-import { useTable, getComparator, rowInPage } from 'src/components/table';
 import { CustomTable } from 'src/components/list-table/list-table';
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+import { useTable, rowInPage, getComparator } from 'src/components/table';
 
 import { AdminTableRow } from '../admin-table-row';
 import { AdminTableToolbar } from '../admin-table-toolbar';
@@ -68,8 +68,6 @@ export function AdminListView() {
     startDate: null,
     endDate: null,
   });
-
-  const dateError = fIsAfter(filters.state.startDate, filters.state.endDate);
 
   const roleOptions = useMemo(() => {
     const existing = Array.from(new Set(tableData.map((u) => u.role).filter((r): r is string => !!r)));
@@ -257,7 +255,6 @@ export function AdminListView() {
             <AdminTableToolbar
               filters={filters}
               onResetPage={table.onResetPage}
-              dateError={dateError}
             />
 
             {canReset && (

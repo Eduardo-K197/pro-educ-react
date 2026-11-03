@@ -1,5 +1,7 @@
 'use client';
 
+import type { LessonDetail } from 'src/types/services/lesson';
+
 import { useState, useEffect, useCallback } from 'react';
 
 import Tab from '@mui/material/Tab';
@@ -11,16 +13,16 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
-import { DashboardContent } from 'src/layouts/dashboard';
-import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import { Iconify } from 'src/components/iconify';
-import { toast } from 'src/components/snackbar';
 
-import type { LessonDetail } from 'src/types/services/lesson';
 import { LessonService } from 'src/services/lesson';
+import { DashboardContent } from 'src/layouts/dashboard';
 
-import { LessonNewEditForm } from '../lesson-new-edit-form';
+import { toast } from 'src/components/snackbar';
+import { Iconify } from 'src/components/iconify';
+import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+
 import { LessonChamadaTab } from '../lesson-chamada-tab';
+import { LessonNewEditForm } from '../lesson-new-edit-form';
 
 // ----------------------------------------------------------------------
 

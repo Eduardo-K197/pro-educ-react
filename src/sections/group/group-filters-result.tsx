@@ -1,4 +1,3 @@
-import type { IGroupUiFilters } from 'src/types/group';
 
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
