@@ -212,7 +212,7 @@ export function StudentNewEditForm({ currentStudent }: Props) {
       gender: currentStudent?.gender ?? '',
       cpf: currentStudent?.cpf ?? '',
       rg: currentStudent?.rg ?? '',
-      status: currentStudent?.status ?? 'active',
+      status: ({ active: 'Ativo', inactive: 'Inativo', suspended: 'Suspenso', Matriculado: 'Ativo', Desistente: 'Cancelado' } as Record<string, string>)[currentStudent?.status ?? 'Ativo'] ?? currentStudent?.status ?? 'Ativo',
       guardianName: currentStudent?.guardian?.name ?? '',
       guardianPhone: currentStudent?.guardian?.phone ?? currentStudent?.guardian?.phoneNumber ?? '',
       guardianEmail: currentStudent?.guardian?.email ?? '',
@@ -316,7 +316,7 @@ export function StudentNewEditForm({ currentStudent }: Props) {
         if (data.gender) form.append('gender', data.gender);
         if (data.cpf) form.append('cpf', data.cpf);
         if (data.rg) form.append('rg', data.rg);
-        form.append('status', data.status ?? 'active');
+        form.append('status', data.status ?? 'Ativo');
         form.append('address', JSON.stringify(addressPayload));
         if (guardianPayload) form.append('guardian', JSON.stringify(guardianPayload));
         form.append('picture', photoFile);
@@ -338,7 +338,7 @@ export function StudentNewEditForm({ currentStudent }: Props) {
           cpf: data.cpf || undefined,
           rg: data.rg || undefined,
           address: addressPayload,
-          status: data.status ?? 'active',
+          status: data.status ?? 'Ativo',
           guardian: guardianPayload,
         };
 
@@ -551,9 +551,12 @@ export function StudentNewEditForm({ currentStudent }: Props) {
             </Typography>
 
             <Field.Select name="status" label="Status do aluno">
-              <MenuItem value="active">Ativo</MenuItem>
-              <MenuItem value="inactive">Inativo</MenuItem>
-              <MenuItem value="suspended">Suspenso</MenuItem>
+              <MenuItem value="Ativo">Matriculado</MenuItem>
+              <MenuItem value="Cancelado">Desistente</MenuItem>
+              <MenuItem value="Interessado">Interessado</MenuItem>
+              <MenuItem value="Inativo">Inativo</MenuItem>
+              <MenuItem value="Reservado">Reservado</MenuItem>
+              <MenuItem value="Transferido">Transferido</MenuItem>
             </Field.Select>
 
             <Stack spacing={1.5} sx={{ mt: 3 }}>

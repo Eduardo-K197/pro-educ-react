@@ -44,10 +44,13 @@ import { StudentTableRow } from '../student-table-row';
 // Valores exatos do enum StudentStatus no backend (português)
 const STATUS_OPTIONS = [
   { value: 'all', label: 'Todos' },
-  { value: 'Ativo', label: 'Ativos' },
+  { value: 'Ativo', label: 'Matriculados' },
   { value: 'Inativo', label: 'Inativos' },
+  { value: 'Suspenso', label: 'Suspensos' },
+  { value: 'Reservado', label: 'Reservados' },
+  { value: 'Transferido', label: 'Transferidos' },
   { value: 'Interessado', label: 'Interessados' },
-  { value: 'Cancelado', label: 'Cancelados' },
+  { value: 'Cancelado', label: 'Desistentes' },
 ];
 
 const TABLE_HEAD = [
