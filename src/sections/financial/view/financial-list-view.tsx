@@ -89,6 +89,16 @@ export function FinancialListView() {
   const [yearFilter, setYearFilter] = useState<string>(searchParams.get('year') === 'all' ? '' : String(CURRENT_YEAR));
   const [dueDateStart, setDueDateStart] = useState('');
   const [dueDateEnd, setDueDateEnd] = useState('');
+  const [paymentFrom, setPaymentFrom] = useState('');
+  const [paymentTo, setPaymentTo] = useState('');
+  const [createdFrom, setCreatedFrom] = useState('');
+  const [createdTo, setCreatedTo] = useState('');
+  const [billingType, setBillingType] = useState('');
+  const [category, setCategory] = useState('');
+  const extraFilters = !!(paymentFrom || paymentTo || createdFrom || createdTo || billingType || category);
+  const invalidDates = !!((dueDateStart && dueDateEnd && dueDateStart > dueDateEnd) || (paymentFrom && paymentTo && paymentFrom > paymentTo) || (createdFrom && createdTo && createdFrom > createdTo));
+  const billingOptions = Array.from(new Set(tableData.map((entry) => entry.billingType).filter(Boolean))).sort();
+  const categoryOptions = Array.from(new Map(tableData.filter((entry) => entry.category?.id).map((entry) => [entry.category!.id, entry.category!])).values()).sort((a, b) => a.name.localeCompare(b.name));
 
   const incomingStatus = searchParams.get('status');
   const incomingYear = searchParams.get('year');
@@ -142,7 +152,7 @@ export function FinancialListView() {
     if (yearFilter) {
       data = data.filter((e) => {
         const d = e.dueDate ?? e.dateCreated;
-        return d ? new Date(d).getFullYear() === Number(yearFilter) : true;
+        return d ? d.slice(0, 4) === yearFilter : true;
       });
     }
 
@@ -153,8 +163,13 @@ export function FinancialListView() {
       data = data.filter((e) => e.dueDate && e.dueDate.slice(0, 10) <= dueDateEnd);
     }
 
-    return data;
-  }, [tableData, search, status, yearFilter, dueDateStart, dueDateEnd, table.order, table.orderBy]);
+    if (billingType) data = data.filter((entry) => entry.billingType === billingType);
+    if (category) data = data.filter((entry) => entry.category?.id === category);
+    const inRange = (value: string | null | undefined, from: string, to: string) =>
+      (!from && !to) || !!(value && (!from || value.slice(0, 10) >= from) && (!to || value.slice(0, 10) <= to));
+    data = data.filter((entry) => inRange(entry.paymentDate, paymentFrom, paymentTo) && inRange(entry.dateCreated, createdFrom, createdTo));
+    return invalidDates ? [] : data;
+  }, [paymentFrom, paymentTo, createdFrom, createdTo, billingType, category, invalidDates, tableData, search, status, yearFilter, dueDateStart, dueDateEnd, table.order, table.orderBy]);
 
   // Summary from filtered data
   const totalPending = dataFiltered.filter((e) => getTraducedStatus(e) === 'Pendente').reduce((s, e) => s + (Number(e.value) || 0), 0);
@@ -215,7 +230,7 @@ export function FinancialListView() {
     }
   }, [confirmPaymentRow, loadData]);
 
-  const hasActiveFilters = dueDateStart || dueDateEnd || (yearFilter !== String(CURRENT_YEAR));
+  const hasActiveFilters = search || status !== 'all' || extraFilters || dueDateStart || dueDateEnd || (yearFilter !== String(CURRENT_YEAR));
 
   return (
     <DashboardContent>
@@ -229,7 +244,7 @@ export function FinancialListView() {
         ]}
         action={
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-            <ExportButton resource="financial" disabled={loading || loadError} initialFilters={{ search, status, dateField: 'dueDate', from: [dueDateStart, yearFilter ? `${yearFilter}-01-01` : ''].filter(Boolean).sort().at(-1), to: [dueDateEnd, yearFilter ? `${yearFilter}-12-31` : ''].filter(Boolean).sort().at(0) }} />
+            <ExportButton resource="financial" disabled={loading || loadError || extraFilters || invalidDates} initialFilters={{ search, status, dateField: 'dueDate', from: [dueDateStart, yearFilter ? `${yearFilter}-01-01` : ''].filter(Boolean).sort().at(-1), to: [dueDateEnd, yearFilter ? `${yearFilter}-12-31` : ''].filter(Boolean).sort().at(0) }} />
             {canCreateFinancial && (
               <Button
                 component={RouterLink}
@@ -248,6 +263,8 @@ export function FinancialListView() {
       {loadError && <Alert severity="error" sx={{ mb: 3 }} action={<Button color="inherit" onClick={loadData}>Tentar novamente</Button>}>
         Não foi possível carregar todos os lançamentos. Os totais estão indisponíveis. Tente novamente antes de cobrar um responsável.
       </Alert>}
+      {extraFilters && <Alert severity="info" sx={{ mb: 2 }}>A exportação Excel ainda não aceita os filtros de pagamento, criação, tipo e categoria desta lista. Limpe esses filtros para exportar; a ampliação depende da API.</Alert>}
+      {invalidDates && <Alert severity="warning" sx={{ mb: 2 }}>A data inicial deve ser anterior ou igual à data final em cada período.</Alert>}
       {/* Resumo financeiro (reflete filtros ativos) */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
         {[
@@ -318,7 +335,8 @@ export function FinancialListView() {
               direction={{ xs: 'column', sm: 'row' }}
               spacing={2}
               alignItems={{ sm: 'center' }}
-              sx={{ p: 2.5 }}
+              sx={{ p: 2.5, flexWrap: 'wrap', gap: 2, '& > *': { flexShrink: 0 } }}
+              useFlexGap
             >
               <TextField
                 size="small"
@@ -338,7 +356,7 @@ export function FinancialListView() {
               <TextField
                 select
                 size="small"
-                label="Ano"
+                label="Ano do vencimento"
                 value={yearFilter}
                 onChange={(e) => { table.onResetPage(); setYearFilter(e.target.value); }}
                 sx={{ minWidth: 110 }}
@@ -369,6 +387,21 @@ export function FinancialListView() {
                 sx={{ minWidth: 160 }}
               />
 
+              <TextField select size="small" label="Tipo de pagamento" value={billingType} onChange={(event) => { table.onResetPage(); setBillingType(event.target.value); }} sx={{ minWidth: 190 }}>
+                <MenuItem value="">Todos</MenuItem>
+                {billingOptions.map((value) => <MenuItem key={value} value={value}>{({ BOLETO: 'Boleto', PIX: 'Pix', MONEY: 'Dinheiro', CREDIT_CARD: 'Cartão de crédito', DEBIT_CARD: 'Cartão de débito', TRANSFER: 'Transferência', OTHER: 'Outro' } as Record<string, string>)[value!] ?? value}</MenuItem>)}
+              </TextField>
+              <TextField select size="small" label="Categoria" value={category} onChange={(event) => { table.onResetPage(); setCategory(event.target.value); }} sx={{ minWidth: 190 }}>
+                <MenuItem value="">Todas</MenuItem>
+                {categoryOptions.map((value) => <MenuItem key={value.id} value={value.id}>{value.name}</MenuItem>)}
+              </TextField>
+              {[
+                { label: 'Pagamento de', value: paymentFrom, set: setPaymentFrom },
+                { label: 'Pagamento até', value: paymentTo, set: setPaymentTo },
+                { label: 'Criação de', value: createdFrom, set: setCreatedFrom },
+                { label: 'Criação até', value: createdTo, set: setCreatedTo },
+              ].map((field) => <TextField key={field.label} size="small" label={field.label} type="date" value={field.value} onChange={(event) => { table.onResetPage(); field.set(event.target.value); }} InputLabelProps={{ shrink: true }} sx={{ minWidth: 160 }} />)}
+
               {hasActiveFilters && (
                 <Button
                   size="small"
@@ -379,6 +412,8 @@ export function FinancialListView() {
                     setYearFilter(String(CURRENT_YEAR));
                     setDueDateStart('');
                     setDueDateEnd('');
+                    setSearch(''); setStatus('all'); setBillingType(''); setCategory('');
+                    setPaymentFrom(''); setPaymentTo(''); setCreatedFrom(''); setCreatedTo(''); table.onResetPage();
                   }}
                 >
                   Limpar

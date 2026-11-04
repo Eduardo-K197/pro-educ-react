@@ -2,6 +2,11 @@
 
 import type { EntryListItem } from 'src/types/services/entry';
 
+import Button from '@mui/material/Button';
+
+import { paths } from 'src/routes/paths';
+import { RouterLink } from 'src/routes/components';
+
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
@@ -76,7 +81,7 @@ export function FinancialTableRow({
 
   const studentName = row.student?.name;
   const guardianName = row.student?.guardian?.name;
-  const studentPhone = row.student?.phoneNumber ?? (row.student as any)?.phone;
+  const studentPhone = row.student?.phoneNumber ?? row.student?.phone;
 
   return (
     <>
@@ -99,9 +104,10 @@ export function FinancialTableRow({
             )}
             {guardianName && (
               <Typography variant="caption" color="text.disabled" noWrap>
-                Resp: {guardianName}
+                Contratante: {guardianName}{(row.student?.guardian?.phoneNumber || row.student?.guardian?.phone) ? ` · ${row.student?.guardian?.phoneNumber || row.student?.guardian?.phone}` : ''}
               </Typography>
             )}
+            {row.student?.id && <Button component={RouterLink} href={paths.dashboard.students.details(String(row.student.id))} size="small" sx={{ alignSelf: 'flex-start' }}>Abrir cadastro do aluno</Button>}
           </Stack>
         </TableCell>
 

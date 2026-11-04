@@ -49,7 +49,8 @@ export interface EntryListItem {
     id: number;
     name: string;
     phoneNumber?: string;
-    guardian?: { name: string; phoneNumber?: string };
+    phone?: string;
+    guardian?: { name: string; phoneNumber?: string; phone?: string };
   };
   category?: EntryCategory;
 }

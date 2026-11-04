@@ -3,7 +3,17 @@ import type { EntryListItem, EntryCreatePayload } from 'src/types/services/entry
 export function mergeFinancialEntries(entries: EntryListItem[], payments: EntryListItem[]) {
   const byId = new Map<string, EntryListItem>();
   [...entries, ...payments].forEach((entry) => {
-    if (entry.id && !entry.deleted) byId.set(entry.id, entry);
+    if (!entry.id) return;
+    if (entry.deleted) { byId.delete(entry.id); return; }
+    const previous = byId.get(entry.id);
+    const sameStudent = previous?.student?.id && previous.student.id === entry.student?.id;
+    byId.set(entry.id, {
+      ...previous, ...entry,
+      ...(sameStudent ? { student: {
+        ...previous!.student!, ...entry.student!,
+        guardian: entry.student?.guardian ?? previous!.student?.guardian,
+      } } : {}),
+    });
   });
   return Array.from(byId.values());
 }

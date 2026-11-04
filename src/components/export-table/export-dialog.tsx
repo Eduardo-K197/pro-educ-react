@@ -96,6 +96,10 @@ export function ExportDialog({
     ExportService.options(resource, controller.signal)
       .then((data) => {
         if (controller.signal.aborted) return;
+        if (resource === 'financial') {
+          const defaults = new Set(['studentName', 'value', 'originalValue', 'dueDate', 'category', 'status']);
+          data = { ...data, columns: data.columns.map((column) => ({ ...column, default: defaults.has(column.id) })) };
+        }
         setDefinition(data);
         setColumns(data.columns.filter((column) => column.default).map((column) => column.id));
         setDateField(initial.current.dateField ?? data.dates[0]?.id ?? '');
