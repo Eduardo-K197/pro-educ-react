@@ -125,12 +125,20 @@
   "financial": {
     "title": "Financeiro",
     "filename": "financeiro",
+    "supportedFilters": [
+      "billingType",
+      "categoryId",
+      "paymentFrom",
+      "paymentTo",
+      "createdFrom",
+      "createdTo"
+    ],
     "columns": [
       {
         "id": "description",
         "label": "Descrição",
         "group": "Lançamento",
-        "default": true,
+        "default": false,
         "type": "text",
         "width": 42
       },
@@ -138,6 +146,27 @@
         "id": "studentName",
         "label": "Aluno",
         "group": "Lançamento",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "studentPhone",
+        "label": "Contato do aluno",
+        "group": "Contato",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "guardianName",
+        "label": "Contratante",
+        "group": "Contato",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "guardianPhone",
+        "label": "Contato do contratante",
+        "group": "Contato",
         "default": true,
         "type": "text"
       },
@@ -152,7 +181,7 @@
         "id": "originalValue",
         "label": "Valor original",
         "group": "Valores",
-        "default": false,
+        "default": true,
         "type": "money"
       },
       {
@@ -166,7 +195,7 @@
         "id": "paymentDate",
         "label": "Data do pagamento",
         "group": "Datas",
-        "default": true,
+        "default": false,
         "type": "date"
       },
       {
@@ -194,8 +223,30 @@
         "id": "category",
         "label": "Categoria",
         "group": "Lançamento",
+        "default": true,
+        "type": "text"
+      },
+      {
+        "id": "amountPaid",
+        "label": "Valor pago registrado",
+        "group": "Valores",
+        "default": false,
+        "type": "money"
+      },
+      {
+        "id": "discount",
+        "label": "Desconto de pontualidade configurado",
+        "group": "Valores",
         "default": false,
         "type": "text"
+      },
+      {
+        "id": "bankSlipUrl",
+        "label": "Link do boleto",
+        "group": "Pagamento",
+        "default": false,
+        "type": "text",
+        "width": 55
       },
       {
         "id": "source",

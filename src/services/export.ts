@@ -24,8 +24,15 @@ export type ExportDefinition = {
   dates: { id: string; label: string }[];
   statuses?: { value: string; label: string }[];
   limit: number;
+  supportedFilters?: string[];
 };
 export type ExportFilters = {
+  billingType?: string;
+  categoryId?: string;
+  paymentFrom?: string;
+  paymentTo?: string;
+  createdFrom?: string;
+  createdTo?: string;
   search?: string;
   status?: string;
   dateField?: string;

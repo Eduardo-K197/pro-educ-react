@@ -1,3 +1,4 @@
+import catalog from '../fixtures/export-catalog.json';
 import { mergeFinancialEntries } from '../../src/utils/financial';
 import { test, expect, type Page } from '@playwright/test';
 
@@ -7,12 +8,15 @@ const students = [
   { id: 99101, name: 'Ana Ativa', cpf: '11111111111', status: 'Ativo', email: 'ana@example.test', phoneNumber: '81999990000' },
   { id: 99102, name: 'Ana Inativa', cpf: '22222222222', status: 'Inativo', email: 'inativa@example.test' },
 ];
-async function setup(page: Page, options: { role?: string; summaryError?: boolean; listError?: boolean } = {}) {
+async function setup(page: Page, options: { role?: string; summaryError?: boolean; listError?: boolean; legacyExports?: boolean } = {}) {
+  const previews: any[] = [];
   const requests: { path: string; query: URLSearchParams }[] = [];
   await page.addInitScript(({ id }) => { sessionStorage.setItem('jwt_access_token', 'proeduc-isolated-journey-session'); sessionStorage.setItem('proeduc-school-id', id); }, { id: schoolId });
   await page.route('**/v1/**', async (route) => {
     const request = route.request(), url = new URL(request.url()), path = url.pathname.replace(/^\/v1/, '');
     requests.push({ path, query: url.searchParams });
+    if (path === '/exports/financial/options') return route.fulfill({ json: { ...catalog.financial, ...(options.legacyExports ? { supportedFilters: [] } : {}) } });
+    if (path === '/exports/financial/preview') { previews.push(request.postDataJSON()); return route.fulfill({ json: { count: 1, rows: [{ studentName: 'Ana Ativa' }], limit: 20000, canExport: true } }); }
     if (request.method() !== 'GET') throw new Error('As jornadas desta suíte são somente de leitura.');
     if (options.summaryError && path === '/payments') return route.fulfill({ status: 503, json: { message: 'Falha simulada' } });
     if (options.listError && path === '/students') return route.fulfill({ status: 503, json: { message: 'Falha simulada' } });
@@ -40,11 +44,11 @@ async function setup(page: Page, options: { role?: string; summaryError?: boolea
     else if (path === '/entries' || path === '/payments') data = url.searchParams.has('student') ? { entries: [] } : { entries: [{ id: 'old-entry', description: 'Atraso de período anterior', student: { ...students[0], ...(path === '/entries' ? { guardian: { name: 'Contratante de teste', phoneNumber: '81988887777' } } : {}) }, value: 250, status: 'OVERDUE', source: 'cora', billingType: 'BOLETO', dueDate: '2024-01-01', paymentDate: '2024-02-10', dateCreated: '2023-12-01', category: { id: 'monthly', name: 'Mensalidade' } }] };
     return route.fulfill({ json: data });
   });
-  return { requests };
+  return { requests, previews };
 }
 
 test('Filtros financeiros combinam períodos, tipo, categoria e preservam exportação honesta', async ({ page }) => {
-  await setup(page);
+  const state = await setup(page);
   await page.goto('/dashboard/financial/?year=all');
   const row = page.getByRole('row').filter({ hasText: 'Atraso de período anterior' });
   await expect(row).toBeVisible();
@@ -68,7 +72,12 @@ test('Filtros financeiros combinam períodos, tipo, categoria e preservam export
   await page.getByRole('combobox', { name: 'Categoria', exact: true }).click();
   await page.getByRole('option', { name: 'Mensalidade', exact: true }).click();
   await expect(row).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Exportar Excel' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Exportar Excel' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Exportar Excel' }).click();
+  await expect.poll(() => state.previews.length).toBeGreaterThan(0);
+  expect(state.previews.at(-1)).toMatchObject({ search: 'Ana Ativa', billingType: 'BOLETO', categoryId: 'monthly', paymentFrom: '2024-02-01', paymentTo: '2024-02-29', createdFrom: '2023-12-01', createdTo: '2023-12-31', from: '2024-01-01', to: '2024-01-01' });
+  await expect(page.getByRole('button', { name: 'Baixar Excel', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
   await page.getByRole('tab', { name: /Recebido/ }).click();
   await expect(row).toHaveCount(0);
   await page.getByRole('tab', { name: /Em atraso/ }).click();
@@ -93,4 +102,15 @@ test('União preserva contratante apenas para o mesmo aluno e respeita exclusão
   expect(merged[0].student?.guardian?.phoneNumber).toBe('81999990000');
   expect(mergeFinancialEntries([original], [{ ...updated, student: { id: 2, name: 'Bia' } }])[0].student?.guardian).toBeUndefined();
   expect(mergeFinancialEntries([original], [{ ...updated, deleted: true }])).toHaveLength(0);
+});
+
+test('API sem suporte aos filtros bloqueia exportação sem consultar prévia divergente', async ({ page }) => {
+  const state = await setup(page, { legacyExports: true });
+  await page.goto('/dashboard/financial/?year=all');
+  await expect(page.getByRole('row').filter({ hasText: 'Atraso de período anterior' })).toBeVisible();
+  await page.getByLabel('Pagamento de', { exact: true }).fill('2024-01-01');
+  await page.getByRole('button', { name: 'Exportar Excel' }).click();
+  await expect(page.getByText('A exportação ainda não está disponível para os filtros selecionados.', { exact: false })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Baixar Excel', exact: true })).toBeDisabled();
+  expect(state.previews).toHaveLength(0);
 });

@@ -244,7 +244,7 @@ export function FinancialListView() {
         ]}
         action={
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-            <ExportButton resource="financial" disabled={loading || loadError || extraFilters || invalidDates} initialFilters={{ search, status, dateField: 'dueDate', from: [dueDateStart, yearFilter ? `${yearFilter}-01-01` : ''].filter(Boolean).sort().at(-1), to: [dueDateEnd, yearFilter ? `${yearFilter}-12-31` : ''].filter(Boolean).sort().at(0) }} />
+            <ExportButton resource="financial" disabled={loading || loadError || invalidDates} initialFilters={{ search, status, ...(billingType ? { billingType } : {}), ...(category ? { categoryId: category } : {}), ...(paymentFrom ? { paymentFrom } : {}), ...(paymentTo ? { paymentTo } : {}), ...(createdFrom ? { createdFrom } : {}), ...(createdTo ? { createdTo } : {}), dateField: 'dueDate', from: [dueDateStart, yearFilter ? `${yearFilter}-01-01` : ''].filter(Boolean).sort().at(-1), to: [dueDateEnd, yearFilter ? `${yearFilter}-12-31` : ''].filter(Boolean).sort().at(0) }} />
             {canCreateFinancial && (
               <Button
                 component={RouterLink}
@@ -263,7 +263,6 @@ export function FinancialListView() {
       {loadError && <Alert severity="error" sx={{ mb: 3 }} action={<Button color="inherit" onClick={loadData}>Tentar novamente</Button>}>
         Não foi possível carregar todos os lançamentos. Os totais estão indisponíveis. Tente novamente antes de cobrar um responsável.
       </Alert>}
-      {extraFilters && <Alert severity="info" sx={{ mb: 2 }}>A exportação Excel ainda não aceita os filtros de pagamento, criação, tipo e categoria desta lista. Limpe esses filtros para exportar; a ampliação depende da API.</Alert>}
       {invalidDates && <Alert severity="warning" sx={{ mb: 2 }}>A data inicial deve ser anterior ou igual à data final em cada período.</Alert>}
       {/* Resumo financeiro (reflete filtros ativos) */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>

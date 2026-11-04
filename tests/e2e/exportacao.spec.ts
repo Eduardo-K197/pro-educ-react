@@ -54,7 +54,7 @@ test('Modal prepara colunas padrão e exporta todos os resultados, não somente 
 
 test('Financeiro inicia com período da lista e permite escolher data do pagamento', async ({ page }) => {
  const state = await setup(page); await open(page, '/dashboard/financial/?status=Pago');
- for (const id of ['studentName', 'value', 'originalValue', 'dueDate', 'category', 'status']) { const column = catalog.financial.columns.find((item) => item.id === id)!; await expect(page.getByRole('checkbox', { name: column.label, exact: true })).toBeChecked(); }
+ for (const id of ['studentName', 'studentPhone', 'guardianName', 'guardianPhone', 'value', 'originalValue', 'dueDate', 'category', 'status']) { const column = catalog.financial.columns.find((item) => item.id === id)!; await expect(page.getByRole('checkbox', { name: column.label, exact: true })).toBeChecked(); }
  await expect(page.getByRole('checkbox', { name: 'Descrição', exact: true })).not.toBeChecked();
  await expect(page.getByLabel('De', { exact: true })).toHaveValue(`${new Date().getFullYear()}-01-01`);
  await page.getByRole('combobox', { name: /^Data usada no período/ }).click(); await page.getByRole('option', { name: 'Data do pagamento', exact: true }).click();
