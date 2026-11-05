@@ -123,8 +123,6 @@ export function FinancialTableRow({
           </Typography>
         </TableCell>
 
-        <TableCell sx={{whiteSpace:'nowrap'}}>{benefit?<Stack><Typography variant="body2">{fCurrency(benefit.discountValue)}</Typography><Typography variant="caption" color="text.secondary">Com pontualidade: {fCurrency(benefit.discountedValue)}</Typography><Typography variant="caption" color="text.secondary">{benefit.deadline?`Até ${fDate(benefit.deadline)}`:'Prazo não informado'}</Typography></Stack>:'Não informado'}</TableCell>
-        <TableCell sx={{whiteSpace:'nowrap'}}>{row.dateCreated?fDate(row.dateCreated):'—'}</TableCell>
         {/* Desconto de pontualidade configurado no lançamento */}
         <TableCell sx={{ whiteSpace: 'nowrap' }}>
           {benefit ? <Stack><Typography variant="body2">{fCurrency(benefit.discountValue)}</Typography><Typography variant="caption" color="text.secondary">Com pontualidade: {fCurrency(benefit.discountedValue)}</Typography><Typography variant="caption" color="text.secondary">{benefit.deadline ? `Até ${fDate(benefit.deadline)}` : 'Prazo não informado'}</Typography></Stack> : 'Não informado'}
