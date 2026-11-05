@@ -1,586 +1,64 @@
 'use client';
-
-import type { StudentDetail } from 'src/types/services/student';
-
+import type { StudentDetail, StudentFamilyContact } from 'src/types/services/student';
 import { z as zod } from 'zod';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
-
+import { useRef, useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
-import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
-import Grid from '@mui/material/Unstable_Grid2';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
+import Autocomplete from '@mui/material/Autocomplete';
 import LoadingButton from '@mui/lab/LoadingButton';
-import CircularProgress from '@mui/material/CircularProgress';
-
 import { paths } from 'src/routes/paths';
-
-import { varAlpha } from 'src/theme/styles';
+import { studentStatusValue, STUDENT_STATUS_OPTIONS } from 'src/utils/student-status';
 import { StudentService } from 'src/services/student';
-
+import { ApiService } from 'src/services/api/api';
 import { toast } from 'src/components/snackbar';
-import { Iconify } from 'src/components/iconify';
 import { Form, Field } from 'src/components/hook-form';
-
-// ----------------------------------------------------------------------
-
-const StudentSchema = zod.object({
-  name: zod.string().min(2, 'Nome obrigatório'),
-  email: zod.string().email('E-mail inválido').optional().or(zod.literal('')),
-  phone: zod.string().optional(),
-  birthDate: zod.string().optional(),
-  gender: zod.string().optional(),
-  cpf: zod.string().optional(),
-  rg: zod.string().optional(),
-  status: zod.string().optional(),
-  guardianName: zod.string().optional(),
-  guardianPhone: zod.string().optional(),
-  guardianEmail: zod.string().optional(),
-  guardianRelationship: zod.string().optional(),
-  guardianCpf: zod.string().optional(),
-  guardianRg: zod.string().optional(),
-});
-
-type StudentFormValues = zod.infer<typeof StudentSchema>;
-
-interface AddressFields {
-  zipCode: string;
-  street: string;
-  number: string;
-  county: string;   // bairro
-  city: string;
-  state: string;
-  complement: string;
-}
-
-const emptyAddress = (): AddressFields => ({
-  zipCode: '', street: '', number: '', county: '', city: '', state: '', complement: '',
-});
-
-function parseAddressFromApi(raw: any): AddressFields {
-  if (!raw) return emptyAddress();
-  if (typeof raw === 'string') {
-    try {
-      return parseAddressFromApi(JSON.parse(raw));
-    } catch {
-      // string não é JSON válido — cai no fallback abaixo
-    }
-    return emptyAddress();
-  }
-  return {
-    zipCode: raw.zipCode ?? '',
-    street: raw.street ?? '',
-    number: raw.number ?? '',
-    county: raw.county ?? '',
-    city: raw.city ?? '',
-    state: raw.state ?? '',
-    complement: raw.complement ?? '',
-  };
-}
-
-// ----------------------------------------------------------------------
-
-interface AddressSectionProps {
-  value: AddressFields;
-  onChange: (patch: Partial<AddressFields>) => void;
-  fetching: boolean;
-  onCepBlur: (cep: string) => void;
-}
-
-function AddressSection({ value, onChange, fetching, onCepBlur }: AddressSectionProps) {
-  return (
-    <Stack spacing={2}>
-      <Grid container spacing={2}>
-        <Grid xs={12} sm={4}>
-          <TextField
-            fullWidth
-            size="small"
-            label="CEP"
-            value={value.zipCode}
-            onChange={(e) => onChange({ zipCode: e.target.value })}
-            onBlur={(e) => onCepBlur(e.target.value)}
-            inputProps={{ maxLength: 9 }}
-            InputProps={{
-              endAdornment: fetching ? <CircularProgress size={16} /> : null,
-            }}
-          />
-        </Grid>
-        <Grid xs={12} sm={6}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Rua"
-            value={value.street}
-            onChange={(e) => onChange({ street: e.target.value })}
-          />
-        </Grid>
-        <Grid xs={12} sm={2}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Número"
-            value={value.number}
-            onChange={(e) => onChange({ number: e.target.value })}
-          />
-        </Grid>
-      </Grid>
-      <Grid container spacing={2}>
-        <Grid xs={12} sm={4}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Bairro"
-            value={value.county}
-            onChange={(e) => onChange({ county: e.target.value })}
-          />
-        </Grid>
-        <Grid xs={12} sm={4}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Cidade"
-            value={value.city}
-            onChange={(e) => onChange({ city: e.target.value })}
-          />
-        </Grid>
-        <Grid xs={12} sm={4}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Estado (UF)"
-            value={value.state}
-            onChange={(e) => onChange({ state: e.target.value })}
-            inputProps={{ maxLength: 2, style: { textTransform: 'uppercase' } }}
-          />
-        </Grid>
-      </Grid>
-      <TextField
-        fullWidth
-        size="small"
-        label="Ponto de referência / Complemento"
-        value={value.complement}
-        onChange={(e) => onChange({ complement: e.target.value })}
-      />
-    </Stack>
-  );
-}
-
-// ----------------------------------------------------------------------
-
-type Props = {
-  currentStudent?: StudentDetail;
-};
-
-export function StudentNewEditForm({ currentStudent }: Props) {
-  const router = useRouter();
-  const isEdit = !!currentStudent;
-
-  // --- Photo state ---
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(currentStudent?.picture?.url ?? currentStudent?.pictureUrl ?? null);
-
-  // --- Student address state ---
-  const [addr, setAddr] = useState<AddressFields>(() =>
-    parseAddressFromApi(currentStudent?.address)
-  );
-  const [fetchingCep, setFetchingCep] = useState(false);
-
-  // --- Guardian address state ---
-  const [guardianAddr, setGuardianAddr] = useState<AddressFields>(() =>
-    parseAddressFromApi(currentStudent?.guardian?.address)
-  );
-  const [fetchingGuardianCep, setFetchingGuardianCep] = useState(false);
-
-  const defaultValues = useMemo<StudentFormValues>(
-    () => ({
-      name: currentStudent?.name ?? '',
-      email: currentStudent?.email ?? '',
-      phone: currentStudent?.phoneNumber ?? currentStudent?.phone ?? '',
-      birthDate: currentStudent?.birthDate ? currentStudent.birthDate.substring(0, 10) : '',
-      gender: currentStudent?.gender ?? '',
-      cpf: currentStudent?.cpf ?? '',
-      rg: currentStudent?.rg ?? '',
-      status: ({ active: 'Ativo', inactive: 'Inativo', suspended: 'Suspenso', Matriculado: 'Ativo', Desistente: 'Cancelado' } as Record<string, string>)[currentStudent?.status ?? 'Ativo'] ?? currentStudent?.status ?? 'Ativo',
-      guardianName: currentStudent?.guardian?.name ?? '',
-      guardianPhone: currentStudent?.guardian?.phone ?? currentStudent?.guardian?.phoneNumber ?? '',
-      guardianEmail: currentStudent?.guardian?.email ?? '',
-      guardianRelationship: currentStudent?.guardian?.relationship ?? '',
-      guardianCpf: currentStudent?.guardian?.cpf ?? '',
-      guardianRg: currentStudent?.guardian?.rg ?? '',
-    }),
-    [currentStudent]
-  );
-
-  const methods = useForm<StudentFormValues>({
-    resolver: zodResolver(StudentSchema),
-    defaultValues,
-  });
-
-  const {
-    handleSubmit,
-    reset,
-    formState: { isSubmitting },
-  } = methods;
-
-  useEffect(() => {
-    if (currentStudent) {
-      reset(defaultValues);
-      setAddr(parseAddressFromApi(currentStudent.address));
-      setGuardianAddr(parseAddressFromApi(currentStudent.guardian?.address));
-      setPhotoPreview(currentStudent.picture?.url ?? currentStudent.pictureUrl ?? null);
-    }
-  }, [currentStudent, defaultValues, reset]);
-
-  // --- Photo handlers ---
-  const handlePhotoClick = () => fileInputRef.current?.click();
-
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPhotoFile(file);
-    const url = URL.createObjectURL(file);
-    setPhotoPreview(url);
-  };
-
-  // --- CEP fetch ---
-  const fetchCep = useCallback(async (cep: string, target: 'student' | 'guardian') => {
-    const digits = cep.replace(/\D/g, '');
-    if (digits.length !== 8) return;
-    const setter = target === 'student' ? setAddr : setGuardianAddr;
-    const setFetching = target === 'student' ? setFetchingCep : setFetchingGuardianCep;
-    setFetching(true);
-    try {
-      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
-      const data = await res.json();
-      if (data.erro) { toast.error('CEP não encontrado'); return; }
-      setter((prev) => ({
-        ...prev,
-        street: data.logradouro ?? prev.street,
-        county: data.bairro ?? prev.county,
-        city: data.localidade ?? prev.city,
-        state: data.uf ?? prev.state,
-      }));
-    } catch {
-      toast.error('Erro ao buscar CEP');
-    } finally {
-      setFetching(false);
-    }
-  }, []);
-
-  const importAddressToGuardian = () => setGuardianAddr({ ...addr });
-
-  // --- Submit ---
-  const onSubmit = handleSubmit(async (data) => {
-    try {
-      const addressPayload = {
-        zipCode: addr.zipCode,
-        street: addr.street,
-        number: addr.number,
-        county: addr.county,
-        city: addr.city,
-        state: addr.state,
-        complement: addr.complement,
-      };
-
-      const guardianPayload = data.guardianName
-        ? {
-            name: data.guardianName,
-            phone: data.guardianPhone || undefined,
-            phoneNumber: data.guardianPhone || undefined,
-            email: data.guardianEmail || undefined,
-            relationship: data.guardianRelationship || undefined,
-            cpf: data.guardianCpf || undefined,
-            rg: data.guardianRg || undefined,
-            address: guardianAddr,
-          }
-        : undefined;
-
-      if (photoFile) {
-        const form = new FormData();
-        form.append('name', data.name);
-        if (data.email) form.append('email', data.email);
-        if (data.phone) form.append('phoneNumber', data.phone);
-        if (data.birthDate) form.append('birthDate', data.birthDate);
-        if (data.gender) form.append('gender', data.gender);
-        if (data.cpf) form.append('cpf', data.cpf);
-        if (data.rg) form.append('rg', data.rg);
-        form.append('status', data.status ?? 'Ativo');
-        form.append('address', JSON.stringify(addressPayload));
-        if (guardianPayload) form.append('guardian', JSON.stringify(guardianPayload));
-        form.append('picture', photoFile);
-
-        if (isEdit && currentStudent) {
-          await StudentService.updateMultipart(currentStudent.id, form);
-          toast.success('Aluno atualizado com sucesso!');
-        } else {
-          await StudentService.createMultipart(form);
-          toast.success('Aluno criado com sucesso!');
-        }
-      } else {
-        const payload = {
-          name: data.name,
-          email: data.email || undefined,
-          phoneNumber: data.phone || undefined,
-          birthDate: data.birthDate || undefined,
-          gender: data.gender || undefined,
-          cpf: data.cpf || undefined,
-          rg: data.rg || undefined,
-          address: addressPayload,
-          status: data.status ?? 'Ativo',
-          guardian: guardianPayload,
-        };
-
-        if (isEdit && currentStudent) {
-          await StudentService.update(currentStudent.id, payload);
-          toast.success('Aluno atualizado com sucesso!');
-        } else {
-          await StudentService.create(payload);
-          toast.success('Aluno criado com sucesso!');
-        }
-      }
-
-      router.push(paths.dashboard.students.root);
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message ?? error?.response?.data?.error ?? error?.message ?? 'Erro ao salvar aluno');
-    }
-  });
-
-  return (
-    <Form methods={methods} onSubmit={onSubmit}>
-      <Grid container spacing={3}>
-        {/* ---- Coluna principal ---- */}
-        <Grid xs={12} md={8}>
-          {/* Foto + dados pessoais */}
-          <Card sx={{ p: 3 }}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems="flex-start" sx={{ mb: 3 }}>
-              {/* Photo upload */}
-              <Stack alignItems="center" spacing={1}>
-                <Box sx={{ position: 'relative' }}>
-                  <Avatar
-                    src={photoPreview ?? undefined}
-                    onClick={handlePhotoClick}
-                    sx={{
-                      width: 96,
-                      height: 96,
-                      cursor: 'pointer',
-                      bgcolor: (theme) => varAlpha(theme.vars.palette.primary.mainChannel, 0.12),
-                      color: 'primary.main',
-                      fontSize: 32,
-                      border: (theme) => `2px dashed ${varAlpha(theme.vars.palette.primary.mainChannel, 0.4)}`,
-                      '&:hover': { opacity: 0.8 },
-                    }}
-                  >
-                    {!photoPreview && (
-                      <Iconify icon="solar:camera-add-bold-duotone" width={32} />
-                    )}
-                  </Avatar>
-                  <Tooltip title="Tirar foto (câmera)">
-                    <IconButton
-                      size="small"
-                      sx={{
-                        position: 'absolute',
-                        bottom: -4,
-                        right: -4,
-                        bgcolor: 'primary.main',
-                        color: 'white',
-                        width: 28,
-                        height: 28,
-                        '&:hover': { bgcolor: 'primary.dark' },
-                      }}
-                      onClick={() => {
-                        if (fileInputRef.current) {
-                          fileInputRef.current.setAttribute('capture', 'environment');
-                          fileInputRef.current.click();
-                        }
-                      }}
-                    >
-                      <Iconify icon="solar:camera-bold" width={14} />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={handlePhotoChange}
-                  onClick={(e) => {
-                    // remove capture when clicking avatar directly
-                    (e.target as HTMLInputElement).removeAttribute('capture');
-                  }}
-                />
-
-                <Typography variant="caption" color="text.disabled" sx={{ textAlign: 'center' }}>
-                  Clique para enviar foto
-                </Typography>
-              </Stack>
-
-              <Box flex={1}>
-                <Typography variant="h6" sx={{ mb: 2 }}>
-                  Dados pessoais
-                </Typography>
-                <Field.Text name="name" label="Nome completo *" />
-              </Box>
-            </Stack>
-
-            <Stack spacing={2}>
-              <Grid container spacing={2}>
-                <Grid xs={12} sm={6}>
-                  <Field.Text name="email" label="E-mail" type="email" />
-                </Grid>
-                <Grid xs={12} sm={6}>
-                  <Field.Text name="phone" label="Telefone" />
-                </Grid>
-              </Grid>
-
-              <Grid container spacing={2}>
-                <Grid xs={12} sm={6}>
-                  <Field.Text name="birthDate" label="Data de nascimento" type="date" InputLabelProps={{ shrink: true }} />
-                </Grid>
-                <Grid xs={12} sm={6}>
-                  <Field.Select name="gender" label="Gênero">
-                    <MenuItem value="">Selecione</MenuItem>
-                    <MenuItem value="male">Masculino</MenuItem>
-                    <MenuItem value="female">Feminino</MenuItem>
-                    <MenuItem value="other">Outro</MenuItem>
-                  </Field.Select>
-                </Grid>
-              </Grid>
-
-              <Grid container spacing={2}>
-                <Grid xs={12} sm={6}>
-                  <Field.Text name="cpf" label="CPF" />
-                </Grid>
-                <Grid xs={12} sm={6}>
-                  <Field.Text name="rg" label="RG" />
-                </Grid>
-              </Grid>
-
-              <Divider sx={{ my: 1 }}>
-                <Chip label="Endereço" size="small" />
-              </Divider>
-
-              <AddressSection
-                value={addr}
-                onChange={(patch) => setAddr((prev) => ({ ...prev, ...patch }))}
-                fetching={fetchingCep}
-                onCepBlur={(cep) => fetchCep(cep, 'student')}
-              />
-            </Stack>
-
-            <Divider sx={{ my: 3 }} />
-
-            {/* Responsável */}
-            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-              <Typography variant="h6">Responsável financeiro</Typography>
-            </Stack>
-
-            <Stack spacing={2}>
-              <Field.Text name="guardianName" label="Nome do responsável" />
-
-              <Grid container spacing={2}>
-                <Grid xs={12} sm={6}>
-                  <Field.Text name="guardianPhone" label="Telefone do responsável" />
-                </Grid>
-                <Grid xs={12} sm={6}>
-                  <Field.Text name="guardianEmail" label="E-mail do responsável" />
-                </Grid>
-              </Grid>
-
-              <Grid container spacing={2}>
-                <Grid xs={12} sm={6}>
-                  <Field.Text name="guardianCpf" label="CPF do responsável" />
-                </Grid>
-                <Grid xs={12} sm={6}>
-                  <Field.Text name="guardianRg" label="RG do responsável" />
-                </Grid>
-              </Grid>
-
-              <Field.Select name="guardianRelationship" label="Parentesco">
-                <MenuItem value="">Selecione</MenuItem>
-                <MenuItem value="father">Pai</MenuItem>
-                <MenuItem value="mother">Mãe</MenuItem>
-                <MenuItem value="guardian">Responsável</MenuItem>
-                <MenuItem value="other">Outro</MenuItem>
-              </Field.Select>
-
-              <Divider sx={{ my: 1 }}>
-                <Chip label="Endereço do responsável" size="small" />
-              </Divider>
-
-              <Stack direction="row" justifyContent="flex-end">
-                <Button
-                  size="small"
-                  variant="soft"
-                  color="primary"
-                  startIcon={<Iconify icon="solar:copy-bold-duotone" width={16} />}
-                  onClick={importAddressToGuardian}
-                >
-                  Importar mesmo endereço do aluno
-                </Button>
-              </Stack>
-
-              <AddressSection
-                value={guardianAddr}
-                onChange={(patch) => setGuardianAddr((prev) => ({ ...prev, ...patch }))}
-                fetching={fetchingGuardianCep}
-                onCepBlur={(cep) => fetchCep(cep, 'guardian')}
-              />
-            </Stack>
-          </Card>
-        </Grid>
-
-        {/* ---- Coluna lateral ---- */}
-        <Grid xs={12} md={4}>
-          <Card sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ mb: 3 }}>
-              Status
-            </Typography>
-
-            <Field.Select name="status" label="Status do aluno">
-              <MenuItem value="Ativo">Matriculado</MenuItem>
-              <MenuItem value="Cancelado">Desistente</MenuItem>
-              <MenuItem value="Interessado">Interessado</MenuItem>
-              <MenuItem value="Inativo">Inativo</MenuItem>
-              <MenuItem value="Reservado">Reservado</MenuItem>
-              <MenuItem value="Transferido">Transferido</MenuItem>
-            </Field.Select>
-
-            <Stack spacing={1.5} sx={{ mt: 3 }}>
-              <LoadingButton
-                fullWidth
-                type="submit"
-                variant="contained"
-                color="primary"
-                loading={isSubmitting}
-              >
-                {isEdit ? 'Salvar alterações' : 'Criar aluno'}
-              </LoadingButton>
-              <Button
-                fullWidth
-                variant="outlined"
-                color="inherit"
-                onClick={() => router.push(paths.dashboard.students.root)}
-              >
-                Cancelar
-              </Button>
-            </Stack>
-          </Card>
-        </Grid>
-      </Grid>
-    </Form>
-  );
+import { AddressSection, parseAddressFromApi } from './student-address-section';
+import { StudentFamilyEditor } from './student-family-editor';
+import { StudentCameraDialog } from './student-camera-dialog';
+const optionalEmail=zod.string().email('Informe um e-mail válido').or(zod.literal(''));
+const schema=zod.object({name:zod.string().trim().min(2,'Informe o nome do aluno'),email:optionalEmail,phone:zod.string(),birthDate:zod.string().min(1,'Informe a data de nascimento'),gender:zod.string().min(1,'Selecione o gênero'),cpf:zod.string(),rg:zod.string(),status:zod.string(),guardianName:zod.string(),guardianPhone:zod.string(),guardianEmail:optionalEmail,guardianRelationship:zod.string(),guardianCpf:zod.string(),guardianRg:zod.string(),additionalInformation:zod.string().max(10000,'Use até 10 mil caracteres')});
+type Values=zod.infer<typeof schema>;
+export function StudentNewEditForm({currentStudent}:{currentStudent?:StudentDetail}){
+ const router=useRouter();const [tab,setTab]=useState(0);const [addr,setAddr]=useState(()=>parseAddressFromApi(currentStudent?.address));const [guardianAddr,setGuardianAddr]=useState(()=>parseAddressFromApi(currentStudent?.guardian?.address));
+ const [family,setFamily]=useState<StudentFamilyContact[]>(currentStudent?.familyContacts??[]);const [tags,setTags]=useState<string[]>(currentStudent?.tags??[]);const [tagInput,setTagInput]=useState('');const [suggestions,setSuggestions]=useState<string[]>([]);
+ const [photo,setPhoto]=useState<File|null>(null);const [preview,setPreview]=useState(currentStudent?.picture?.url??currentStudent?.pictureUrl??'');const [camera,setCamera]=useState(false);const gallery=useRef<HTMLInputElement>(null);const captureInput=useRef<HTMLInputElement>(null);const objectUrl=useRef('');
+ const methods=useForm<Values>({resolver:zodResolver(schema),defaultValues:{name:currentStudent?.name??'',email:currentStudent?.email??'',phone:currentStudent?.phoneNumber??currentStudent?.phone??'',birthDate:currentStudent?.birthDate?.slice(0,10)??'',gender:currentStudent?.gender??'',cpf:currentStudent?.cpf??'',rg:currentStudent?.rg??'',status:studentStatusValue(currentStudent?.status)||'Ativo',guardianName:currentStudent?.guardian?.name??'',guardianPhone:currentStudent?.guardian?.phoneNumber??currentStudent?.guardian?.phone??'',guardianEmail:currentStudent?.guardian?.email??'',guardianRelationship:currentStudent?.guardian?.relationship??'',guardianCpf:currentStudent?.guardian?.cpf??'',guardianRg:currentStudent?.guardian?.rg??'',additionalInformation:currentStudent?.additionalInformation??''}});
+ const {handleSubmit,setValue,formState:{isSubmitting}}=methods;
+ useEffect(()=>()=>{if(objectUrl.current)URL.revokeObjectURL(objectUrl.current);},[]);
+ useEffect(()=>{const controller=new AbortController();const timer=setTimeout(()=>{ApiService.get<{tags:string[]}>('/student-tags',{search:tagInput},{signal:controller.signal}).then(data=>setSuggestions(data.tags??[])).catch(()=>{});},250);return()=>{clearTimeout(timer);controller.abort();};},[tagInput]);
+ const choosePhoto=(file:File)=>{if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5*1024*1024){toast.error('Envie uma imagem JPG, PNG ou WebP de até 5 MB.');return;}if(objectUrl.current)URL.revokeObjectURL(objectUrl.current);objectUrl.current=URL.createObjectURL(file);setPhoto(file);setPreview(objectUrl.current);};
+ const copyContact=(contact:StudentFamilyContact)=>{setValue('guardianName',contact.name,{shouldDirty:true});setValue('guardianPhone',contact.phoneNumber??'',{shouldDirty:true});setValue('guardianEmail',contact.email??'',{shouldDirty:true});setValue('guardianCpf',contact.cpf??'',{shouldDirty:true});setValue('guardianRg',contact.rg??'',{shouldDirty:true});setValue('guardianRelationship',contact.relationship??'',{shouldDirty:true});setGuardianAddr(parseAddressFromApi(contact.address));setTab(1);toast.success('Dados copiados para o contratante. Confira antes de salvar.');};
+ const submit=handleSubmit(async values=>{
+  if(family.some(c=>c.name.trim().length<2)){setTab(2);toast.error('Informe o nome dos contatos adicionados ou remova os que estão vazios.');return;}
+  const cleanTags=Array.from(new Map(tags.map(tag=>[tag.trim().toLocaleLowerCase('pt-BR'),tag.trim()])).values()).filter(Boolean);
+  if(cleanTags.length>20||cleanTags.some(tag=>tag.length>50)){toast.error('Use até 20 tags, com até 50 caracteres cada.');return;}
+  const guardian=values.guardianName.trim()?{name:values.guardianName.trim(),phoneNumber:values.guardianPhone,email:values.guardianEmail,cpf:values.guardianCpf,rg:values.guardianRg,relationship:values.guardianRelationship,address:guardianAddr}:undefined;
+  const payload={name:values.name,email:values.email||undefined,phoneNumber:values.phone||undefined,birthDate:values.birthDate,gender:values.gender,cpf:values.cpf||undefined,rg:values.rg||undefined,status:values.status,address:addr,guardian,familyContacts:family,tags:cleanTags,additionalInformation:values.additionalInformation};
+  try{if(photo){const form=new FormData();for(const [key,value] of Object.entries(payload)){if(value!==undefined)form.append(key,typeof value==='object'?JSON.stringify(value):String(value));}form.append('picture',photo);if(currentStudent)await StudentService.updateMultipart(currentStudent.id,form);else await StudentService.createMultipart(form);}else if(currentStudent)await StudentService.update(currentStudent.id,payload);else await StudentService.create(payload);
+   toast.success(currentStudent?'Aluno atualizado com sucesso.':'Aluno cadastrado com sucesso.');router.push(currentStudent?paths.dashboard.students.details(String(currentStudent.id)):paths.dashboard.students.root);
+  }catch(error:any){toast.error(error?.response?.data?.message??'Não foi possível salvar o cadastro. Confira os campos e tente novamente.');}
+ },errors=>{setTab(Object.keys(errors).some(key=>key.startsWith('guardian'))?1:Object.keys(errors).includes('additionalInformation')?3:0);toast.error('Confira os campos destacados antes de salvar.');});
+ return <Form methods={methods} onSubmit={submit}><Card sx={{p:{xs:2,md:3}}}><Tabs value={tab} onChange={(_,value)=>setTab(value)} variant="scrollable" allowScrollButtonsMobile aria-label="Seções do cadastro do aluno" sx={{mb:3}}>{['Aluno','Contratante','Filiação e responsáveis','Outras informações'].map(title=><Tab key={title} label={title}/>)}</Tabs>
+ <Stack spacing={3} sx={{display:tab===0?'flex':'none'}}><Stack direction={{xs:'column',sm:'row'}} gap={2} alignItems={{sm:'center'}}><Avatar src={preview||undefined} sx={{width:96,height:96}}>{methods.watch('name')?.charAt(0)}</Avatar><Stack spacing={1}><Typography variant="subtitle1">Foto do aluno</Typography><Stack direction="row" gap={1} flexWrap="wrap"><Button type="button" variant="outlined" onClick={()=>gallery.current?.click()}>Enviar foto</Button><Button type="button" onClick={()=>setCamera(true)}>Tirar foto</Button></Stack><Typography variant="caption" color="text.secondary">JPG, PNG ou WebP · até 5 MB</Typography></Stack></Stack>
+ <input ref={gallery} type="file" aria-label="Enviar foto do aluno" accept="image/jpeg,image/png,image/webp" hidden onChange={event=>{const file=event.target.files?.[0];if(file)choosePhoto(file);event.target.value='';}}/>
+ <input ref={captureInput} type="file" aria-label="Câmera do aparelho" accept="image/*" capture="user" hidden onChange={event=>{const file=event.target.files?.[0];if(file)choosePhoto(file);event.target.value='';}}/>
+ <Box display="grid" gridTemplateColumns={{xs:'1fr',sm:'1fr 1fr'}} gap={2}><Field.Text name="name" label="Nome completo *"/><Field.Select name="status" label="Situação">{STUDENT_STATUS_OPTIONS.map(option=><MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}</Field.Select><Field.Text name="birthDate" label="Data de nascimento *" type="date" InputLabelProps={{shrink:true}}/><Field.Select name="gender" label="Gênero *"><MenuItem value="">Selecione</MenuItem>{[['male','Masculino'],['female','Feminino'],['other','Outro']].map(([value,label])=><MenuItem key={value} value={value}>{label}</MenuItem>)}{currentStudent?.gender&&!['male','female','other'].includes(currentStudent.gender)&&<MenuItem value={currentStudent.gender}>{currentStudent.gender}</MenuItem>}</Field.Select><Field.Text name="email" label="E-mail"/><Field.Text name="phone" label="Telefone"/><Field.Text name="cpf" label="CPF"/><Field.Text name="rg" label="RG"/></Box>
+ <Autocomplete multiple freeSolo onKeyDown={event=>{if(event.key==='Enter'&&tagInput.trim())event.preventDefault();}} filterSelectedOptions options={suggestions} value={tags} inputValue={tagInput} onInputChange={(_,value)=>setTagInput(value)} onChange={(_,value)=>setTags(Array.from(new Map(value.map(tag=>[tag.trim().toLocaleLowerCase('pt-BR'),tag.trim()])).values()).filter(Boolean))} renderTags={(value,getTagProps)=>value.map((tag,index)=><Chip label={tag} {...getTagProps({index})} key={tag}/>)} renderInput={params=><TextField {...params} label="Tags do aluno" helperText="Digite uma tag e pressione Enter. As tags cadastradas aparecem como sugestão nesta escola."/>}/>
+ <Typography variant="h6">Endereço do aluno</Typography><AddressSection value={addr} onChange={patch=>setAddr(previous=>({...previous,...patch}))} label="Endereço do aluno"/></Stack>
+ <Stack spacing={2.5} sx={{display:tab===1?'flex':'none'}}><Typography variant="h6">Contratante (responsável financeiro)</Typography><Typography variant="body2" color="text.secondary">Pode ser pai, mãe ou outra pessoa. Os contatos de filiação ficam separados na próxima aba.</Typography><Box display="grid" gridTemplateColumns={{xs:'1fr',sm:'1fr 1fr'}} gap={2}>{[['guardianName','Nome do contratante'],['guardianPhone','Telefone do contratante'],['guardianEmail','E-mail do contratante'],['guardianCpf','CPF do contratante'],['guardianRg','RG do contratante'],['guardianRelationship','Parentesco / vínculo']].map(([name,label])=><Field.Text key={name} name={name} label={label}/>)}</Box><Stack direction="row" justifyContent="space-between" gap={1} flexWrap="wrap"><Typography variant="h6">Endereço do contratante</Typography><Button type="button" onClick={()=>setGuardianAddr({...addr})}>Importar mesmo endereço do aluno</Button></Stack><AddressSection value={guardianAddr} onChange={patch=>setGuardianAddr(previous=>({...previous,...patch}))} label="Endereço do contratante"/></Stack>
+ <Box sx={{display:tab===2?'block':'none'}}><StudentFamilyEditor contacts={family} onChange={setFamily} onContractant={copyContact}/></Box>
+ <Box sx={{display:tab===3?'block':'none'}}><Field.Text name="additionalInformation" label="Outras informações" multiline minRows={5} inputProps={{maxLength:10000}} helperText="Informações complementares para a secretaria."/></Box>
+ <Stack direction="row" justifyContent="flex-end" gap={1} sx={{mt:3}}><Button color="inherit" onClick={()=>router.back()}>Cancelar</Button><LoadingButton type="submit" variant="contained" loading={isSubmitting}>{currentStudent?'Salvar alterações':'Cadastrar aluno'}</LoadingButton></Stack></Card>{camera&&<StudentCameraDialog onClose={()=>setCamera(false)} onPhoto={choosePhoto} onFallback={()=>captureInput.current?.click()}/>}</Form>;
 }

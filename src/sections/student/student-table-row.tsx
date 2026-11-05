@@ -1,4 +1,5 @@
 'use client';
+import { studentStatusLabel, studentIsEnrolled } from 'src/utils/student-status';
 
 import type { StudentListItem } from 'src/types/services/student';
 
@@ -66,7 +67,7 @@ export function StudentTableRow({ row, selected, onSelectRow, onDeleteRow, canDe
             <Avatar src={row.picture?.url} sx={{ width: 36, height: 36 }}>
               {row.name?.charAt(0).toUpperCase() ?? '?'}
             </Avatar>
-            <Stack sx={{ minWidth: 0 }}>
+            <Stack sx={{ minWidth: 0 }}>{row.tags?.length?<Stack direction="row" gap={.5} flexWrap="wrap">{row.tags.slice(0,3).map(tag=><Chip key={tag} size="small" label={tag}/>)}</Stack>:null}
               <Link
                 color="inherit"
                 sx={{ cursor: 'pointer', typography: 'body2', fontWeight: 600, overflowWrap: 'anywhere' }}

@@ -8,6 +8,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
+import Chip from '@mui/material/Chip';
 import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
@@ -117,7 +118,7 @@ export function StudentDetailsView({ id }: Props) {
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
-      <StudentJourneySummary student={student} onNavigate={navigateTab} />
+      <StudentJourneySummary student={student} onNavigate={navigateTab} />{student.tags?.length?<Stack direction="row" gap={1} flexWrap="wrap" sx={{mb:2}}>{student.tags.map(tag=><Chip key={tag} label={tag} size="small"/>)}</Stack>:null}
 
       <Tabs
         value={activeTab}
@@ -167,7 +168,7 @@ export function StudentDetailsView({ id }: Props) {
               {student.guardian && (
                 <Card sx={{ p: 3 }}>
                   <Typography variant="h6" sx={{ mb: 2 }}>
-                    Responsável
+                    Contratante (responsável financeiro)
                   </Typography>
                   <TableContainer>
                     <Table size="small">
@@ -206,6 +207,8 @@ export function StudentDetailsView({ id }: Props) {
                 </Card>
               )}
 
+              {!!student.familyContacts?.length&&<Card sx={{p:3}}><Typography variant="h6" sx={{mb:2}}>Filiação e outros responsáveis</Typography><Stack spacing={2}>{student.familyContacts.map((contact,index)=><Box key={index}><Typography variant="subtitle2">{contact.type==='father'?'Pai':contact.type==='mother'?'Mãe':contact.relationship||'Outro responsável'}: {contact.name}</Typography><Typography variant="body2">{[contact.phoneNumber,contact.email].filter(Boolean).join(' · ')||'Contato não informado'}</Typography><Typography variant="body2">CPF: {contact.cpf||'—'} · RG: {contact.rg||'—'}</Typography></Box>)}</Stack></Card>}
+              {!!student.additionalInformation&&<Card sx={{p:3}}><Typography variant="h6" sx={{mb:2}}>Outras informações</Typography><Typography variant="body2" sx={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{student.additionalInformation}</Typography></Card>}
               {student.subscriptions && student.subscriptions.length > 0 && (
                 <Card sx={{ p: 3 }}>
                   <Typography variant="h6" sx={{ mb: 2 }}>

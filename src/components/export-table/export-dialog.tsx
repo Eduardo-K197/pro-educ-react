@@ -89,9 +89,9 @@ export function ExportDialog({
   const [exporting, setExporting] = useState(false);
   const downloadAbort = useRef<AbortController | null>(null);
   const initial = useRef(initialFilters);
-  const financialFilters = useRef(Object.fromEntries(
-    ['billingType', 'categoryId', 'paymentFrom', 'paymentTo', 'createdFrom', 'createdTo']
-      .filter((key) => resource === 'financial' && initialFilters[key as keyof ExportFilters])
+  const extraFilters = useRef(Object.fromEntries(
+    ['billingType', 'categoryId', 'paymentFrom', 'paymentTo', 'createdFrom', 'createdTo', 'classroomId', 'teacherId', 'courseId', 'tag']
+      .filter((key) => initialFilters[key as keyof ExportFilters])
       .map((key) => [key, initialFilters[key as keyof ExportFilters]])
   )).current;
   useEffect(() => {
@@ -101,7 +101,7 @@ export function ExportDialog({
     ExportService.options(resource, controller.signal)
       .then((data) => {
         if (controller.signal.aborted) return;
-        if (Object.keys(financialFilters).some((key) => !data.supportedFilters?.includes(key))) {
+        if (Object.keys(extraFilters).some((key) => !data.supportedFilters?.includes(key))) {
           throw new Error('A exportação ainda não está disponível para os filtros selecionados. Tente novamente após a atualização do sistema.');
         }
         if (resource === 'financial') {
@@ -124,7 +124,7 @@ export function ExportDialog({
     return () => {
       controller.abort();
     };
-  }, [resource, retry, financialFilters]);
+  }, [resource, retry, extraFilters]);
   useEffect(() => () => downloadAbort.current?.abort(), []);
   const dateError =
     !validDate(from) || !validDate(to)
@@ -134,7 +134,7 @@ export function ExportDialog({
         : '';
   const input = useMemo<ExportInput>(
     () => ({
-      ...financialFilters,
+      ...extraFilters,
       columns,
       search,
       status,
@@ -143,7 +143,7 @@ export function ExportDialog({
       ...(to ? { to } : {}),
       includeSummary,
     }),
-    [columns, search, status, dateField, from, to, includeSummary, financialFilters]
+    [columns, search, status, dateField, from, to, includeSummary, extraFilters]
   );
   const [previewRetry, setPreviewRetry] = useState(0);
   useEffect(() => {
@@ -291,7 +291,7 @@ export function ExportDialog({
             <Chip size="small" color="success" variant="soft" label="Excel (.xlsx)" />
             <Chip size="small" variant="outlined" label="Todas as páginas da lista" />
           </Stack>
-          {!!Object.keys(financialFilters).length && <Alert severity="info">Os filtros de pagamento, criação, tipo e categoria selecionados na lista também serão aplicados à planilha.</Alert>}
+          {!!Object.keys(extraFilters).length && <Alert severity="info">Os filtros selecionados na lista também serão aplicados à planilha.</Alert>}
           {error && (
             <Alert
               severity="error"

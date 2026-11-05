@@ -29,6 +29,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { academicOverview } from 'src/utils/academic-report';
 import { downloadAuthenticatedPdf } from 'src/utils/download-document';
 
+import { SubscriptionService } from 'src/services/subscription';
 import { GradeService } from 'src/services/grade';
 import { ApiService } from 'src/services/api/api';
 import { CourseService } from 'src/services/course';
@@ -48,17 +49,21 @@ const format = (value: number | null) =>
 export function StudentGradesTab({ studentId, subscriptions = [], initialView = 'details', onViewChange }: Props) {
   const { user } = useAuthContext();
   const canWrite = ['superAdmin', 'admin', 'teacher'].includes(user?.role);
+  const [historicalSubscriptions,setHistoricalSubscriptions]=useState<StudentSubscription[]>([]);
+  const [historyLoading,setHistoryLoading]=useState(true);
+  const [historyError,setHistoryError]=useState(false);
+  useEffect(()=>{const controller=new AbortController();setHistoryLoading(true);setHistoryError(false);setHistoricalSubscriptions([]);SubscriptionService.list({student:String(studentId),deleted:'true',hasPagination:false},{signal:controller.signal}).then(data=>{if(!controller.signal.aborted)setHistoricalSubscriptions(data.subscriptions??[]);}).catch(()=>{if(!controller.signal.aborted)setHistoryError(true);}).finally(()=>{if(!controller.signal.aborted)setHistoryLoading(false);});return()=>controller.abort();},[studentId]);
   const courses = useMemo(
     () =>
       Array.from(
         new Map(
-          subscriptions
+          [...subscriptions,...historicalSubscriptions]
             .map((sub) => sub.course ?? sub.classroom?.course)
             .filter((course): course is { id: string; name: string } => !!course?.id)
             .map((course) => [course.id, course])
         ).values()
       ),
-    [subscriptions]
+    [subscriptions,historicalSubscriptions]
   );
   const [courseId, setCourseId] = useState(courses[0]?.id ?? '');
   const [periodId, setPeriodId] = useState('');
@@ -86,7 +91,7 @@ export function StudentGradesTab({ studentId, subscriptions = [], initialView = 
   const scope = `${studentId}:${courseId}`;
   const currentScope = useRef(scope);
   currentScope.current = scope;
-  const ready = !loading && !error && loadedScope === scope;
+  const ready = !loading && !historyLoading && !error && !historyError && loadedScope === scope;
 
   useEffect(() => {
     if (!courses.some((course) => course.id === courseId)) setCourseId(courses[0]?.id ?? '');
@@ -101,7 +106,7 @@ export function StudentGradesTab({ studentId, subscriptions = [], initialView = 
     setLoadedScope('');
     if (!courseId) {
       setLoading(false);
-      return () => controller.abort();
+  return () => controller.abort();
     }
     Promise.all([
       CourseService.getById(courseId, { signal: controller.signal }),
@@ -250,6 +255,8 @@ export function StudentGradesTab({ studentId, subscriptions = [], initialView = 
     }
   };
 
+  if(historyLoading&&!courses.length)return <Card sx={{p:3}}><CircularProgress size={24}/></Card>;
+  if(historyError)return <Alert severity="error">Não foi possível carregar o histórico de matrículas. Atualize a ficha antes de consultar notas ou boletim.</Alert>;
   if (!courses.length)
     return (
       <Alert severity="info">

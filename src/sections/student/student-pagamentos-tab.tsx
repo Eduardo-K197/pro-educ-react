@@ -1,4 +1,5 @@
 'use client';
+import { entryPunctuality } from 'src/utils/punctuality';
 
 import type { BillingType, EntryListItem, EntryCategory } from 'src/types/services/entry';
 
@@ -334,6 +335,7 @@ export function StudentPagamentosTab({ studentId }: Props) {
     const isSicredi = entry.source === 'sicredi';
     const isDownloading = downloadingId === entry.id;
     const isReceiving = receivingId === entry.id;
+    const benefit=entryPunctuality(entry);
     const hasDiscount = entry.originalValue && entry.originalValue > entry.value;
 
     return (
@@ -365,35 +367,11 @@ export function StudentPagamentosTab({ studentId }: Props) {
             {entry.dueDate ? fDate(entry.dueDate) : '—'}
           </Typography>
         </TableCell>
-        <TableCell>
-          {hasDiscount ? (
-            <Tooltip
-              title={
-                <Stack spacing={0.5}>
-                  <Typography variant="caption">Valor original: {fCurrency(entry.originalValue!)}</Typography>
-                  <Typography variant="caption">Com pontualidade: {fCurrency(entry.value)}</Typography>
-                </Stack>
-              }
-            >
-              <Stack>
-                <Typography variant="body2" fontWeight={500} color="success.main">
-                  {fCurrency(entry.value)}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  color="text.disabled"
-                  sx={{ textDecoration: 'line-through' }}
-                >
-                  {fCurrency(entry.originalValue!)}
-                </Typography>
-              </Stack>
-            </Tooltip>
-          ) : (
-            <Typography variant="body2" fontWeight={500}>
-              {fCurrency(entry.value)}
-            </Typography>
-          )}
-        </TableCell>
+        <TableCell sx={{whiteSpace:'nowrap'}}>{entry.paymentDate?fDate(entry.paymentDate):'—'}</TableCell>
+        <TableCell sx={{whiteSpace:'nowrap'}}>{entry.dateCreated?fDate(entry.dateCreated):'—'}</TableCell>
+        <TableCell sx={{whiteSpace:'nowrap'}}>{fCurrency(entry.originalValue??entry.value)}</TableCell>
+        <TableCell sx={{whiteSpace:'nowrap'}}>{benefit?<Stack spacing={.5}><Typography variant="body2" color="success.main">{fCurrency(benefit.discountValue)}</Typography><Typography variant="caption">Com pontualidade: {fCurrency(benefit.discountedValue)}</Typography><Typography variant="caption" color="text.secondary">{benefit.deadline?`Até ${fDate(benefit.deadline)}`:'Data-limite não informada'}</Typography></Stack>:'Não informado'}</TableCell>
+        <TableCell sx={{whiteSpace:'nowrap'}}><Typography variant="body2" fontWeight={600}>{fCurrency(entry.value)}</Typography></TableCell>
         <TableCell>
           <Label variant="soft" color={color}>
             {status || '—'}
@@ -545,7 +523,11 @@ export function StudentPagamentosTab({ studentId }: Props) {
                   <TableCell sx={{ fontWeight: 700 }}>Categoria</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Tipo</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Vencimento</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Valor</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Pagamento</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Criado</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Valor original</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Desconto de pontualidade</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Valor registrado</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
                   <TableCell align="right" />
                 </TableRow>
@@ -596,7 +578,7 @@ export function StudentPagamentosTab({ studentId }: Props) {
                         }}
                         onClick={() => toggleGroup(instId)}
                       >
-                        <TableCell colSpan={4}>
+                        <TableCell colSpan={8}>
                           <Stack direction="row" alignItems="center" spacing={1}>
                             <Iconify
                               icon={isCollapsed ? 'solar:alt-arrow-right-bold' : 'solar:alt-arrow-down-bold'}

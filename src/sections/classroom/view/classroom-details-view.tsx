@@ -57,7 +57,14 @@ export function ClassroomDetailsView({ id }: Props) {
 
   if (!classroom) return null;
 
-  const students: any[] = (classroom.subscriptions ?? []).map((s: any) => s.student).filter(Boolean);
+  const students: any[] = (classroom.subscriptions ?? [])
+    .filter((subscription: any) => subscription.student)
+    .map((subscription: any) => ({
+      ...subscription.student,
+      paymentStatus: subscription.paymentStatus ?? 'Em dia',
+      overdueInstallments: subscription.overdueInstallments ?? 0,
+      openInstallments: subscription.openInstallments ?? 0,
+    }));
   const teachers: any[] = classroom.teachers ?? [];
   const classes: any[] = classroom.classes ?? [];
   const vagas = classroom.maxStudentCount != null
@@ -173,7 +180,7 @@ export function ClassroomDetailsView({ id }: Props) {
                     <TableRow>
                       <TableCell>Aluno</TableCell>
                       <TableCell>E-mail</TableCell>
-                      <TableCell>Status</TableCell>
+                      <TableCell>Situação financeira</TableCell>
                       <TableCell align="right">Ação</TableCell>
                     </TableRow>
                   </TableHead>
@@ -199,11 +206,13 @@ export function ClassroomDetailsView({ id }: Props) {
                           <Label
                             variant="soft"
                             color={
-                              student.status === 'Ativo' ? 'success' :
-                              student.status === 'Cancelado' ? 'error' : 'default'
+                              student.paymentStatus === 'Atrasado' ? 'error' :
+                              student.paymentStatus === 'Em aberto' ? 'warning' : 'success'
                             }
                           >
-                            {student.status ?? 'Ativo'}
+                            {student.paymentStatus}
+                            {student.overdueInstallments > 0 && ` · ${student.overdueInstallments} em atraso`}
+                            {student.overdueInstallments === 0 && student.openInstallments > 0 && ` · ${student.openInstallments} em aberto`}
                           </Label>
                         </TableCell>
                         <TableCell align="right">

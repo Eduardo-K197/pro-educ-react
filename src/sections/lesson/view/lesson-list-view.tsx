@@ -5,6 +5,9 @@ import type { LessonListItem } from 'src/types/services/lesson';
 import { useState, useEffect, useCallback } from 'react';
 
 import Stack from '@mui/material/Stack';
+import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
+import MenuItem from '@mui/material/MenuItem';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -12,6 +15,9 @@ import InputAdornment from '@mui/material/InputAdornment';
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
+import { useListQuery } from 'src/hooks/use-list-query';
+import { ClassroomService } from 'src/services/classroom';
+import { TeacherService } from 'src/services/teacher';
 import { useBoolean } from 'src/hooks/use-boolean';
 
 import { LessonService } from 'src/services/lesson';
@@ -45,17 +51,29 @@ export function LessonListView() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [search, setSearch] = useState('');
+  const {params:query,write}=useListQuery(table.onResetPage);
+  const search=query.get('search')??'';
+  const [draft,setDraft]=useState(search);
+  const classroomId=query.get('classroomId')??'', teacherId=query.get('teacherId')??'',status=query.get('status')??'',dateFrom=query.get('dateFrom')??'',dateTo=query.get('dateTo')??'';
+  const invalidDates=!!dateFrom&&!!dateTo&&dateFrom>dateTo;
+  const [loadError,setLoadError]=useState(false);
+  const [classrooms,setClassrooms]=useState<{id:string;name:string}[]>([]);
+  const [teachers,setTeachers]=useState<{id:string;name:string}[]>([]);
+  useEffect(()=>{setDraft(search);},[search]);
+  useEffect(()=>{const controller=new AbortController();ClassroomService.list({hasPagination:false},{signal:controller.signal}).then(data=>setClassrooms(data.classrooms??[])).catch(()=>{});TeacherService.list({hasPagination:false},{signal:controller.signal}).then(data=>setTeachers(data.teachers??[])).catch(()=>{});return()=>controller.abort();},[]);
+
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    setLoading(true);setLoadError(false);
+    if(invalidDates){setLoading(false);setTableData([]);setTotal(0);return undefined;}
 
     const params: Record<string, any> = {
       page: table.page + 1,
       perPage: table.rowsPerPage,
     };
     if (search) params.search = search;
+    Object.entries({classroomId,teacherId,status,dateFrom,dateTo}).forEach(([key,value])=>{if(value)params[key]=value;});
 
     LessonService.list(params)
       .then((res) => {
@@ -63,18 +81,13 @@ export function LessonListView() {
         setTableData((res as any).classes ?? []);
         setTotal((res as any).count ?? 0);
       })
-      .catch(() => { if (!cancelled) toast.error('Erro ao carregar aulas'); })
+      .catch(() => { if (!cancelled) {setLoadError(true);setTableData([]);setTotal(0);} })
       .finally(() => { if (!cancelled) setLoading(false); });
 
     return () => { cancelled = true; };
-  }, [table.page, table.rowsPerPage, search, refreshKey]);
+  }, [table.page, table.rowsPerPage, search, refreshKey,classroomId,teacherId,status,dateFrom,dateTo,invalidDates]);
 
   const reload = useCallback(() => setRefreshKey((k) => k + 1), []);
-
-  const handleSearch = useCallback(
-    (value: string) => { table.onResetPage(); setSearch(value); },
-    [table]
-  );
 
   const handleDeleteRow = useCallback(
     async (id: string) => {
@@ -100,7 +113,7 @@ export function LessonListView() {
     }
   }, [table, reload]);
 
-  const notFound = !loading && tableData.length === 0;
+  const notFound = !loading && !loadError && !invalidDates && tableData.length === 0;
 
   return (
     <DashboardContent>
@@ -113,7 +126,7 @@ export function LessonListView() {
         ]}
         action={
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-            <ExportButton resource="lessons" initialFilters={{ search }} disabled={loading} />
+            <ExportButton resource="lessons" initialFilters={{search,status:status||'all',classroomId:classroomId||undefined,teacherId:teacherId||undefined,dateField:'date',from:dateFrom||undefined,to:dateTo||undefined}} disabled={loading} />
             <Button component={RouterLink} href={paths.dashboard.lessons.new} variant="contained" startIcon={<Iconify icon="mingcute:add-line" />}>
             Nova aula
           </Button>
@@ -123,6 +136,8 @@ export function LessonListView() {
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
+      {loadError&&<Alert severity="error" action={<Button onClick={reload}>Tentar novamente</Button>} sx={{mb:2}}>Não foi possível consultar as aulas. Isso não significa que não existam aulas cadastradas.</Alert>}
+      {invalidDates&&<Alert severity="warning" sx={{mb:2}}>A data inicial deve ser anterior ou igual à data final.</Alert>}
       <CustomTable
         table={table}
         dataFiltered={tableData}
@@ -132,16 +147,16 @@ export function LessonListView() {
         totalCount={total}
         onDeleteRows={confirm.onTrue}
         filters={
-          <Stack sx={{ p: 2.5 }}>
-            <TextField
-              size="small"
-              value={search}
-              onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Buscar aula..."
-              InputProps={{ startAdornment: <InputAdornment position="start"><Iconify icon="eva:search-fill" width={18} sx={{ color: 'text.disabled' }} /></InputAdornment> }}
-              sx={{ maxWidth: 400 }}
-            />
-          </Stack>
+          <Box component="form" onSubmit={event=>{event.preventDefault();write({search:draft.trim()});}} sx={{p:2.5}}>
+            <Box display="grid" gridTemplateColumns={{xs:'1fr',sm:'1fr 1fr',lg:'2fr 1fr 1fr'}} gap={2}>
+              <TextField size="small" label="Buscar aula" placeholder="Descrição, turma ou professor" value={draft} onChange={event=>setDraft(event.target.value)}/>
+              <TextField select size="small" label="Turma" value={classroomId} onChange={event=>write({classroomId:event.target.value})}><MenuItem value="">Todas as turmas</MenuItem>{classrooms.map(item=><MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>)}</TextField>
+              <TextField select size="small" label="Professor" value={teacherId} onChange={event=>write({teacherId:event.target.value})}><MenuItem value="">Todos os professores</MenuItem>{teachers.map(item=><MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>)}</TextField>
+              <TextField select size="small" label="Situação da aula" value={status} onChange={event=>write({status:event.target.value})}><MenuItem value="">Todas</MenuItem>{['Agendada','Realizada','Cancelada'].map(value=><MenuItem key={value} value={value}>{value}</MenuItem>)}</TextField>
+              <TextField size="small" type="date" label="Aulas de" InputLabelProps={{shrink:true}} value={dateFrom} onChange={event=>write({dateFrom:event.target.value})} error={invalidDates}/>
+              <TextField size="small" type="date" label="Aulas até" InputLabelProps={{shrink:true}} value={dateTo} onChange={event=>write({dateTo:event.target.value})} error={invalidDates}/>
+            </Box><Stack direction="row" gap={1} sx={{mt:2}}><Button type="submit" variant="contained">Buscar aulas</Button><Button onClick={()=>{setDraft('');write({search:'',classroomId:'',teacherId:'',status:'',dateFrom:'',dateTo:''});}}>Limpar filtros</Button></Stack>
+          </Box>
         }
       >
         {tableData.map((row) => (

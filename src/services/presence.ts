@@ -4,6 +4,8 @@ import { ApiService } from './api/api';
 
 export type PresenceStatus = 'present' | 'absent' | 'justified';
 
+export interface PresenceRecord {id:string;classId:string;subscriptionId:string;status:PresenceStatus;createdAt?:string}
+
 export interface PresenceCreateItem {
   classId: string;
   subscriptionId: string;
@@ -19,8 +21,8 @@ export class PresenceService {
   static create(
     presences: PresenceCreateItem[],
     config?: AxiosRequestConfig
-  ): Promise<unknown[]> {
-    return ApiService.post<{ presences: PresenceCreateItem[] }, unknown[]>(
+  ): Promise<PresenceRecord[]> {
+    return ApiService.post<{ presences: PresenceCreateItem[] }, PresenceRecord[]>(
       '/presences',
       { presences },
       config
@@ -30,8 +32,8 @@ export class PresenceService {
   static update(
     presences: PresenceUpdateItem[],
     config?: AxiosRequestConfig
-  ): Promise<unknown[]> {
-    return ApiService.put<{ presences: PresenceUpdateItem[] }, unknown[]>(
+  ): Promise<PresenceRecord[]> {
+    return ApiService.put<{ presences: PresenceUpdateItem[] }, PresenceRecord[]>(
       '/presences',
       { presences },
       config

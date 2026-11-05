@@ -27,6 +27,10 @@ export type ExportDefinition = {
   supportedFilters?: string[];
 };
 export type ExportFilters = {
+  classroomId?: string;
+  teacherId?: string;
+  courseId?: string;
+  tag?: string;
   billingType?: string;
   categoryId?: string;
   paymentFrom?: string;

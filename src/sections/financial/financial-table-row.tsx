@@ -1,4 +1,5 @@
 'use client';
+import { entryPunctuality } from 'src/utils/punctuality';
 
 import type { EntryListItem } from 'src/types/services/entry';
 
@@ -66,7 +67,7 @@ export function FinancialTableRow({
 }: Props) {
   const confirm = useBoolean();
   const popover = usePopover();
-
+  const benefit = entryPunctuality(row);
   const displayStatus = getTraducedStatus(row);
   const statusColor = STATUS_COLOR[displayStatus] ?? 'default';
   const isOverdue = displayStatus === 'Atrasado';
@@ -121,6 +122,14 @@ export function FinancialTableRow({
             {fCurrency(row.value)}
           </Typography>
         </TableCell>
+
+        <TableCell sx={{whiteSpace:'nowrap'}}>{benefit?<Stack><Typography variant="body2">{fCurrency(benefit.discountValue)}</Typography><Typography variant="caption" color="text.secondary">Com pontualidade: {fCurrency(benefit.discountedValue)}</Typography><Typography variant="caption" color="text.secondary">{benefit.deadline?`Até ${fDate(benefit.deadline)}`:'Prazo não informado'}</Typography></Stack>:'Não informado'}</TableCell>
+        <TableCell sx={{whiteSpace:'nowrap'}}>{row.dateCreated?fDate(row.dateCreated):'—'}</TableCell>
+        {/* Desconto de pontualidade configurado no lançamento */}
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>
+          {benefit ? <Stack><Typography variant="body2">{fCurrency(benefit.discountValue)}</Typography><Typography variant="caption" color="text.secondary">Com pontualidade: {fCurrency(benefit.discountedValue)}</Typography><Typography variant="caption" color="text.secondary">{benefit.deadline ? `Até ${fDate(benefit.deadline)}` : 'Prazo não informado'}</Typography></Stack> : 'Não informado'}
+        </TableCell>
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.dateCreated ? fDate(row.dateCreated) : '—'}</TableCell>
 
         {/* Valor Original */}
         <TableCell sx={{ whiteSpace: 'nowrap' }}>

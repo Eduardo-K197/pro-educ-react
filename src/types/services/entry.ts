@@ -25,6 +25,9 @@ export interface EntryCategory {
 }
 
 export interface EntryListItem {
+ discount?:{value:number;type?:string;limitDate?:string;dueDateLimitDays?:number}|null;
+ punctuality?:{originalValue:number;discountValue:number;discountedValue:number;deadline:string|null;eligible:boolean}|null;
+
   id: string;
   description?: string | null;
   value: number;

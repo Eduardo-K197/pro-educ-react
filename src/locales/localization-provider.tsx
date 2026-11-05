@@ -1,6 +1,6 @@
+'use client';
 /* eslint-disable perfectionist/sort-imports */
 
-'use client';
 
 import 'dayjs/locale/en';
 import 'dayjs/locale/vi';

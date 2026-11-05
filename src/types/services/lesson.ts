@@ -12,10 +12,13 @@ export interface LessonListItem {
 }
 
 export interface LessonPresence {
+  createdAt?:string;
+  subscriptionId?:string;
   id: string;
   status: 'present' | 'absent' | 'justified';
   subscription?: {
     id: string;
+    deletedAt?:string|null;
     student?: { id: number; name: string };
   };
 }

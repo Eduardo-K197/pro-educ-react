@@ -7,6 +7,7 @@ export interface StudentGuardianAddress {
   street?: string;
   number?: string;
   complement?: string;
+  reference?: string;
 }
 
 export interface StudentGuardian {
@@ -21,7 +22,12 @@ export interface StudentGuardian {
   address?: StudentGuardianAddress;
 }
 
+export interface StudentFamilyContact { type:'father'|'mother'|'other'; name:string; relationship?:string; phoneNumber?:string; email?:string; cpf?:string; rg?:string; address?:StudentGuardianAddress; }
 export interface StudentListItem {
+  tags?:string[];
+  familyContacts?:StudentFamilyContact[];
+  additionalInformation?:string;
+
   id: number;
   name: string;
   email?: string;
@@ -57,7 +63,7 @@ export interface StudentSubscription {
   course?: { id: string; name: string };
   status?: string;
   createdAt?: string;
-  deletedAt?: string;
+  deletedAt?: string | null;
 }
 
 export interface StudentsIndexResponse {
@@ -70,6 +76,8 @@ export interface StudentsIndexResponse {
 }
 
 export interface StudentCreatePayload {
+ tags?:string[]; familyContacts?:StudentFamilyContact[]; additionalInformation?:string; phoneNumber?:string;
+
   name: string;
   email?: string;
   phone?: string;

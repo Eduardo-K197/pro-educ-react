@@ -58,6 +58,8 @@ const STATUS_OPTIONS = [
 const TABLE_HEAD = [
   { id: 'description', label: 'Descrição / Aluno' },
   { id: 'value', label: 'Valor', width: 110 },
+  { id: 'punctuality', label: 'Desconto de pontualidade', width: 200 },
+  { id: 'dateCreated', label: 'Criado', width: 120 },
   { id: 'originalValue', label: 'V. Original', width: 110 },
   { id: 'dueDate', label: 'Vencimento', width: 115 },
   { id: 'paymentDate', label: 'Dt. Pagamento', width: 120 },

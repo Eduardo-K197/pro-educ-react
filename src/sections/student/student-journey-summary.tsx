@@ -1,4 +1,5 @@
 'use client';
+import { studentStatusLabel, studentIsEnrolled } from 'src/utils/student-status';
 
 import type { StudentDetail } from 'src/types/services/student';
 
@@ -27,7 +28,7 @@ export function StudentJourneySummary({
   const active = (student.subscriptions ?? []).filter(
     (subscription) => !subscription.deletedAt
   ).length;
-  const isActive = ['ativo', 'active'].includes(String(student.status ?? '').toLowerCase());
+  const isActive = studentIsEnrolled(student.status);
   return (
     <Card
       sx={{
@@ -49,7 +50,7 @@ export function StudentJourneySummary({
           <Box sx={{ minWidth: 0 }}>
             <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
               <Label variant="soft" color={isActive ? 'success' : 'default'}>
-                {student.status ?? 'Status não informado'}
+                {studentStatusLabel(student.status)}
               </Label>
               <Typography variant="caption" color="text.secondary">
                 {active} matrícula(s) vinculada(s)

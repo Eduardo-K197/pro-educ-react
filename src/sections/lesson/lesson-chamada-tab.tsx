@@ -42,6 +42,7 @@ const STATUS_COLOR: Record<PresenceStatus, 'success' | 'error' | 'warning'> = {
 };
 
 interface StudentRow {
+  historical?: boolean;
   subscriptionId: string;
   studentName: string;
   presenceId?: string;
@@ -63,13 +64,16 @@ export function LessonChamadaTab({ lesson, onSaved }: Props) {
     const subs: LessonSubscription[] = lesson.classroom?.subscriptions ?? [];
     const presences: LessonPresence[] = lesson.presences ?? [];
 
-    const built: StudentRow[] = subs
+    const roster=new Map(subs.map(sub=>[sub.id,sub]));
+    for(const presence of presences)if(presence.subscription?.student&&!roster.has(presence.subscription.id))roster.set(presence.subscription.id,{...presence.subscription,deletedAt:presence.subscription.deletedAt??'historical'});
+    const built: StudentRow[] = Array.from(roster.values())
       .filter((s) => s.student)
       .sort((a, b) => (a.student!.name < b.student!.name ? -1 : 1))
       .map((sub) => {
-        const existing = presences.find((p) => p.subscription?.id === sub.id);
+        const existing = [...presences].sort((a,b)=>String(b.createdAt??'').localeCompare(String(a.createdAt??''))).find((p) => (p.subscription?.id??p.subscriptionId) === sub.id);
         const status = (existing?.status ?? 'absent') as PresenceStatus;
         return {
+          historical:!!sub.deletedAt,
           subscriptionId: sub.id,
           studentName: sub.student!.name,
           presenceId: existing?.id,
@@ -84,7 +88,7 @@ export function LessonChamadaTab({ lesson, onSaved }: Props) {
 
   const setStatus = (subscriptionId: string, status: PresenceStatus) => {
     setRows((prev) =>
-      prev.map((r) => (r.subscriptionId === subscriptionId ? { ...r, currentStatus: status } : r))
+      prev.map((r) => (r.subscriptionId === subscriptionId && !r.historical ? { ...r, currentStatus: status } : r))
     );
     setSaved(false);
   };
@@ -93,30 +97,33 @@ export function LessonChamadaTab({ lesson, onSaved }: Props) {
     if (!lesson.id) return;
     setSaving(true);
     try {
-      const toCreate = rows.filter((r) => !r.presenceId);
+      const toCreate = rows.filter((r) => !r.presenceId&&!r.historical);
       const toUpdate = rows.filter(
-        (r) => r.presenceId && r.currentStatus !== r.originalStatus
+        (r) => r.presenceId && !r.historical && r.currentStatus !== r.originalStatus
       );
 
       if (toCreate.length > 0) {
-        await PresenceService.create(
+        const created=await PresenceService.create(
           toCreate.map((r) => ({
             classId: lesson.id!,
             subscriptionId: r.subscriptionId,
             status: r.currentStatus,
           }))
         );
+        const ids=new Map(created.map(item=>[item.subscriptionId,item]));
+        setRows(previous=>previous.map(row=>{const item=ids.get(row.subscriptionId);return item?{...row,presenceId:item.id,originalStatus:item.status}:row;}));
       }
 
+      // Preserve IDs returned by the API even if a later request fails.
       if (toUpdate.length > 0) {
         await PresenceService.update(
           toUpdate.map((r) => ({ id: r.presenceId!, status: r.currentStatus }))
         );
       }
 
-      // Update local state: all rows now have presenceId (simulate)
+      // Retain the real persisted identifiers returned by the API.
       setRows((prev) =>
-        prev.map((r) => ({ ...r, originalStatus: r.currentStatus, presenceId: r.presenceId ?? 'saved' }))
+        prev.map((r) => ({ ...r, originalStatus: r.currentStatus, presenceId: r.presenceId }))
       );
 
       setSaved(true);
@@ -229,11 +236,12 @@ export function LessonChamadaTab({ lesson, onSaved }: Props) {
                 >
                   <TableCell>
                     <Typography variant="body2" fontWeight={500}>
-                      {row.studentName}
+                      {row.studentName}{row.historical&&<Typography variant="caption" display="block" color="text.secondary">Matrícula encerrada · histórico preservado</Typography>}
                     </Typography>
                   </TableCell>
                   <TableCell>
                     <Select
+                      disabled={saving||!!row.historical}
                       size="small"
                       value={row.currentStatus}
                       onChange={(e) =>

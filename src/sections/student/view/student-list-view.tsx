@@ -1,4 +1,5 @@
 'use client';
+import MenuItem from '@mui/material/MenuItem';
 
 import type { StudentListItem } from 'src/types/services/student';
 
@@ -91,6 +92,7 @@ export function StudentListView() {
     router.replace(`${pathname}${query.size ? `?${query}` : ''}`, { scroll: false });
     table.onResetPage();
   };
+  const tag=searchParams.get('tag')??'';
   const birthStart = searchParams.get('bornFrom') ?? '';
   const birthEnd = searchParams.get('bornTo') ?? '';
   const status = STATUS_OPTIONS.some((option) => option.value === searchParams.get('status')) ? searchParams.get('status')! : search ? 'all' : 'Ativo';
@@ -108,6 +110,7 @@ export function StudentListView() {
     if (birthStart) params['birthDate[ge]'] = birthStart;
     if (birthEnd) params['birthDate[le]'] = birthEnd;
     if (search) params.search = search;
+    if(tag)params.tag=tag;
     if (status !== 'all') params.status = status;
 
     StudentService.list(params)
@@ -116,7 +119,7 @@ export function StudentListView() {
         const students = res.students ?? [];
         if (role === 'teacher') {
           // This API branch returns the teacher's scoped list without applying these filters.
-          const matches = students.filter((student) => (!search || student.name.toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR')) || student.cpf?.includes(search)) && (status === 'all' || student.status === status) && (!birthStart || !!student.birthDate && student.birthDate.slice(0, 10) >= birthStart) && (!birthEnd || !!student.birthDate && student.birthDate.slice(0, 10) <= birthEnd));
+          const matches = students.filter((student) => (!search || student.name.toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR')) || student.cpf?.includes(search)) && (status === 'all' || student.status === status) && (!tag||student.tags?.includes(tag)) && (!birthStart || !!student.birthDate && student.birthDate.slice(0, 10) >= birthStart) && (!birthEnd || !!student.birthDate && student.birthDate.slice(0, 10) <= birthEnd));
           setTableData(matches.slice(table.page * table.rowsPerPage, (table.page + 1) * table.rowsPerPage)); setTotal(matches.length);
         } else { setTableData(students); setTotal(res.count ?? 0); }
       })
@@ -124,7 +127,7 @@ export function StudentListView() {
       .finally(() => { if (!cancelled) setLoading(false); });
 
     return () => { cancelled = true; };
-  }, [table.page, table.rowsPerPage, search, status, refreshKey, birthStart, birthEnd, role]);
+  }, [table.page, table.rowsPerPage, search, status, refreshKey, birthStart, birthEnd, role, tag]);
 
   const reload = useCallback(() => setRefreshKey((k) => k + 1), []);
 
@@ -132,7 +135,7 @@ export function StudentListView() {
     event.preventDefault(); writeQuery({ search: searchInput.trim(), status });
   };
   const clearFilters = () => {
-    setSearchInput(''); writeQuery({ search: '', status: 'all', bornFrom: '', bornTo: '' });
+    setSearchInput(''); writeQuery({ search: '', status: 'all', bornFrom: '', bornTo: '', tag:'' });
   };
 
   const handleStatusChange = (_event: React.SyntheticEvent, value: string) => writeQuery({ status: value });
@@ -176,7 +179,7 @@ export function StudentListView() {
         ]}
         action={
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-            <ExportButton resource="students" disabled={loading || loadError} initialFilters={{ search, status, ...(birthStart || birthEnd ? { dateField: 'birthDate', from: birthStart || undefined, to: birthEnd || undefined } : {}) }} />
+            <ExportButton resource="students" disabled={loading || loadError} initialFilters={{ search, status, tag: tag || undefined, ...(birthStart || birthEnd ? { dateField: 'birthDate', from: birthStart || undefined, to: birthEnd || undefined } : {}) }} />
             {canCreateStudent && (
               <Button
                 component={RouterLink}
@@ -244,6 +247,7 @@ export function StudentListView() {
                 }}
                 sx={{ minWidth: { md: 260 }, flexGrow: 1 }}
               />
+              <TextField size="small" label="Filtrar por tag" value={tag} onChange={event=>writeQuery({tag:event.target.value})}/>
               <Button type="submit" variant="contained" startIcon={<Iconify icon="eva:search-fill" />} sx={{ minHeight: 40 }}>Buscar alunos</Button>
               <TextField size="small" type="date" label="Nascimento de" InputLabelProps={{ shrink: true }} value={birthStart} onChange={(event) => writeQuery({ bornFrom: event.target.value })} />
               <TextField size="small" type="date" label="Nascimento até" InputLabelProps={{ shrink: true }} value={birthEnd} onChange={(event) => writeQuery({ bornTo: event.target.value })} error={!!birthStart && !!birthEnd && birthStart > birthEnd} helperText={birthStart && birthEnd && birthStart > birthEnd ? 'O fim deve ser igual ou posterior ao início.' : undefined} />
