@@ -127,7 +127,7 @@ export function SchoolSwitcher({ sx }: Props) {
         onClose={popover.onClose}
         slotProps={{ arrow: { placement: 'top-left' } }}
       >
-        <MenuList sx={{ minWidth: 200, p: 0.5 }}>
+        <MenuList sx={{ minWidth: 200, p: 0.5, maxHeight: 'min(420px, 70vh)', overflowY: 'auto' }}>
           <Typography
             variant="caption"
             color="text.disabled"

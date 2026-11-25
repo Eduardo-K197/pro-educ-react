@@ -339,14 +339,14 @@ export function SchoolDashboardView() {
             <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: 'repeat(3, 1fr)' }} gap={2}>
               {[
                 {
-                  title: 'Pendente',
+                  title: 'Pendente (a vencer)',
                   value: stats?.totalPending,
                   color: 'warning.main',
                   status: 'Pendente',
                   icon: 'solar:clock-circle-bold-duotone',
                 },
                 {
-                  title: 'Em atraso',
+                  title: 'Vencido',
                   value: stats?.totalOverdue,
                   color: 'error.main',
                   status: 'Atrasado',

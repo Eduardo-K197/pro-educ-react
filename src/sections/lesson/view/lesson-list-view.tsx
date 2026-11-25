@@ -44,7 +44,7 @@ const TABLE_HEAD = [
 ];
 
 export function LessonListView() {
-  const table = useTable({ defaultOrderBy: 'date', defaultRowsPerPage: 10 });
+  const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'asc', defaultRowsPerPage: 10 });
   const confirm = useBoolean();
 
   const [tableData, setTableData] = useState<LessonListItem[]>([]);
@@ -71,6 +71,7 @@ export function LessonListView() {
     const params: Record<string, any> = {
       page: table.page + 1,
       perPage: table.rowsPerPage,
+      order: 'asc',
     };
     if (search) params.search = search;
     Object.entries({classroomId,teacherId,status,dateFrom,dateTo}).forEach(([key,value])=>{if(value)params[key]=value;});

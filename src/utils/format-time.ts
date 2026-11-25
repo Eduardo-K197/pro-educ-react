@@ -17,9 +17,9 @@ export type DatePickerFormat = Dayjs | Date | string | number | null | undefined
  * Docs: https://day.js.org/docs/en/display/format
  */
 export const formatStr = {
-  dateTime: 'DD MMM YYYY h:mm a', // 17 Apr 2022 12:00 am
-  date: 'DD MMM YYYY', // 17 Apr 2022
-  time: 'h:mm a', // 12:00 am
+  dateTime: 'DD/MM/YYYY HH:mm', // 17/04/2022 00:00
+  date: 'DD/MM/YYYY', // 17/04/2022
+  time: 'HH:mm', // 00:00
   split: {
     dateTime: 'DD/MM/YYYY h:mm a', // 17/04/2022 12:00 am
     date: 'DD/MM/YYYY', // 17/04/2022
@@ -50,16 +50,20 @@ export function fDateTime(date: DatePickerFormat, format?: string) {
 
 // ----------------------------------------------------------------------
 
-/** output: 17 Apr 2022
+// Datas puras gravadas como meia-noite UTC (ex.: 2026-11-20T00:00:00.000Z) apareceriam um dia antes no fuso do Brasil.
+const UTC_MIDNIGHT = /^(\d{4}-\d{2}-\d{2})T00:00:00(?:\.000)?Z$/;
+
+/** output: 17/04/2022
  */
 export function fDate(date: DatePickerFormat, format?: string) {
   if (!date) {
     return null;
   }
 
-  const isValid = dayjs(date).isValid();
+  const value = typeof date === 'string' ? (UTC_MIDNIGHT.exec(date)?.[1] ?? date) : date;
+  const isValid = dayjs(value).isValid();
 
-  return isValid ? dayjs(date).format(format ?? formatStr.date) : 'Invalid time value';
+  return isValid ? dayjs(value).format(format ?? formatStr.date) : 'Invalid time value';
 }
 
 // ----------------------------------------------------------------------

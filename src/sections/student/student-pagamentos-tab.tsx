@@ -45,7 +45,7 @@ import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 
-import { getTraducedStatus } from 'src/types/services/entry';
+import { getTraducedStatus, TRADUCED_STATUS_LABEL } from 'src/types/services/entry';
 
 // ----------------------------------------------------------------------
 
@@ -162,6 +162,8 @@ export function StudentPagamentosTab({ studentId }: Props) {
   const [receivingId, setReceivingId] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<EntryListItem | null>(null);
   const [canceling, setCanceling] = useState(false);
+  const [carnetToDelete, setCarnetToDelete] = useState<{ id: string; entries: EntryListItem[] } | null>(null);
+  const [deletingCarnet, setDeletingCarnet] = useState(false);
 
   // collapse state for groups
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
@@ -314,6 +316,22 @@ export function StudentPagamentosTab({ studentId }: Props) {
     }
   };
 
+  const handleConfirmDeleteCarnet = async () => {
+    if (!carnetToDelete) return;
+    setDeletingCarnet(true);
+    try {
+      await EntryService.deleteInstallment(carnetToDelete.id);
+      toast.success('Carnê apagado. Parcelas pagas foram preservadas.');
+      loadEntries();
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.response?.data?.error || 'Erro ao apagar o carnê';
+      toast.error(msg);
+    } finally {
+      setDeletingCarnet(false);
+      setCarnetToDelete(null);
+    }
+  };
+
   const toggleGroup = (instId: string) => {
     setCollapsedGroups((prev) => {
       const next = new Set(prev);
@@ -344,7 +362,7 @@ export function StudentPagamentosTab({ studentId }: Props) {
         hover
         sx={indented ? { '& .MuiTableCell-root': { pl: 4 } } : undefined}
       >
-        <TableCell>
+        <TableCell sx={{ minWidth: 200 }}>
           <Typography variant="body2">{entry.description ?? '—'}</Typography>
           {entry.installmentNumber && (
             <Typography variant="caption" color="text.disabled">
@@ -352,18 +370,18 @@ export function StudentPagamentosTab({ studentId }: Props) {
             </Typography>
           )}
         </TableCell>
-        <TableCell>
-          <Typography variant="caption" color="text.secondary">
+        <TableCell sx={{ minWidth: 140 }}>
+          <Typography variant="body2" color="text.secondary">
             {entry.category?.name ?? '—'}
           </Typography>
         </TableCell>
-        <TableCell>
-          <Typography variant="caption">
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>
+          <Typography variant="body2">
             {BILLING_LABELS[entry.billingType ?? ''] ?? entry.billingType ?? '—'}
           </Typography>
         </TableCell>
-        <TableCell>
-          <Typography variant="caption">
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>
+          <Typography variant="body2" color={status === 'Atrasado' ? 'error.main' : 'text.primary'}>
             {entry.dueDate ? fDate(entry.dueDate) : '—'}
           </Typography>
         </TableCell>
@@ -372,9 +390,9 @@ export function StudentPagamentosTab({ studentId }: Props) {
         <TableCell sx={{whiteSpace:'nowrap'}}>{fCurrency(entry.originalValue??entry.value)}</TableCell>
         <TableCell sx={{whiteSpace:'nowrap'}}>{benefit?<Stack spacing={.5}><Typography variant="body2" color="success.main">{fCurrency(benefit.discountValue)}</Typography><Typography variant="caption">Com pontualidade: {fCurrency(benefit.discountedValue)}</Typography><Typography variant="caption" color="text.secondary">{benefit.deadline?`Até ${fDate(benefit.deadline)}`:'Data-limite não informada'}</Typography></Stack>:'Não informado'}</TableCell>
         <TableCell sx={{whiteSpace:'nowrap'}}><Typography variant="body2" fontWeight={600}>{fCurrency(entry.value)}</Typography></TableCell>
-        <TableCell>
+        <TableCell sx={{ whiteSpace: 'nowrap' }}>
           <Label variant="soft" color={color}>
-            {status || '—'}
+            {(TRADUCED_STATUS_LABEL[status] ?? status) || '—'}
           </Label>
           {isSicredi && !entry.bankSlipUrl && isActive && <Typography variant="caption" color="warning.dark" sx={{ display: 'block', mt: 0.5 }}>Migrado: PDF indisponível na Sicredi</Typography>}
         </TableCell>
@@ -515,8 +533,8 @@ export function StudentPagamentosTab({ studentId }: Props) {
             <Typography variant="body2">Nenhum lançamento financeiro encontrado.</Typography>
           </Stack>
         ) : (
-          <TableContainer>
-            <Table size="small">
+          <TableContainer sx={{ overflowX: 'auto' }}>
+            <Table size="small" sx={{ minWidth: 1500, '& .MuiTableCell-head': { whiteSpace: 'nowrap' } }}>
               <TableHead>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 700 }}>Descrição</TableCell>
@@ -566,6 +584,7 @@ export function StudentPagamentosTab({ studentId }: Props) {
                       ? fmt(dueDates[0])
                       : null;
                   const count = group.entries.length;
+                  const hasOpenInstallments = group.entries.some((e) => ['Pendente', 'Atrasado'].includes(getTraducedStatus(e)));
 
                   return (
                     <React.Fragment key={`group-${instId}`}>
@@ -617,7 +636,13 @@ export function StudentPagamentosTab({ studentId }: Props) {
                           </Typography>
                         </TableCell>
                         <TableCell />
-                        <TableCell align="right">
+                        <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                          {canDeleteFinancial && hasOpenInstallments && (
+                            <Button size="small" color="error" onClick={(event) => {
+                              event.stopPropagation();
+                              setCarnetToDelete({ id: instId, entries: group.entries });
+                            }}>Apagar carnê</Button>
+                          )}
                           <Button size="small" disabled={downloadingId === instId} onClick={async (event) => {
                             event.stopPropagation(); setDownloadingId(instId);
                             try {
@@ -796,6 +821,28 @@ export function StudentPagamentosTab({ studentId }: Props) {
             disabled={canceling}
           >
             {canceling ? 'Cancelando...' : 'Confirmar cancelamento'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={!!carnetToDelete} onClose={() => !deletingCarnet && setCarnetToDelete(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Apagar carnê completo</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {(() => {
+              const items = carnetToDelete?.entries ?? [];
+              const open = items.filter((e) => ['Pendente', 'Atrasado'].includes(getTraducedStatus(e))).length;
+              const paid = items.filter((e) => getTraducedStatus(e) === 'Pago').length;
+              return `${open} parcela(s) em aberto serão canceladas${items[0]?.source === 'sicredi' || items[0]?.source === 'cora' || items[0]?.source === 'asaas' ? ', inclusive no banco' : ''}.${paid ? ` ${paid} parcela(s) paga(s) serão preservadas.` : ''} Esta ação não pode ser desfeita. Deseja continuar?`;
+            })()}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCarnetToDelete(null)} disabled={deletingCarnet}>
+            Voltar
+          </Button>
+          <Button variant="contained" color="error" onClick={handleConfirmDeleteCarnet} disabled={deletingCarnet}>
+            {deletingCarnet ? 'Apagando...' : 'Apagar carnê'}
           </Button>
         </DialogActions>
       </Dialog>

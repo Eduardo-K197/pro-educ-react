@@ -50,9 +50,9 @@ import { FinancialTableRow } from '../financial-table-row';
 
 const STATUS_OPTIONS = [
   { value: 'all', label: 'Todos' },
-  { value: 'Pendente', label: 'Pendente' },
-  { value: 'Pago', label: 'Recebido' },
-  { value: 'Atrasado', label: 'Em atraso' },
+  { value: 'Pendente', label: 'Pendente (a vencer)' },
+  { value: 'Atrasado', label: 'Vencido' },
+  { value: 'Pago', label: 'Pago' },
 ];
 
 const TABLE_HEAD = [
@@ -269,8 +269,8 @@ export function FinancialListView() {
       {/* Resumo financeiro (reflete filtros ativos) */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
         {[
-          { label: 'Pendente', value: totalPending, color: 'warning.main', icon: 'solar:clock-circle-bold-duotone' },
-          { label: 'Em atraso', value: totalOverdue, color: 'error.main', icon: 'solar:danger-triangle-bold-duotone' },
+          { label: 'Pendente (a vencer)', value: totalPending, color: 'warning.main', icon: 'solar:clock-circle-bold-duotone' },
+          { label: 'Vencido', value: totalOverdue, color: 'error.main', icon: 'solar:danger-triangle-bold-duotone' },
           { label: 'Recebido', value: totalReceived, color: 'success.main', icon: 'solar:check-circle-bold-duotone' },
         ].map((item) => (
           <Stack

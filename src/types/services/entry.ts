@@ -106,6 +106,19 @@ export function getTraducedStatus(entry: EntryListItem): TraducedStatus {
   if (['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH', 'PAID', 'PAGO'].includes(s)) return 'Pago';
   if (['OVERDUE', 'EXPIRED'].includes(s)) return 'Atrasado';
   if (['CANCELLED', 'CANCELED'].includes(s)) return 'Cancelado';
-  if (entry.traducedStatus) return entry.traducedStatus;
+  // A API grava traducedStatus 'Pendente' enquanto o status for PENDING, mesmo após o vencimento.
+  if (entry.traducedStatus && entry.traducedStatus !== 'Pendente') return entry.traducedStatus;
+  if (entry.dueDate && entry.dueDate.slice(0, 10) < todayInBrazil()) return 'Atrasado';
   return 'Pendente';
+}
+
+export const TRADUCED_STATUS_LABEL: Record<TraducedStatus, string> = {
+  Pendente: 'Pendente',
+  Pago: 'Pago',
+  Atrasado: 'Vencido',
+  Cancelado: 'Cancelado',
+};
+
+function todayInBrazil() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Recife', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 }

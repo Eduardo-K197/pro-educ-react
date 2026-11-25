@@ -87,12 +87,26 @@ export function StudentTurmasTab({ studentId, onChanged }: Props) {
     setDialogOpen(true);
   };
 
+  const selectedClassroom = classrooms.find((c) => c.id === formClassroomId);
+
+  const handleSelectClassroom = (classroomId: string) => {
+    setFormClassroomId(classroomId);
+    const start = classrooms.find((c) => c.id === classroomId)?.startAt?.slice(0, 10) ?? '';
+    setFormStartAt(start);
+    if (start && formEndAt && formEndAt < start) setFormEndAt('');
+  };
+
   const handleSave = async () => {
     if (!formClassroomId) {
       toast.error('Selecione a turma');
       return;
     }
     if (formStartAt && formEndAt && formStartAt > formEndAt) { toast.error('A conclusão deve ser igual ou posterior ao início.'); return; }
+    const classroomStart = selectedClassroom?.startAt?.slice(0, 10);
+    if (classroomStart && ((formStartAt && formStartAt < classroomStart) || (formEndAt && formEndAt < classroomStart))) {
+      toast.error(`As datas devem ser iguais ou posteriores ao início da turma (${fDate(classroomStart)}).`);
+      return;
+    }
     setSaving(true);
     try {
       await SubscriptionService.create({
@@ -108,6 +122,7 @@ export function StudentTurmasTab({ studentId, onChanged }: Props) {
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ||
+        err?.response?.data?.details?.[0]?.message ||
         err?.response?.data?.error ||
         err?.message ||
         'Erro ao matricular aluno';
@@ -298,7 +313,7 @@ export function StudentTurmasTab({ studentId, onChanged }: Props) {
               <Select
                 value={formClassroomId}
                 label="Turma *"
-                onChange={(e) => setFormClassroomId(e.target.value)}
+                onChange={(e) => handleSelectClassroom(e.target.value)}
               >
                 {classrooms.map((c) => (
                   <MenuItem key={c.id} value={c.id}>
@@ -316,6 +331,8 @@ export function StudentTurmasTab({ studentId, onChanged }: Props) {
               value={formStartAt}
               onChange={(e) => setFormStartAt(e.target.value)}
               InputLabelProps={{ shrink: true }}
+              inputProps={{ min: selectedClassroom?.startAt?.slice(0, 10) }}
+              helperText={selectedClassroom?.startAt ? `Início da turma: ${fDate(selectedClassroom.startAt.slice(0, 10))}` : undefined}
             />
             <TextField
               fullWidth
@@ -325,6 +342,7 @@ export function StudentTurmasTab({ studentId, onChanged }: Props) {
               value={formEndAt}
               onChange={(e) => setFormEndAt(e.target.value)}
               InputLabelProps={{ shrink: true }}
+              inputProps={{ min: formStartAt || selectedClassroom?.startAt?.slice(0, 10) }}
             />
           </Stack>
         </DialogContent>

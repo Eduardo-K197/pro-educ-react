@@ -30,7 +30,7 @@ import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { usePopover, CustomPopover } from 'src/components/custom-popover';
 
-import { getTraducedStatus } from 'src/types/services/entry';
+import { getTraducedStatus, TRADUCED_STATUS_LABEL } from 'src/types/services/entry';
 
 // ----------------------------------------------------------------------
 
@@ -163,7 +163,7 @@ export function FinancialTableRow({
         <TableCell>
           <Stack direction="row" spacing={0.5} alignItems="center" flexWrap="wrap">
             <Label variant="soft" color={statusColor}>
-              {displayStatus}
+              {TRADUCED_STATUS_LABEL[displayStatus] ?? displayStatus}
             </Label>
             {sourceLabel && (
               <Chip
