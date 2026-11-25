@@ -52,12 +52,22 @@ const BILLING_LABELS: Record<string, string> = {
   BOLETO: 'Boleto',
   PIX: 'PIX',
   MONEY: 'Dinheiro',
+  DINHEIRO: 'Dinheiro',
+  'CRÉDITO': 'Crédito',
+  'DÉBITO': 'Débito',
   CREDIT_CARD: 'Crédito',
   DEBIT_CARD: 'Débito',
   TRANSFER: 'Transferência',
   CRYPTO: 'Criptomoeda',
   OTHER: 'Outros',
 };
+
+const RECEIVE_METHODS = [
+  { value: 'DINHEIRO', label: 'Dinheiro' },
+  { value: 'PIX', label: 'Pix' },
+  { value: 'CRÉDITO', label: 'Crédito' },
+  { value: 'DÉBITO', label: 'Débito' },
+];
 
 interface Props {
   studentId: number;
@@ -145,6 +155,11 @@ export function StudentPagamentosTab({ studentId }: Props) {
   // action states
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [receivingId, setReceivingId] = useState<string | null>(null);
+  const [receiveTarget, setReceiveTarget] = useState<EntryListItem | null>(null);
+  const [receiveValue, setReceiveValue] = useState('');
+  const [receiveMethod, setReceiveMethod] = useState('DINHEIRO');
+  const [receiveDate, setReceiveDate] = useState('');
+  const [receiving, setReceiving] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<EntryListItem | null>(null);
   const [canceling, setCanceling] = useState(false);
 
@@ -269,6 +284,52 @@ export function StudentPagamentosTab({ studentId }: Props) {
       toast.error(msg);
     } finally {
       setReceivingId(null);
+    }
+  };
+
+  const openReceiveDialog = (entry: EntryListItem) => {
+    setReceiveTarget(entry);
+    setReceiveValue(String(entry.value ?? ''));
+    setReceiveMethod('DINHEIRO');
+    setReceiveDate(new Date().toISOString().slice(0, 10));
+  };
+
+  const handleConfirmReceive = async () => {
+    if (!receiveTarget) return;
+    const value = Number(String(receiveValue).replace(',', '.'));
+    if (!value || value <= 0) {
+      toast.error('Informe um valor recebido válido');
+      return;
+    }
+    if (!receiveDate) {
+      toast.error('Informe a data do recebimento');
+      return;
+    }
+    setReceiving(true);
+    try {
+      if (receiveTarget.payment && receiveTarget.source !== 'proeduc' && receiveTarget.source !== 'manual') {
+        await EntryService.updatePayment(receiveTarget.payment, {
+          value,
+          paymentDate: receiveDate,
+          billingType: receiveMethod,
+        });
+      } else {
+        await EntryService.updateEntry(receiveTarget.id, {
+          status: 'RECEIVED_IN_CASH',
+          value,
+          paymentDate: receiveDate,
+          billingType: receiveMethod,
+          paymentType: receiveMethod,
+        });
+      }
+      toast.success('Baixa registrada com sucesso!');
+      setReceiveTarget(null);
+      loadEntries();
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.response?.data?.error || 'Erro ao registrar a baixa';
+      toast.error(msg);
+    } finally {
+      setReceiving(false);
     }
   };
 
@@ -464,6 +525,13 @@ export function StudentPagamentosTab({ studentId }: Props) {
                     )}
                   </IconButton>
                 </span>
+              </Tooltip>
+            )}
+            {isActive && (
+              <Tooltip title='Baixa manual (recebido no balcão)'>
+                <IconButton size='small' color='success' onClick={() => openReceiveDialog(entry)}>
+                  <Iconify icon='solar:wallet-money-bold' width={16} />
+                </IconButton>
               </Tooltip>
             )}
             {isActive && (
@@ -744,6 +812,51 @@ export function StudentPagamentosTab({ studentId }: Props) {
           </Button>
           <Button variant="contained" onClick={handleSave} disabled={saving || !!linhaDigitavel}>
             {saving ? 'Salvando...' : 'Salvar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Diálogo: baixa manual no balcão */}
+      <Dialog open={!!receiveTarget} onClose={() => !receiving && setReceiveTarget(null)} maxWidth='xs' fullWidth>
+        <DialogTitle>Baixa manual (recebido no balcão)</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            <TextField
+              label='Valor recebido (R$)'
+              value={receiveValue}
+              onChange={(e) => setReceiveValue(e.target.value)}
+              fullWidth
+            />
+            <TextField
+              label='Data do recebimento'
+              type='date'
+              value={receiveDate}
+              onChange={(e) => setReceiveDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+            />
+            <FormControl fullWidth>
+              <InputLabel>Forma de recebimento</InputLabel>
+              <Select
+                label='Forma de recebimento'
+                value={receiveMethod}
+                onChange={(e) => setReceiveMethod(String(e.target.value))}
+              >
+                {RECEIVE_METHODS.map((m) => (
+                  <MenuItem key={m.value} value={m.value}>
+                    {m.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setReceiveTarget(null)} disabled={receiving}>
+            Voltar
+          </Button>
+          <Button variant='contained' color='success' onClick={handleConfirmReceive} disabled={receiving}>
+            {receiving ? 'Baixando...' : 'Confirmar baixa'}
           </Button>
         </DialogActions>
       </Dialog>

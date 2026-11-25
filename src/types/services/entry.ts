@@ -81,6 +81,9 @@ export interface EntryCreatePayload {
 export interface EntryUpdatePayload {
   value?: number;
   paidAt?: string;
+  paymentDate?: string;
+  billingType?: string;
+  paymentType?: string;
   status?: string;
   description?: string;
 }
