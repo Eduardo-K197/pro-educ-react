@@ -107,6 +107,16 @@ export const navAdmin = [
         path: paths.dashboard.financial.root,
         icon: ICONS.banking,
       },
+      {
+        title: 'CRM',
+        path: paths.dashboard.crm.root,
+        icon: <Iconify icon="solar:chat-round-dots-bold-duotone" />,
+        children: [
+          { title: 'Visão geral', path: paths.dashboard.crm.root },
+          { title: 'Setores', path: paths.dashboard.crm.departments },
+          { title: 'Membros', path: paths.dashboard.crm.members },
+        ],
+      },
     ],
   },
 ];
