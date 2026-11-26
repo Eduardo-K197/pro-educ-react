@@ -49,6 +49,10 @@ export const paths = {
       root: `${ROOTS.DASHBOARD}/crm`,
       departments: `${ROOTS.DASHBOARD}/crm/departments`,
       members: `${ROOTS.DASHBOARD}/crm/members`,
+      inbox: `${ROOTS.DASHBOARD}/crm/inbox`,
+      channels: `${ROOTS.DASHBOARD}/crm/channels`,
+      quickReplies: `${ROOTS.DASHBOARD}/crm/quick-replies`,
+      tags: `${ROOTS.DASHBOARD}/crm/tags`,
     },
     teachers: {
       root: `${ROOTS.DASHBOARD}/teachers`,

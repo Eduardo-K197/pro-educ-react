@@ -58,9 +58,21 @@ export function CrmOverviewView() {
                 )}
               </Stack>
               <Typography variant="body2" sx={{ color: 'text.secondary', mt: 2 }}>
-                O atendimento por WhatsApp será habilitado nas próximas etapas. Por enquanto,
-                configure os setores e a equipe que vai atender.
+                As conversas de WhatsApp chegam em tempo real na caixa de entrada.
               </Typography>
+              <Stack direction="row" spacing={1.5} sx={{ mt: 2 }} flexWrap="wrap" useFlexGap>
+                <Button
+                  component={RouterLink}
+                  href={paths.dashboard.crm.inbox}
+                  variant="contained"
+                  startIcon={<Iconify icon="solar:chat-round-dots-bold" />}
+                >
+                  Abrir atendimento
+                </Button>
+                <Button component={RouterLink} href={paths.dashboard.crm.quickReplies} variant="outlined">
+                  Respostas rápidas
+                </Button>
+              </Stack>
             </Card>
           </Grid>
 
@@ -71,6 +83,17 @@ export function CrmOverviewView() {
                   Configuração
                 </Typography>
                 <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
+                  <Button
+                    component={RouterLink}
+                    href={paths.dashboard.crm.channels}
+                    variant="outlined"
+                    startIcon={<Iconify icon="logos:whatsapp-icon" />}
+                  >
+                    Canais
+                  </Button>
+                  <Button component={RouterLink} href={paths.dashboard.crm.tags} variant="outlined">
+                    Tags
+                  </Button>
                   <Button
                     component={RouterLink}
                     href={paths.dashboard.crm.departments}

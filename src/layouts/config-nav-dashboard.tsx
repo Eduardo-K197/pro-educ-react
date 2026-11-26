@@ -113,6 +113,10 @@ export const navAdmin = [
         icon: <Iconify icon="solar:chat-round-dots-bold-duotone" />,
         children: [
           { title: 'Visão geral', path: paths.dashboard.crm.root },
+          { title: 'Atendimento', path: paths.dashboard.crm.inbox },
+          { title: 'Respostas rápidas', path: paths.dashboard.crm.quickReplies },
+          { title: 'Tags', path: paths.dashboard.crm.tags },
+          { title: 'Canais', path: paths.dashboard.crm.channels },
           { title: 'Setores', path: paths.dashboard.crm.departments },
           { title: 'Membros', path: paths.dashboard.crm.members },
         ],
