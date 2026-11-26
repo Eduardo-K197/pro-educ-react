@@ -1,3 +1,4 @@
+import { CrmModuleGate } from 'src/sections/crm/crm-module-gate';
 import { CrmLayoutProviders } from 'src/sections/crm/crm-layout-providers';
 
 // ----------------------------------------------------------------------
@@ -7,5 +8,9 @@ type Props = {
 };
 
 export default function Layout({ children }: Props) {
-  return <CrmLayoutProviders>{children}</CrmLayoutProviders>;
+  return (
+    <CrmModuleGate>
+      <CrmLayoutProviders>{children}</CrmLayoutProviders>
+    </CrmModuleGate>
+  );
 }

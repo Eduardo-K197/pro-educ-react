@@ -18,7 +18,10 @@ import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
+import { useAuthContext } from 'src/auth/hooks';
+
 import { SchoolEmployees } from './school-employees';
+import { SchoolModulesCard } from './school-modules-card';
 import { SchoolQuickAddAdmin } from './school-quick-add-admin';
 
 export function SchoolDetailsView() {
@@ -27,6 +30,8 @@ export function SchoolDetailsView() {
 
   const router = useRouter();
   const { enterSchool } = useSchoolMode();
+  const { user } = useAuthContext();
+  const isSuperAdmin = user?.role === 'superAdmin';
 
   const [school, setSchool] = useState<SchoolDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -324,6 +329,8 @@ export function SchoolDetailsView() {
           </div>
         </Stack>
       </Card>
+
+      {isSuperAdmin && <SchoolModulesCard schoolId={school.id} />}
 
       <SchoolQuickAddAdmin
         open={openAddAdmin}

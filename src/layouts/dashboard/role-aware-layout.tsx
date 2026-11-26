@@ -1,10 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+
+import { paths } from 'src/routes/paths';
+
+import { useSchoolModules } from 'src/hooks/use-school-modules';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -41,7 +45,16 @@ export function RoleAwareDashboardLayout({ children }: Props) {
 
   const isSuperAdmin = role === 'superAdmin';
   const useAdminNav = !isSuperAdmin || schoolMode;
-  const nav = useAdminNav ? navAdmin : navSuperAdmin;
+  const { modules } = useSchoolModules();
+  const nav = useMemo(() => {
+    const base = useAdminNav ? navAdmin : navSuperAdmin;
+    if (modules.crm) return base;
+    // CRM é módulo pago: sem contrato, o item some do menu.
+    return base.map((section) => ({
+      ...section,
+      items: section.items.filter((item) => item.path !== paths.dashboard.crm.root),
+    }));
+  }, [useAdminNav, modules.crm]);
 
   const handleExitSchool = () => {
     sessionStorage.removeItem(SCHOOL_MODE_KEY);
