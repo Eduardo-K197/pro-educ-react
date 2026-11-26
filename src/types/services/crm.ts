@@ -111,6 +111,7 @@ export type CrmConversationChannel = {
   canInitiate?: boolean;
   freeformWindowHours?: number | null;
   agentsSeeUnassigned?: boolean;
+  deleted?: boolean;
 };
 
 export type CrmConversation = {

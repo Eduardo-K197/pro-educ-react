@@ -255,8 +255,10 @@ export class CrmService {
     return ApiService.put<CrmChannelPayload, CrmChannel>(`${this.BASE_PATH}/channels/${id}`, payload);
   }
 
-  static deleteChannel(id: string): Promise<void> {
-    return ApiService.delete<void>(`${this.BASE_PATH}/channels/${id}`);
+  static deleteChannel(
+    id: string
+  ): Promise<{ removed: 'hard' | 'soft'; closedConversations: number; providerWarning: string | null }> {
+    return ApiService.delete(`${this.BASE_PATH}/channels/${id}`);
   }
 
   static connectChannel(id: string): Promise<{ status: string; detail: string | null }> {

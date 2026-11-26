@@ -228,14 +228,20 @@ function CrmChannelList() {
         open={!!removing}
         onClose={() => setRemoving(null)}
         title="Remover canal"
-        content={`Remover "${removing?.name}"? As conversas existentes continuam no histórico, mas o canal deixa de receber e enviar.`}
+        content={`Remover "${removing?.name}"? A sessão no WhatsApp é encerrada, as conversas abertas são encerradas e o histórico é preservado.`}
         action={
           <Button
             variant="contained"
             color="error"
             onClick={async () => {
               try {
-                await CrmService.deleteChannel(removing!.id);
+                const res = await CrmService.deleteChannel(removing!.id);
+                if (res?.providerWarning) toast.warning(res.providerWarning);
+                toast.success(
+                  res?.removed === 'soft'
+                    ? `Canal removido; ${res.closedConversations} conversa(s) aberta(s) encerrada(s), histórico preservado`
+                    : 'Canal removido'
+                );
                 setRemoving(null);
                 load();
               } catch (err: any) {
