@@ -1,6 +1,6 @@
 'use client';
 
-import type { LessonInput, ModuleInput, LearningLesson, LearningModule, LearningCourseTree } from 'src/services/learning';
+import type { LessonInput , ModuleInput, LearningLesson, LearningModule, LearningCourseTree, LearningMediaConfig } from 'src/services/learning';
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -17,6 +17,8 @@ import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { paths } from 'src/routes/paths';
+
+import { putDirect, fileContentType } from 'src/utils/direct-upload';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 import { LearningService, LearningVideoApi } from 'src/services/learning';
@@ -52,14 +54,14 @@ export function LearningCourseView({ id }: { id: string }) {
   const [tree, setTree] = useState<LearningCourseTree | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'content' | 'assessments' | 'progress'>('content');
-  const [bunnyEnabled, setBunnyEnabled] = useState(false);
+  const [media, setMedia] = useState<LearningMediaConfig | null>(null);
   const [uploadLesson, setUploadLesson] = useState<LearningLesson | null>(null);
 
   useEffect(() => {
     // Sem Bunny configurado na API, a opção de upload nem aparece.
     LearningVideoApi.config()
-      .then((c) => setBunnyEnabled(c.bunny))
-      .catch(() => setBunnyEnabled(false));
+      .then(setMedia)
+      .catch(() => setMedia(null));
   }, []);
 
   const [moduleDialog, setModuleDialog] = useState<{ open: boolean; module: LearningModule | null }>({ open: false, module: null });
@@ -122,7 +124,14 @@ export function LearningCourseView({ id }: { id: string }) {
     await run(async () => {
       let saved = lesson ? await LearningService.updateLesson(lesson.id, firstSave) : await LearningService.createLesson(moduleId, firstSave);
       if (file) {
-        saved = await LearningService.uploadLessonFile(saved.id, file);
+        if (media?.directFiles) {
+          // R2/S3: o arquivo vai direto do navegador para o bucket (PUT pré-assinado).
+          const ticket = await LearningVideoApi.requestUpload(saved.id, 'file', { fileName: file.name, contentType: fileContentType(file), size: file.size });
+          await putDirect(ticket.uploadUrl, file, ticket.headers);
+          saved = await LearningVideoApi.confirmUpload(saved.id, 'file', { key: ticket.key, fileName: file.name });
+        } else {
+          saved = await LearningService.uploadLessonFile(saved.id, file);
+        }
         if (wantPublish && !saved.published) await LearningService.updateLesson(saved.id, { published: true });
       }
     }, lesson ? 'Aula atualizada' : 'Aula criada');
@@ -288,7 +297,8 @@ export function LearningCourseView({ id }: { id: string }) {
                       {lesson.durationSec ? ` · ${fDuration(lesson.durationSec)}` : ''}
                       {lesson.required ? ' · obrigatória' : ' · opcional'}
                       {lesson.file ? ` · ${lesson.file.name}` : ''}
-                      {lesson.videoProvider === 'bunny' ? ' · vídeo próprio' : ''}
+                      {lesson.videoProvider === 'bunny' ? ' · Bunny Stream' : ''}
+                      {lesson.videoProvider === 'storage' ? ' · MP4 próprio' : ''}
                     </Typography>
                   </Box>
                   {lesson.videoProvider === 'bunny' && (
@@ -303,7 +313,7 @@ export function LearningCourseView({ id }: { id: string }) {
                       </IconButton>
                     </Tooltip>
                   )}
-                  {canEdit && bunnyEnabled && lesson.type === 'video' && (
+                  {canEdit && (media?.bunny || media?.storage) && lesson.type === 'video' && (
                     <Tooltip title="Enviar vídeo próprio">
                       <IconButton size="small" onClick={() => setUploadLesson(lesson)}>
                         <Iconify icon="eva:cloud-upload-fill" />
@@ -379,8 +389,13 @@ export function LearningCourseView({ id }: { id: string }) {
       <LearningVideoUploadDialog
         lesson={uploadLesson}
         onClose={() => setUploadLesson(null)}
-        onDone={() => {
-          toast.success('Vídeo enviado. Ele aparece para os alunos assim que terminar o processamento.');
+        config={media}
+        onDone={(target) => {
+          toast.success(
+            target === 'storage'
+              ? 'Vídeo enviado e já disponível para os alunos.'
+              : 'Vídeo enviado. Ele aparece para os alunos assim que terminar o processamento.'
+          );
           load();
         }}
       />

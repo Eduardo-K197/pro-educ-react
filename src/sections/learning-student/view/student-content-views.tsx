@@ -27,9 +27,9 @@ import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { EmptyContent } from 'src/components/empty-content';
 
-import { usePlayerWatch } from '../use-player-watch';
 import { useStudentSession } from '../student-session';
 import { StudentProgressBar } from '../student-progress-bar';
+import { usePlayerWatch, useVideoElementWatch } from '../use-player-watch';
 import { fBytes, fDuration, LESSON_TYPE_ICON } from '../../learning/utils';
 
 // ----------------------------------------------------------------------
@@ -367,19 +367,18 @@ export function StudentLessonView({ id }: { id: string }) {
   const { data: lesson, error, loading, setData } = useLoad<MyLesson>(loader);
   const [completing, setCompleting] = useState(false);
   const playerRef = useRef<HTMLIFrameElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const html5 = lesson?.player === 'html5';
 
-  // Vídeo próprio (Bunny): conta o tempo assistido e conclui sozinho em 90%.
-  usePlayerWatch({
-    lessonId: id,
-    enabled: !!lesson?.trackWatch && !!lesson?.embedUrl,
-    iframe: playerRef,
-    onCompleted: () => {
-      if (lesson && !lesson.completed) {
-        setData({ ...lesson, completed: true });
-        toast.success('Aula concluída pelo tempo assistido!');
-      }
-    },
-  });
+  // Vídeo próprio (Bunny ou MP4 no R2): conta o tempo assistido e conclui sozinho em 90%.
+  const onWatchedEnough = () => {
+    if (lesson && !lesson.completed) {
+      setData({ ...lesson, completed: true });
+      toast.success('Aula concluída pelo tempo assistido!');
+    }
+  };
+  usePlayerWatch({ lessonId: id, enabled: !!lesson?.trackWatch && !!lesson?.embedUrl && !html5, iframe: playerRef, onCompleted: onWatchedEnough });
+  useVideoElementWatch({ lessonId: id, enabled: !!lesson?.trackWatch && !!lesson?.embedUrl && html5, video: videoRef, onCompleted: onWatchedEnough });
 
   useEffect(() => {
     if (typeof window !== 'undefined') window.scrollTo({ top: 0 });
@@ -427,7 +426,21 @@ export function StudentLessonView({ id }: { id: string }) {
         </Alert>
       )}
 
-      {lesson.type === 'video' && lesson.embedUrl && (
+      {lesson.type === 'video' && lesson.embedUrl && lesson.player === 'html5' && (
+        <Box
+          component="video"
+          ref={videoRef}
+          src={lesson.embedUrl}
+          controls
+          playsInline
+          preload="metadata"
+          controlsList="nodownload"
+          onContextMenu={(e: React.MouseEvent) => e.preventDefault()}
+          sx={{ width: 1, borderRadius: 1.5, bgcolor: 'common.black', aspectRatio: '16 / 9' }}
+        />
+      )}
+
+      {lesson.type === 'video' && lesson.embedUrl && lesson.player !== 'html5' && (
         <Box sx={{ position: 'relative', width: 1, pt: '56.25%', borderRadius: 1.5, overflow: 'hidden', bgcolor: 'common.black' }}>
           <Box
             component="iframe"

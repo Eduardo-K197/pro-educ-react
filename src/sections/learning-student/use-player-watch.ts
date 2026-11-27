@@ -90,3 +90,49 @@ export function usePlayerWatch({ lessonId, enabled, iframe, onCompleted }: Optio
     };
   }, [enabled, lessonId, iframe]);
 }
+
+// ----------------------------------------------------------------------
+
+/** Mesmo heartbeat para o <video> HTML5 (MP4 no R2/S3), pelo timeupdate/ended. */
+export function useVideoElementWatch({
+  lessonId,
+  enabled,
+  video,
+  onCompleted,
+}: {
+  lessonId: string;
+  enabled: boolean;
+  video: React.RefObject<HTMLVideoElement>;
+  onCompleted?: () => void;
+}) {
+  const completedRef = useRef(onCompleted);
+  completedRef.current = onCompleted;
+
+  useEffect(() => {
+    const el = video.current;
+    if (!enabled || !el) return undefined;
+    const s = { lastUpdate: 0, completed: false };
+    const onTime = () => {
+      if (!el.paused) s.lastUpdate = Date.now();
+    };
+    const beat = () => {
+      if (s.completed || !s.lastUpdate || Date.now() - s.lastUpdate > HEARTBEAT_MS + 5000) return;
+      StudentLearningApi.watch(lessonId, el.currentTime, Number.isFinite(el.duration) ? el.duration : undefined)
+        .then((r) => {
+          if (r.completed && !s.completed) {
+            s.completed = true;
+            completedRef.current?.();
+          }
+        })
+        .catch(() => {});
+    };
+    el.addEventListener('timeupdate', onTime);
+    el.addEventListener('ended', beat);
+    const timer = window.setInterval(beat, HEARTBEAT_MS);
+    return () => {
+      el.removeEventListener('timeupdate', onTime);
+      el.removeEventListener('ended', beat);
+      window.clearInterval(timer);
+    };
+  }, [enabled, lessonId, video]);
+}

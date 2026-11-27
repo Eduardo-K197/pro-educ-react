@@ -130,6 +130,8 @@ export type MyLesson = ProgressSummary & {
   embedUrl: string | null;
   videoProvider: string | null;
   videoStatus: string | null;
+  /** iframe (YouTube/Vimeo/Bunny) ou html5 (<video> com MP4 do R2/S3). */
+  player: 'iframe' | 'html5';
   trackWatch: boolean;
   watchedSec: number;
   durationSec: number | null;

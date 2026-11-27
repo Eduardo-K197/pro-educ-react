@@ -58,7 +58,7 @@ export function LearningLessonDialog({ open, lesson, onClose, onSubmit }: Props)
   }, [open, lesson]);
 
   const hasFile = !!file || !!lesson?.file;
-  const ownVideo = lesson?.videoProvider === 'bunny';
+  const ownVideo = lesson?.videoProvider === 'bunny' || lesson?.videoProvider === 'storage';
   const canPublish =
     type === 'video' ? !!videoUrl.trim() || ownVideo : type === 'file' ? hasFile : !!body.replace(/<[^>]*>/g, '').trim();
 
