@@ -25,7 +25,7 @@ import { toast } from 'src/components/snackbar';
 
 import { CRM_DEAL_SOURCES } from 'src/types/services/crm-deal';
 
-import { useCrmAgents } from './deal-utils';
+import { useGrowthOwners, useGrowthCourses } from './deal-utils';
 
 // ----------------------------------------------------------------------
 
@@ -44,6 +44,7 @@ type FormState = {
   title: string;
   studentName: string;
   studentBirthDate: string;
+  interestCourseId: string;
   interestLabel: string;
   guardianName: string;
   guardianPhone: string;
@@ -63,6 +64,7 @@ function initial(deal?: CrmDeal | null): FormState {
     title: deal?.title ?? '',
     studentName: deal?.studentName ?? '',
     studentBirthDate: deal?.studentBirthDate?.slice(0, 10) ?? '',
+    interestCourseId: deal?.interestCourseId ?? '',
     interestLabel: deal?.interestLabel ?? '',
     guardianName: deal?.guardianName ?? '',
     guardianPhone: deal?.guardianPhone ?? '',
@@ -80,7 +82,8 @@ export function CrmDealFormDialog({ open, onClose, onSaved, deal, pipeline, stag
   const [form, setForm] = useState<FormState>(() => initial(deal));
   const [tags, setTags] = useState<CrmTag[]>([]);
   const [saving, setSaving] = useState(false);
-  const agents = useCrmAgents(open && canSupervise);
+  const owners = useGrowthOwners(open && canSupervise);
+  const courses = useGrowthCourses(open);
 
   useEffect(() => {
     if (!open) return;
@@ -102,6 +105,7 @@ export function CrmDealFormDialog({ open, onClose, onSaved, deal, pipeline, stag
       title: form.title.trim() || null,
       studentName: form.studentName.trim() || null,
       studentBirthDate: form.studentBirthDate || null,
+      interestCourseId: form.interestCourseId || null,
       interestLabel: form.interestLabel.trim() || null,
       guardianName: form.guardianName.trim() || null,
       guardianPhone: form.guardianPhone.trim() || null,
@@ -152,12 +156,23 @@ export function CrmDealFormDialog({ open, onClose, onSaved, deal, pipeline, stag
           </Typography>
           <TextField label="Nome do aluno" value={form.studentName} onChange={set('studentName')} inputProps={{ maxLength: 120 }} />
           <TextField label="Data de nascimento" type="date" value={form.studentBirthDate} onChange={set('studentBirthDate')} InputLabelProps={{ shrink: true }} />
+          <TextField select label="Curso de interesse" value={form.interestCourseId} onChange={set('interestCourseId')}>
+            <MenuItem value="">Não definido</MenuItem>
+            {courses.map((c) => (
+              <MenuItem key={c.id} value={c.id}>
+                {c.name}
+              </MenuItem>
+            ))}
+            {form.interestCourseId && !courses.some((c) => c.id === form.interestCourseId) && (
+              <MenuItem value={form.interestCourseId}>{deal?.interestLabel ?? 'Curso atual'}</MenuItem>
+            )}
+          </TextField>
           <TextField
-            label="Série / curso de interesse"
+            label="Série / turno de interesse"
             value={form.interestLabel}
             onChange={set('interestLabel')}
+            helperText="Vazio = nome do curso"
             inputProps={{ maxLength: 120 }}
-            sx={{ gridColumn: { sm: '1 / -1' } }}
           />
 
           <Typography variant="subtitle2" sx={{ gridColumn: '1 / -1', mt: 1 }}>
@@ -175,12 +190,12 @@ export function CrmDealFormDialog({ open, onClose, onSaved, deal, pipeline, stag
           {canSupervise && (
             <TextField select label="Responsável comercial" value={form.owner} onChange={set('owner')}>
               <MenuItem value="">{deal ? 'Sem responsável' : 'Eu mesmo'}</MenuItem>
-              {agents.map((a) => (
+              {owners.map((a) => (
                 <MenuItem key={`${a.userType}:${a.userId}`} value={`${a.userType}:${a.userId}`}>
                   {a.name}
                 </MenuItem>
               ))}
-              {form.owner && !agents.some((a) => `${a.userType}:${a.userId}` === form.owner) && (
+              {form.owner && !owners.some((a) => `${a.userType}:${a.userId}` === form.owner) && (
                 <MenuItem value={form.owner}>{deal?.owner?.name ?? 'Responsável atual'}</MenuItem>
               )}
             </TextField>

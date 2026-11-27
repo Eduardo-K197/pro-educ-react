@@ -133,9 +133,9 @@ export const navAdmin = [
         children: [
           { title: 'Funil', path: paths.dashboard.growth.funnel },
           { title: 'Leads', path: paths.dashboard.growth.leads },
+          { title: 'Tarefas', path: paths.dashboard.growth.tasks },
           { title: 'Recuperação', path: paths.dashboard.growth.recovery },
           { title: 'Retenção', path: paths.dashboard.growth.retention },
-          { title: 'Tarefas', path: paths.dashboard.growth.tasks },
           { title: 'Configurações', path: paths.dashboard.growth.settings },
         ],
       },

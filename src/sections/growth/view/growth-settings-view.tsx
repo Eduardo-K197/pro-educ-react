@@ -53,10 +53,11 @@ export function GrowthSettingsView() {
 }
 
 const FIELDS: { key: keyof GrowthSettings; label: string; help: string; min: number; max: number }[] = [
-  { key: 'stalledDays', label: 'Lead parado após (dias)', help: 'Sem mensagem do contato nem mudança de etapa. Usado na Recuperação.', min: 1, max: 365 },
-  { key: 'overdueGraceDays', label: 'Inadimplência após (dias de atraso)', help: 'Cobrança vencida há mais que isso coloca o aluno em risco.', min: 0, max: 90 },
-  { key: 'absenceThreshold', label: 'Faltas para entrar em risco', help: 'Faltas não justificadas dentro da janela abaixo.', min: 1, max: 100 },
-  { key: 'absenceWindowDays', label: 'Janela de faltas (dias)', help: 'Período considerado para contar as faltas.', min: 7, max: 180 },
+  { key: 'lostRecentDays', label: 'Perdidos recentes (dias)', help: 'Recuperação lista os leads perdidos neste período. O prazo de lead parado fica em cada funil.', min: 7, max: 730 },
+  { key: 'overdueGraceDays', label: 'Mensalidade em atraso há mais de (dias)', help: 'Cobrança vencida há mais que isso coloca o aluno em risco.', min: 0, max: 90 },
+  { key: 'absenceRatePercent', label: 'Faltas acima de (%)', help: 'Percentual de faltas sobre as aulas com frequência lançada na janela.', min: 1, max: 100 },
+  { key: 'absenceWindowDays', label: 'Janela da frequência (dias)', help: 'Período considerado para calcular as faltas.', min: 7, max: 180 },
+  { key: 'absenceMinClasses', label: 'Mínimo de aulas na janela', help: 'Abaixo disso a taxa não é calculada (evita 1 falta em 1 aula = 100%).', min: 1, max: 100 },
 ];
 
 function RulesForm() {
@@ -99,7 +100,7 @@ function RulesForm() {
         ))}
       </Box>
       <Alert severity="info" sx={{ mt: 3 }}>
-        A retenção usa só dados que já existem: cobranças vencidas ligadas ao aluno (financeiro) e faltas lançadas na frequência. Nada é enviado ao aluno
+        A retenção usa só dados que já existem: mensalidades vencidas ligadas ao aluno (financeiro) e faltas lançadas na frequência. Nada é enviado ao aluno
         automaticamente.
       </Alert>
       <Stack direction="row" justifyContent="flex-end" sx={{ mt: 3 }}>

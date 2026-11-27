@@ -1,24 +1,35 @@
 'use client';
 
-import type { CrmAgent } from 'src/types/services/crm';
-import type { CrmDeal, CrmTask, CrmPipeline } from 'src/types/services/crm-deal';
+import type { CrmDeal, CrmTask, CrmPipeline, GrowthOwner, GrowthCourse } from 'src/types/services/crm-deal';
 
 import { useState, useEffect } from 'react';
 
-import { CrmService } from 'src/services/crm';
+import { GrowthService } from 'src/services/growth';
 
 // ----------------------------------------------------------------------
 
-/** Membros do CRM (para escolher responsável comercial / de tarefa). */
-export function useCrmAgents(enabled = true) {
-  const [agents, setAgents] = useState<CrmAgent[]>([]);
+/** Quem pode ser responsável (membros ativos do CRM + admins da escola). */
+export function useGrowthOwners(enabled = true) {
+  const [owners, setOwners] = useState<GrowthOwner[]>([]);
   useEffect(() => {
     if (!enabled) return;
-    CrmService.listAgents()
-      .then(setAgents)
-      .catch(() => setAgents([]));
+    GrowthService.listOwners()
+      .then(setOwners)
+      .catch(() => setOwners([]));
   }, [enabled]);
-  return agents;
+  return owners;
+}
+
+/** Cursos da escola (curso de interesse do lead). */
+export function useGrowthCourses(enabled = true) {
+  const [courses, setCourses] = useState<GrowthCourse[]>([]);
+  useEffect(() => {
+    if (!enabled) return;
+    GrowthService.listCourses()
+      .then(setCourses)
+      .catch(() => setCourses([]));
+  }, [enabled]);
+  return courses;
 }
 
 export function stageOf(pipeline: CrmPipeline | null | undefined, stageId: string) {

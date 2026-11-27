@@ -95,25 +95,28 @@ function Recovery() {
           value={type}
           onChange={(_e, v) => {
             setType(v);
+            setDays('');
             setPage(1);
           }}
         >
           <Tab value="stalled" label="Parados" />
           <Tab value="lost" label="Perdidos" />
         </Tabs>
-        {type === 'stalled' && (
-          <TextField
-            size="small"
-            type="number"
-            label="Sem atividade há (dias)"
-            value={days || result?.days || ''}
-            onChange={(e) => {
-              setDays(Math.max(1, Math.min(365, Number(e.target.value) || 1)));
-              setPage(1);
-            }}
-            sx={{ width: 200 }}
-          />
-        )}
+        <TextField
+          size="small"
+          type="number"
+          label={type === 'stalled' ? 'Sem atividade há (dias)' : 'Perdidos nos últimos (dias)'}
+          placeholder={type === 'stalled' ? 'Prazo de cada funil' : undefined}
+          value={days !== '' ? days : (type === 'lost' && result?.days) || ''}
+          onChange={(e) => {
+            const v = e.target.value;
+            setDays(v === '' ? '' : Math.max(1, Math.min(730, Math.round(Number(v) || 1))));
+            setPage(1);
+          }}
+          helperText={type === 'stalled' && days === '' ? 'Vazio = prazo configurado em cada funil' : ' '}
+          InputLabelProps={{ shrink: true }}
+          sx={{ width: 230 }}
+        />
       </Stack>
       <TableContainer>
         <Table size="small">

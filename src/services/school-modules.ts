@@ -5,6 +5,7 @@ export type SchoolModuleName = 'crm' | 'intelligence' | 'learning' | 'growth';
 export type SchoolModuleInfo = {
   module: SchoolModuleName;
   label: string;
+  description?: string | null;
   enabled: boolean;
   enabledAt: string | null;
   disabledAt: string | null;
