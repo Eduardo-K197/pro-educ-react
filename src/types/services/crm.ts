@@ -113,6 +113,7 @@ export type CrmConversationChannel = {
   freeformWindowHours?: number | null;
   agentsSeeUnassigned?: boolean;
   deleted?: boolean;
+  capabilities?: { templates?: boolean; editMessages?: boolean; deleteMessages?: boolean; reactions?: boolean };
 };
 
 export type CrmConversation = {
@@ -190,6 +191,8 @@ export type CrmMessage = {
   edited: boolean;
   deleted: boolean;
   reaction: string | null;
+  /** Reação enviada por nós (atendente). */
+  myReaction?: string | null;
   location: { latitude: number; longitude: number; name?: string } | null;
   vCards: string[] | null;
   event: Record<string, unknown> | null;
@@ -247,6 +250,9 @@ export type CrmContact = {
   studentId: number | null;
   guardianId: string | null;
   lastInboundAt: string | null;
+  /** Respondeu SAIR/PARAR: nunca recebe campanha. */
+  optedOut?: boolean;
+  optedOutAt?: string | null;
   tags: CrmTag[];
   createdAt: string;
 };
@@ -263,6 +269,7 @@ export type CrmContactPayload = {
   notes?: string | null;
   studentId?: number | null;
   guardianId?: string | null;
+  optedOut?: boolean;
 };
 
 export type CrmLinkSearch = {
@@ -276,6 +283,8 @@ export type CrmAgent = {
   name: string | null;
   role: CrmRole;
   departments: { id: string; name: string }[];
+  /** Admin da escola sem cadastro em membros (gestor implícito). */
+  implicit?: boolean;
 };
 
 export type CrmChannelState =

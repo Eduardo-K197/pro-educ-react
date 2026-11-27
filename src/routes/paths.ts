@@ -71,6 +71,10 @@ export const paths = {
       channels: `${ROOTS.DASHBOARD}/crm/channels`,
       quickReplies: `${ROOTS.DASHBOARD}/crm/quick-replies`,
       tags: `${ROOTS.DASHBOARD}/crm/tags`,
+      templates: `${ROOTS.DASHBOARD}/crm/templates`,
+      campaigns: `${ROOTS.DASHBOARD}/crm/campaigns`,
+      campaign: (id: string) => `${ROOTS.DASHBOARD}/crm/campaigns/${id}`,
+      reports: `${ROOTS.DASHBOARD}/crm/reports`,
     },
     learning: {
       root: `${ROOTS.DASHBOARD}/learning`,
