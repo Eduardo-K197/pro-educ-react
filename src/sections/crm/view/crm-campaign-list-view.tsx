@@ -22,6 +22,7 @@ import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
 import { useBoolean } from 'src/hooks/use-boolean';
+import { hasCrmRole } from 'src/hooks/use-crm-permission';
 
 import { fNumber } from 'src/utils/format-number';
 import { fDateTime } from 'src/utils/format-time';
@@ -38,6 +39,7 @@ import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import { CRM_CAMPAIGN_STATUS_LABELS } from 'src/types/services/crm-campaign';
 
 import { CrmAccessGuard } from '../crm-access-guard';
+import { useCrmAccess } from '../crm-access-context';
 import { CrmCampaignCreateDialog } from '../campaigns/crm-campaign-create-dialog';
 import { campaignSent, campaignProgress, campaignStatusColor } from '../campaigns/utils';
 
@@ -45,15 +47,19 @@ import { campaignSent, campaignProgress, campaignStatusColor } from '../campaign
 
 export function CrmCampaignListView() {
   const create = useBoolean();
+  const { me } = useCrmAccess();
+  const canCreate = hasCrmRole(me?.role, 'supervisor');
   return (
     <DashboardContent>
       <CustomBreadcrumbs
         heading="Campanhas"
         links={[{ name: 'CRM', href: paths.dashboard.crm.root }, { name: 'Campanhas' }]}
         action={
+          canCreate && (
           <Button variant="contained" startIcon={<Iconify icon="mingcute:add-line" />} onClick={create.onTrue}>
             Nova campanha
           </Button>
+          )
         }
         sx={{ mb: { xs: 3, md: 5 } }}
       />
