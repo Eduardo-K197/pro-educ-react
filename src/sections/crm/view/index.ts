@@ -1,7 +1,12 @@
 export * from './crm-inbox-view';
+export { CrmFunnelView } from './crm-funnel-view';
 export { CrmTagListView } from './crm-tag-list-view';
 export { CrmOverviewView } from './crm-overview-view';
+export { CrmTaskListView } from './crm-task-list-view';
+export { CrmLeadListView } from './crm-lead-list-view';
 export { CrmMemberListView } from './crm-member-list-view';
 export { CrmChannelListView } from './crm-channel-list-view';
+export { CrmLeadDetailsView } from './crm-lead-details-view';
 export { CrmDepartmentListView } from './crm-department-list-view';
+export { CrmPipelineConfigView } from './crm-pipeline-config-view';
 export { CrmQuickReplyListView } from './crm-quick-reply-list-view';
