@@ -96,6 +96,10 @@ export const navAdmin = [
         title: 'Learning (EAD)',
         path: paths.dashboard.learning.root,
         icon: <Iconify icon="solar:play-circle-bold-duotone" />,
+        children: [
+          { title: 'Cursos', path: paths.dashboard.learning.root },
+          { title: 'Fila de correção', path: paths.dashboard.learning.grading },
+        ],
       },
       {
         title: 'Grade Curricular',

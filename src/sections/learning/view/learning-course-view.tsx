@@ -18,8 +18,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import { paths } from 'src/routes/paths';
 
-import { LearningService } from 'src/services/learning';
 import { DashboardContent } from 'src/layouts/dashboard';
+import { LearningService, LearningVideoApi } from 'src/services/learning';
 
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
@@ -31,9 +31,18 @@ import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import { LearningProgressTab } from '../learning-progress-tab';
 import { LearningModuleDialog } from '../learning-module-dialog';
 import { LearningLessonDialog } from '../learning-lesson-dialog';
+import { LearningAssessmentsTab } from '../learning-assessments-tab';
+import { LearningVideoUploadDialog } from '../learning-video-upload-dialog';
 import { moveItem, fDuration, LESSON_TYPE_ICON, LESSON_TYPE_LABEL } from '../utils';
 
 // ----------------------------------------------------------------------
+
+const VIDEO_STATUS: Record<string, { label: string; color: 'default' | 'info' | 'success' | 'error' }> = {
+  uploading: { label: 'Enviando', color: 'info' },
+  processing: { label: 'Processando', color: 'info' },
+  ready: { label: 'Vídeo pronto', color: 'success' },
+  failed: { label: 'Falha no vídeo', color: 'error' },
+};
 
 type Confirm = { title: string; content: string; action: () => Promise<void> } | null;
 
@@ -42,7 +51,16 @@ const errorMessage = (err: any, fallback: string) => err?.message || fallback;
 export function LearningCourseView({ id }: { id: string }) {
   const [tree, setTree] = useState<LearningCourseTree | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'content' | 'progress'>('content');
+  const [tab, setTab] = useState<'content' | 'assessments' | 'progress'>('content');
+  const [bunnyEnabled, setBunnyEnabled] = useState(false);
+  const [uploadLesson, setUploadLesson] = useState<LearningLesson | null>(null);
+
+  useEffect(() => {
+    // Sem Bunny configurado na API, a opção de upload nem aparece.
+    LearningVideoApi.config()
+      .then((c) => setBunnyEnabled(c.bunny))
+      .catch(() => setBunnyEnabled(false));
+  }, []);
 
   const [moduleDialog, setModuleDialog] = useState<{ open: boolean; module: LearningModule | null }>({ open: false, module: null });
   const [lessonDialog, setLessonDialog] = useState<{ open: boolean; moduleId: string; lesson: LearningLesson | null }>({
@@ -115,6 +133,9 @@ export function LearningCourseView({ id }: { id: string }) {
     if (next) run(() => LearningService.reorderLessons(module.id, next.map((l) => l.id))).catch(() => {});
   };
 
+  const refreshVideo = (lesson: LearningLesson) =>
+    run(() => LearningVideoApi.refresh(lesson.id), 'Status do vídeo atualizado').catch(() => {});
+
   const openFile = async (lesson: LearningLesson) => {
     try {
       const { url } = await LearningService.lessonFileUrl(lesson.id);
@@ -163,10 +184,12 @@ export function LearningCourseView({ id }: { id: string }) {
 
       <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3 }}>
         <Tab value="content" label="Conteúdo" />
+        <Tab value="assessments" label="Avaliações" />
         <Tab value="progress" label="Progresso por turma" />
       </Tabs>
 
       {tab === 'progress' && <LearningProgressTab classrooms={tree.classrooms} />}
+      {tab === 'assessments' && <LearningAssessmentsTab courseId={id} />}
 
       {tab === 'content' && !tree.modules.length && (
         <EmptyContent filled title="Nenhum módulo ainda" description={canEdit ? 'Crie o primeiro módulo do curso.' : undefined} sx={{ py: 10 }} />
@@ -265,8 +288,28 @@ export function LearningCourseView({ id }: { id: string }) {
                       {lesson.durationSec ? ` · ${fDuration(lesson.durationSec)}` : ''}
                       {lesson.required ? ' · obrigatória' : ' · opcional'}
                       {lesson.file ? ` · ${lesson.file.name}` : ''}
+                      {lesson.videoProvider === 'bunny' ? ' · vídeo próprio' : ''}
                     </Typography>
                   </Box>
+                  {lesson.videoProvider === 'bunny' && (
+                    <Label color={VIDEO_STATUS[lesson.videoStatus ?? '']?.color ?? 'default'}>
+                      {VIDEO_STATUS[lesson.videoStatus ?? '']?.label ?? 'Processando'}
+                    </Label>
+                  )}
+                  {canEdit && lesson.videoProvider === 'bunny' && lesson.videoStatus !== 'ready' && (
+                    <Tooltip title="Atualizar status do vídeo">
+                      <IconButton size="small" onClick={() => refreshVideo(lesson)}>
+                        <Iconify icon="solar:refresh-bold" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                  {canEdit && bunnyEnabled && lesson.type === 'video' && (
+                    <Tooltip title="Enviar vídeo próprio">
+                      <IconButton size="small" onClick={() => setUploadLesson(lesson)}>
+                        <Iconify icon="eva:cloud-upload-fill" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
                   <Label color={lesson.published ? 'success' : 'default'}>{lesson.published ? 'Publicada' : 'Rascunho'}</Label>
                   {lesson.file && (
                     <Tooltip title="Abrir arquivo">
@@ -331,6 +374,15 @@ export function LearningCourseView({ id }: { id: string }) {
         module={moduleDialog.module}
         onClose={() => setModuleDialog({ open: false, module: null })}
         onSubmit={saveModule}
+      />
+
+      <LearningVideoUploadDialog
+        lesson={uploadLesson}
+        onClose={() => setUploadLesson(null)}
+        onDone={() => {
+          toast.success('Vídeo enviado. Ele aparece para os alunos assim que terminar o processamento.');
+          load();
+        }}
       />
 
       <LearningLessonDialog

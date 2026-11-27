@@ -24,6 +24,7 @@ export const paths = {
     forgot: '/aluno/esqueci-senha',
     course: (id: string) => `/aluno/cursos/${id}`,
     lesson: (id: string) => `/aluno/aulas/${id}`,
+    attempt: (id: string) => `/aluno/provas/${id}`,
   },
   // DASHBOARD
   dashboard: {
@@ -75,6 +76,9 @@ export const paths = {
     learning: {
       root: `${ROOTS.DASHBOARD}/learning`,
       course: (id: string) => `${ROOTS.DASHBOARD}/learning/courses/${id}`,
+      assessment: (id: string) => `${ROOTS.DASHBOARD}/learning/assessments/${id}`,
+      attempt: (id: string) => `${ROOTS.DASHBOARD}/learning/attempts/${id}`,
+      grading: `${ROOTS.DASHBOARD}/learning/correcao`,
     },
     intelligence: {
       root: `${ROOTS.DASHBOARD}/intelligence`,
