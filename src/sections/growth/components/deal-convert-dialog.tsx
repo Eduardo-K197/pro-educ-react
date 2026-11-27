@@ -22,12 +22,12 @@ import { paths } from 'src/routes/paths';
 
 import { fDate } from 'src/utils/format-time';
 
-import { CrmService } from 'src/services/crm';
+import { GrowthService } from 'src/services/growth';
 
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 
-import { CRM_DEAL_PREFILL_PARAM } from './crm-deal-utils';
+import { CRM_DEAL_PREFILL_PARAM } from './deal-utils';
 
 // ----------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ export function CrmDealConvertDialog({ open, onClose, deal, onConverted, onWonWi
       return undefined;
     }
     const timer = setTimeout(() => {
-      CrmService.searchStudentsForDeal(query.trim())
+      GrowthService.searchStudentsForDeal(query.trim())
         .then(setOptions)
         .catch(() => setOptions([]));
     }, 300);
@@ -76,7 +76,7 @@ export function CrmDealConvertDialog({ open, onClose, deal, onConverted, onWonWi
     if (!selected) return;
     setSaving(true);
     try {
-      const updated = await CrmService.convertDeal(deal.id, selected.id);
+      const updated = await GrowthService.convertDeal(deal.id, selected.id);
       toast.success(`Lead convertido: ${selected.name}.`);
       onConverted(updated);
       onClose();

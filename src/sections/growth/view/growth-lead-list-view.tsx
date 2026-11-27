@@ -28,6 +28,7 @@ import { fCurrency } from 'src/utils/format-number';
 
 import { CrmService } from 'src/services/crm';
 import { useCrmSocketEvent } from 'src/lib/socket';
+import { GrowthService } from 'src/services/growth';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Label } from 'src/components/label';
@@ -35,19 +36,20 @@ import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
+import { CrmAccessGuard } from 'src/sections/crm/crm-access-guard';
+import { useCrmAccess } from 'src/sections/crm/crm-access-context';
+
 import { isDeletedDeal, CRM_DEAL_SOURCES, CRM_DEAL_SOURCE_LABELS, CRM_DEAL_STATUS_LABELS } from 'src/types/services/crm-deal';
 
-import { CrmAccessGuard } from '../crm-access-guard';
-import { useCrmAccess } from '../crm-access-context';
-import { daysSince, upsertDeal } from '../deals/crm-deal-utils';
-import { CrmDealFormDialog } from '../deals/crm-deal-form-dialog';
+import { daysSince, upsertDeal } from '../components/deal-utils';
+import { CrmDealFormDialog } from '../components/deal-form-dialog';
 
 // ----------------------------------------------------------------------
 
-export function CrmLeadListView() {
+export function GrowthLeadListView() {
   return (
     <DashboardContent>
-      <CustomBreadcrumbs heading="Leads" links={[{ name: 'CRM', href: paths.dashboard.crm.root }, { name: 'Leads' }]} sx={{ mb: { xs: 3, md: 5 } }} />
+      <CustomBreadcrumbs heading="Leads" links={[{ name: 'Growth', href: paths.dashboard.growth.root }, { name: 'Leads' }]} sx={{ mb: { xs: 3, md: 5 } }} />
       <CrmAccessGuard min="agente">
         <LeadList />
       </CrmAccessGuard>
@@ -70,7 +72,7 @@ function LeadList() {
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    CrmService.listPipelines()
+    GrowthService.listPipelines()
       .then(setPipelines)
       .catch(() => setPipelines([]));
     CrmService.listTags()
@@ -79,7 +81,7 @@ function LeadList() {
   }, []);
 
   const load = useCallback(() => {
-    CrmService.listDeals({ ...filters, search: search.trim() || undefined })
+    GrowthService.listDeals({ ...filters, search: search.trim() || undefined })
       .then((res) => {
         setRows(res.data);
         setTotal(res.total);
@@ -196,7 +198,7 @@ function LeadList() {
             {rows.map((d) => {
               const idle = daysSince(d.lastInteractionAt);
               return (
-                <TableRow key={d.id} hover sx={{ cursor: 'pointer' }} onClick={() => router.push(paths.dashboard.crm.lead(d.id))}>
+                <TableRow key={d.id} hover sx={{ cursor: 'pointer' }} onClick={() => router.push(paths.dashboard.growth.lead(d.id))}>
                   <TableCell>
                     <Typography variant="subtitle2">{d.title}</Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -242,7 +244,7 @@ function LeadList() {
       <CrmDealFormDialog
         open={creating}
         onClose={() => setCreating(false)}
-        onSaved={(deal) => router.push(paths.dashboard.crm.lead(deal.id))}
+        onSaved={(deal) => router.push(paths.dashboard.growth.lead(deal.id))}
         canSupervise={canSupervise}
       />
     </Card>

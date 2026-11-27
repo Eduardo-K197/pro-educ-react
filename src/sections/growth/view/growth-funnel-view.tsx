@@ -21,30 +21,31 @@ import { paths } from 'src/routes/paths';
 
 import { fCurrency } from 'src/utils/format-number';
 
-import { CrmService } from 'src/services/crm';
 import { useCrmSocketEvent } from 'src/lib/socket';
+import { GrowthService } from 'src/services/growth';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
+import { CrmAccessGuard } from 'src/sections/crm/crm-access-guard';
+import { useCrmAccess } from 'src/sections/crm/crm-access-context';
+
 import { isDeletedDeal, CRM_DEAL_SOURCES } from 'src/types/services/crm-deal';
 
-import { CrmAccessGuard } from '../crm-access-guard';
-import { useCrmAccess } from '../crm-access-context';
-import { upsertDeal } from '../deals/crm-deal-utils';
-import { CrmDealFormDialog } from '../deals/crm-deal-form-dialog';
-import { CrmDealLostDialog } from '../deals/crm-deal-lost-dialog';
-import { CrmDealConvertDialog } from '../deals/crm-deal-convert-dialog';
-import { CrmDealCard, CrmDealCardContent } from '../deals/crm-deal-card';
+import { upsertDeal } from '../components/deal-utils';
+import { CrmDealFormDialog } from '../components/deal-form-dialog';
+import { CrmDealLostDialog } from '../components/deal-lost-dialog';
+import { CrmDealConvertDialog } from '../components/deal-convert-dialog';
+import { CrmDealCard, CrmDealCardContent } from '../components/deal-card';
 
 // ----------------------------------------------------------------------
 
-export function CrmFunnelView() {
+export function GrowthFunnelView() {
   return (
     <DashboardContent maxWidth={false} sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-      <CustomBreadcrumbs heading="Funil de captação" links={[{ name: 'CRM', href: paths.dashboard.crm.root }, { name: 'Funil' }]} sx={{ mb: 3 }} />
+      <CustomBreadcrumbs heading="Funil de captação" links={[{ name: 'Growth', href: paths.dashboard.growth.root }, { name: 'Funil' }]} sx={{ mb: 3 }} />
       <CrmAccessGuard min="agente">
         <Board />
       </CrmAccessGuard>
@@ -75,7 +76,7 @@ function Board() {
 
   const load = useCallback(() => {
     setLoading(true);
-    CrmService.getBoard({ pipelineId: pipelineId || undefined, owner: owner || undefined, source: source || undefined, search: search.trim() || undefined })
+    GrowthService.getBoard({ pipelineId: pipelineId || undefined, owner: owner || undefined, source: source || undefined, search: search.trim() || undefined })
       .then((board) => {
         setPipelines(board.pipelines);
         setPipeline(board.pipeline);
@@ -109,7 +110,7 @@ function Board() {
     const previous = deal;
     setDeals((list) => upsertDeal(list, { ...deal, stageId: stage.id, stage: { name: stage.name, color: stage.color, kind: stage.kind, probability: stage.probability } }));
     try {
-      const updated = await CrmService.moveDeal(deal.id, stage.id, lostReason);
+      const updated = await GrowthService.moveDeal(deal.id, stage.id, lostReason);
       setDeals((list) => upsertDeal(list, updated));
     } catch (err: any) {
       setDeals((list) => upsertDeal(list, previous));
@@ -129,7 +130,7 @@ function Board() {
     else moveDeal(deal, stage);
   };
 
-  const openDeal = (deal: CrmDeal) => router.push(paths.dashboard.crm.lead(deal.id));
+  const openDeal = (deal: CrmDeal) => router.push(paths.dashboard.growth.lead(deal.id));
 
   if (loading && !pipeline) return <CircularProgress sx={{ display: 'block', mx: 'auto', my: 8 }} />;
 

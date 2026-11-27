@@ -25,8 +25,8 @@ import { RouterLink } from 'src/routes/components';
 import { fCurrency } from 'src/utils/format-number';
 import { fDate, fDateTime } from 'src/utils/format-time';
 
-import { CrmService } from 'src/services/crm';
 import { useCrmSocketEvent } from 'src/lib/socket';
+import { GrowthService } from 'src/services/growth';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Label } from 'src/components/label';
@@ -35,21 +35,22 @@ import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
+import { formatPhone } from 'src/sections/crm/inbox/utils';
+import { CrmAccessGuard } from 'src/sections/crm/crm-access-guard';
+import { useCrmAccess } from 'src/sections/crm/crm-access-context';
+
 import { isDeletedDeal, CRM_DEAL_SOURCE_LABELS, CRM_DEAL_STATUS_LABELS } from 'src/types/services/crm-deal';
 
-import { formatPhone } from '../inbox/utils';
-import { CrmAccessGuard } from '../crm-access-guard';
-import { useCrmAccess } from '../crm-access-context';
-import { CrmTaskList } from '../deals/crm-task-list';
-import { CrmTaskDialog } from '../deals/crm-task-dialog';
-import { daysSince, upsertTask } from '../deals/crm-deal-utils';
-import { CrmDealFormDialog } from '../deals/crm-deal-form-dialog';
-import { CrmDealLostDialog } from '../deals/crm-deal-lost-dialog';
-import { CrmDealConvertDialog } from '../deals/crm-deal-convert-dialog';
+import { CrmTaskList } from '../components/task-list';
+import { CrmTaskDialog } from '../components/task-dialog';
+import { daysSince, upsertTask } from '../components/deal-utils';
+import { CrmDealFormDialog } from '../components/deal-form-dialog';
+import { CrmDealLostDialog } from '../components/deal-lost-dialog';
+import { CrmDealConvertDialog } from '../components/deal-convert-dialog';
 
 // ----------------------------------------------------------------------
 
-export function CrmLeadDetailsView({ id }: { id: string }) {
+export function GrowthLeadDetailsView({ id }: { id: string }) {
   return (
     <DashboardContent>
       <CrmAccessGuard min="agente">
@@ -102,7 +103,7 @@ function LeadDetails({ id }: { id: string }) {
   const [taskDialog, setTaskDialog] = useState<{ task: CrmTask | null } | null>(null);
 
   const load = useCallback(() => {
-    CrmService.getDeal(id)
+    GrowthService.getDeal(id)
       .then((d) => {
         setDetail(d);
         setError(null);
@@ -144,7 +145,7 @@ function LeadDetails({ id }: { id: string }) {
       return;
     }
     try {
-      await CrmService.moveDeal(deal.id, stageId, lostReason);
+      await GrowthService.moveDeal(deal.id, stageId, lostReason);
       load();
     } catch (err: any) {
       toast.error(err?.message || 'Não foi possível mover o lead.');
@@ -154,7 +155,7 @@ function LeadDetails({ id }: { id: string }) {
   const addNote = async () => {
     if (!note.trim()) return;
     try {
-      await CrmService.addDealNote(deal.id, note.trim());
+      await GrowthService.addDealNote(deal.id, note.trim());
       setNote('');
       load();
     } catch (err: any) {
@@ -164,7 +165,7 @@ function LeadDetails({ id }: { id: string }) {
 
   const removeNote = async (noteId: string) => {
     try {
-      await CrmService.deleteDealNote(deal.id, noteId);
+      await GrowthService.deleteDealNote(deal.id, noteId);
       load();
     } catch (err: any) {
       toast.error(err?.message || 'Não foi possível apagar a nota.');
@@ -173,9 +174,9 @@ function LeadDetails({ id }: { id: string }) {
 
   const remove = async () => {
     try {
-      await CrmService.deleteDeal(deal.id);
+      await GrowthService.deleteDeal(deal.id);
       toast.success('Lead excluído.');
-      router.push(paths.dashboard.crm.funnel);
+      router.push(paths.dashboard.growth.funnel);
     } catch (err: any) {
       toast.error(err?.message || 'Não foi possível excluir.');
     }
@@ -200,7 +201,7 @@ function LeadDetails({ id }: { id: string }) {
     <>
       <CustomBreadcrumbs
         heading={deal.title}
-        links={[{ name: 'CRM', href: paths.dashboard.crm.root }, { name: 'Funil', href: paths.dashboard.crm.funnel }, { name: deal.title }]}
+        links={[{ name: 'Growth', href: paths.dashboard.growth.root }, { name: 'Funil', href: paths.dashboard.growth.funnel }, { name: deal.title }]}
         action={
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
             {deal.conversationId && (
@@ -402,7 +403,7 @@ function LeadDetails({ id }: { id: string }) {
           setConverting(false);
           if (!won) return;
           try {
-            await CrmService.moveDeal(deal.id, won.id);
+            await GrowthService.moveDeal(deal.id, won.id);
             load();
           } catch (err: any) {
             toast.error(err?.message || 'Não foi possível mover o lead.');

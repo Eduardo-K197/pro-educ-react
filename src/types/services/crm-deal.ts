@@ -143,6 +143,8 @@ export type CrmTask = {
   id: string;
   dealId: string | null;
   deal?: { id: string; title: string; status: CrmDealStatus };
+  studentId: number | null;
+  student?: { id: number; name: string };
   title: string;
   description: string | null;
   dueAt: string | null;
@@ -157,6 +159,7 @@ export type CrmTask = {
 
 export type CrmTaskPayload = {
   dealId?: string | null;
+  studentId?: number | null;
   title?: string;
   description?: string | null;
   dueAt?: string | null;
@@ -197,3 +200,31 @@ export const CRM_STAGE_KIND_LABELS: Record<CrmStageKind, string> = { open: 'Em a
 export function isDeletedDeal(deal: CrmDealSocketPayload['deal']): deal is { id: string; pipelineId: string; deleted: true } {
   return 'deleted' in deal && deal.deleted === true;
 }
+
+// ----------------------------------------------------------------------
+// Growth: configurações, recuperação e retenção
+
+export type GrowthSettings = {
+  stalledDays: number;
+  absenceWindowDays: number;
+  absenceThreshold: number;
+  overdueGraceDays: number;
+};
+
+export type GrowthRecovery = CrmDealList & { type: 'stalled' | 'lost'; days: number };
+
+export type GrowthRiskReason = 'inadimplencia' | 'faltas';
+
+export type GrowthStudentAtRisk = {
+  student: { id: number; name: string; status: string; phoneNumber: string | null };
+  guardian: { id: string; name: string | null; phoneNumber: string | null } | null;
+  level: 'alto' | 'medio';
+  reasons: GrowthRiskReason[];
+  score: number;
+  signals: { overdueCount: number; overdueTotal: number; oldestOverdueDays: number | null; absences: number; presences: number };
+  openTasks: number;
+};
+
+export type GrowthRetentionList = { settings: GrowthSettings; data: GrowthStudentAtRisk[] };
+
+export const GROWTH_RISK_LABELS: Record<GrowthRiskReason, string> = { inadimplencia: 'Inadimplência', faltas: 'Faltas' };

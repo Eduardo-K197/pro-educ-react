@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 
-import { CrmTaskListView } from 'src/sections/crm/view';
+import { GrowthTaskListView } from 'src/sections/growth/view';
 
-export const metadata: Metadata = { title: 'CRM - Minhas tarefas' };
+export const metadata: Metadata = { title: 'Growth - Tarefas' };
 
 export default function Page() {
-  return <CrmTaskListView />;
+  return <GrowthTaskListView />;
 }

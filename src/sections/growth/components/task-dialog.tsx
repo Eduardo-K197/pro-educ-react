@@ -14,11 +14,11 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 
-import { CrmService } from 'src/services/crm';
+import { GrowthService } from 'src/services/growth';
 
 import { toast } from 'src/components/snackbar';
 
-import { useCrmAgents, toLocalInput } from './crm-deal-utils';
+import { useCrmAgents, toLocalInput } from './deal-utils';
 
 // ----------------------------------------------------------------------
 
@@ -27,6 +27,9 @@ type Props = {
   onClose: () => void;
   onSaved: (task: CrmTask) => void;
   dealId?: string | null;
+  /** Tarefa de retenção (aluno em risco). */
+  studentId?: number | null;
+  defaultTitle?: string;
   task?: CrmTask | null;
   canSupervise: boolean;
 };
@@ -38,7 +41,7 @@ function tomorrowAt9() {
   return toLocalInput(d.toISOString());
 }
 
-export function CrmTaskDialog({ open, onClose, onSaved, dealId, task, canSupervise }: Props) {
+export function CrmTaskDialog({ open, onClose, onSaved, dealId, studentId, defaultTitle, task, canSupervise }: Props) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueAt, setDueAt] = useState('');
@@ -48,11 +51,11 @@ export function CrmTaskDialog({ open, onClose, onSaved, dealId, task, canSupervi
 
   useEffect(() => {
     if (!open) return;
-    setTitle(task?.title ?? '');
+    setTitle(task?.title ?? defaultTitle ?? '');
     setDescription(task?.description ?? '');
     setDueAt(task ? toLocalInput(task.dueAt) : tomorrowAt9());
     setAssignee(task ? `${task.assignee.type}:${task.assignee.id}` : '');
-  }, [open, task]);
+  }, [open, task, defaultTitle]);
 
   const submit = async () => {
     const payload: CrmTaskPayload = {
@@ -66,7 +69,7 @@ export function CrmTaskDialog({ open, onClose, onSaved, dealId, task, canSupervi
     }
     setSaving(true);
     try {
-      const saved = task ? await CrmService.updateTask(task.id, payload) : await CrmService.createTask({ ...payload, dealId: dealId ?? null });
+      const saved = task ? await GrowthService.updateTask(task.id, payload) : await GrowthService.createTask({ ...payload, dealId: dealId ?? null, studentId: studentId ?? null });
       toast.success(task ? 'Tarefa atualizada.' : 'Tarefa criada.');
       onSaved(saved);
       onClose();

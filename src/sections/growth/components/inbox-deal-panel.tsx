@@ -19,8 +19,8 @@ import { RouterLink } from 'src/routes/components';
 
 import { fCurrency } from 'src/utils/format-number';
 
-import { CrmService } from 'src/services/crm';
 import { useCrmSocketEvent } from 'src/lib/socket';
+import { GrowthService } from 'src/services/growth';
 
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
@@ -28,7 +28,7 @@ import { Iconify } from 'src/components/iconify';
 
 import { isDeletedDeal, CRM_DEAL_STATUS_LABELS } from 'src/types/services/crm-deal';
 
-import { daysSince, upsertDeal } from './crm-deal-utils';
+import { daysSince, upsertDeal } from './deal-utils';
 
 // ----------------------------------------------------------------------
 
@@ -47,7 +47,7 @@ export function CrmInboxDealPanel({ conversation }: { conversation: CrmConversat
 
   const load = useCallback(() => {
     setLoading(true);
-    CrmService.conversationDeals(conversation.id)
+    GrowthService.conversationDeals(conversation.id)
       .then(setDeals)
       .catch(() => setDeals([]))
       .finally(() => setLoading(false));
@@ -68,7 +68,7 @@ export function CrmInboxDealPanel({ conversation }: { conversation: CrmConversat
       return undefined;
     }
     const timer = setTimeout(() => {
-      CrmService.listDeals({ search: query.trim(), status: 'open', perPage: 15 })
+      GrowthService.listDeals({ search: query.trim(), status: 'open', perPage: 15 })
         .then((res) => setOptions(res.data.filter((d) => !d.contactId)))
         .catch(() => setOptions([]));
     }, 300);
@@ -78,7 +78,7 @@ export function CrmInboxDealPanel({ conversation }: { conversation: CrmConversat
   const open = async (dealId?: string) => {
     setCreating(true);
     try {
-      const res = await CrmService.openConversationDeal(conversation.id, dealId);
+      const res = await GrowthService.openConversationDeal(conversation.id, dealId);
       setDeals((list) => upsertDeal(list, res.deal));
       setLinking(false);
       toast.success(res.created ? 'Lead criado no funil.' : 'Lead vinculado à conversa.');
@@ -106,7 +106,7 @@ export function CrmInboxDealPanel({ conversation }: { conversation: CrmConversat
         return (
           <Box key={d.id} sx={{ p: 1.5, borderRadius: 1, bgcolor: 'background.neutral', borderLeft: 3, borderColor: d.stage?.color ?? 'divider' }}>
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Link component={RouterLink} href={paths.dashboard.crm.lead(d.id)} variant="subtitle2" sx={{ flex: 1, minWidth: 0 }} noWrap>
+              <Link component={RouterLink} href={paths.dashboard.growth.lead(d.id)} variant="subtitle2" sx={{ flex: 1, minWidth: 0 }} noWrap>
                 {d.title}
               </Link>
               <Label variant="soft" color={STATUS_COLOR[d.status]}>

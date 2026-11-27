@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 
-import { CrmFunnelView } from 'src/sections/crm/view';
+import { GrowthFunnelView } from 'src/sections/growth/view';
 
-export const metadata: Metadata = { title: 'CRM - Funil' };
+export const metadata: Metadata = { title: 'Growth - Funil' };
 
 export default function Page() {
-  return <CrmFunnelView />;
+  return <GrowthFunnelView />;
 }

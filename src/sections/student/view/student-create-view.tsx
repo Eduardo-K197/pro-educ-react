@@ -10,7 +10,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { paths } from 'src/routes/paths';
 import { useSearchParams } from 'src/routes/hooks';
 
-import { CrmService } from 'src/services/crm';
+import { GrowthService } from 'src/services/growth';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { toast } from 'src/components/snackbar';
@@ -52,7 +52,7 @@ function CreateForm() {
 
   useEffect(() => {
     if (!dealId) return;
-    CrmService.getDeal(dealId)
+    GrowthService.getDeal(dealId)
       .then(({ deal }) => {
         if (deal.convertedStudentId) {
           toast.warning('Este lead já foi convertido em matrícula.');
@@ -79,7 +79,7 @@ function CreateForm() {
   const onCreated =
     lead && dealId
       ? async (student: StudentDetail) => {
-          await CrmService.convertDeal(dealId, student.id);
+          await GrowthService.convertDeal(dealId, student.id);
           toast.success('Lead marcado como matriculado no CRM.');
           return paths.dashboard.students.details(String(student.id));
         }

@@ -19,12 +19,13 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 
 import { CrmService } from 'src/services/crm';
+import { GrowthService } from 'src/services/growth';
 
 import { toast } from 'src/components/snackbar';
 
 import { CRM_DEAL_SOURCES } from 'src/types/services/crm-deal';
 
-import { useCrmAgents } from './crm-deal-utils';
+import { useCrmAgents } from './deal-utils';
 
 // ----------------------------------------------------------------------
 
@@ -119,8 +120,8 @@ export function CrmDealFormDialog({ open, onClose, onSaved, deal, pipeline, stag
     setSaving(true);
     try {
       const saved = deal
-        ? await CrmService.updateDeal(deal.id, payload)
-        : await CrmService.createDeal({ ...payload, pipelineId: pipeline?.id ?? null, stageId: stageId ?? null });
+        ? await GrowthService.updateDeal(deal.id, payload)
+        : await GrowthService.createDeal({ ...payload, pipelineId: pipeline?.id ?? null, stageId: stageId ?? null });
       toast.success(deal ? 'Lead atualizado.' : 'Lead criado.');
       onSaved(saved);
       onClose();

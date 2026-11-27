@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 
-import { CrmPipelineConfigView } from 'src/sections/crm/view';
+import { GrowthSettingsView } from 'src/sections/growth/view';
 
-export const metadata: Metadata = { title: 'CRM - Etapas do funil' };
+export const metadata: Metadata = { title: 'Growth - Configurações' };
 
 export default function Page() {
-  return <CrmPipelineConfigView />;
+  return <GrowthSettingsView />;
 }

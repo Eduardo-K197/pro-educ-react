@@ -14,7 +14,7 @@ import { RouterLink } from 'src/routes/components';
 
 import { fDateTime } from 'src/utils/format-time';
 
-import { CrmService } from 'src/services/crm';
+import { GrowthService } from 'src/services/growth';
 
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
@@ -36,7 +36,7 @@ type Props = {
 export function CrmTaskList({ tasks, onChange, onRemove, onEdit, showDeal, showAssignee, emptyText = 'Nenhuma tarefa.' }: Props) {
   const toggle = async (task: CrmTask) => {
     try {
-      onChange(await CrmService.updateTask(task.id, { status: task.status === 'done' ? 'open' : 'done' }));
+      onChange(await GrowthService.updateTask(task.id, { status: task.status === 'done' ? 'open' : 'done' }));
     } catch (err: any) {
       toast.error(err?.message || 'Não foi possível atualizar a tarefa.');
     }
@@ -44,7 +44,7 @@ export function CrmTaskList({ tasks, onChange, onRemove, onEdit, showDeal, showA
 
   const remove = async (task: CrmTask) => {
     try {
-      await CrmService.deleteTask(task.id);
+      await GrowthService.deleteTask(task.id);
       onRemove(task.id);
     } catch (err: any) {
       toast.error(err?.message || 'Não foi possível remover a tarefa.');
@@ -95,8 +95,13 @@ export function CrmTaskList({ tasks, onChange, onRemove, onEdit, showDeal, showA
                 </Typography>
               )}
               {showDeal && t.deal && (
-                <Link component={RouterLink} href={paths.dashboard.crm.lead(t.deal.id)} variant="caption">
+                <Link component={RouterLink} href={paths.dashboard.growth.lead(t.deal.id)} variant="caption">
                   {t.deal.title}
+                </Link>
+              )}
+              {showDeal && t.student && (
+                <Link component={RouterLink} href={paths.dashboard.students.details(String(t.student.id))} variant="caption">
+                  Retenção: {t.student.name}
                 </Link>
               )}
             </Stack>

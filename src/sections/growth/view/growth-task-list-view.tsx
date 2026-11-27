@@ -12,25 +12,26 @@ import TextField from '@mui/material/TextField';
 
 import { paths } from 'src/routes/paths';
 
-import { CrmService } from 'src/services/crm';
+import { GrowthService } from 'src/services/growth';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
-import { CrmAccessGuard } from '../crm-access-guard';
-import { useCrmAccess } from '../crm-access-context';
-import { upsertTask } from '../deals/crm-deal-utils';
-import { CrmTaskList } from '../deals/crm-task-list';
-import { CrmTaskDialog } from '../deals/crm-task-dialog';
+import { CrmAccessGuard } from 'src/sections/crm/crm-access-guard';
+import { useCrmAccess } from 'src/sections/crm/crm-access-context';
+
+import { upsertTask } from '../components/deal-utils';
+import { CrmTaskList } from '../components/task-list';
+import { CrmTaskDialog } from '../components/task-dialog';
 
 // ----------------------------------------------------------------------
 
-export function CrmTaskListView() {
+export function GrowthTaskListView() {
   return (
     <DashboardContent>
-      <CustomBreadcrumbs heading="Minhas tarefas" links={[{ name: 'CRM', href: paths.dashboard.crm.root }, { name: 'Tarefas' }]} sx={{ mb: { xs: 3, md: 5 } }} />
+      <CustomBreadcrumbs heading="Tarefas" links={[{ name: 'Growth', href: paths.dashboard.growth.root }, { name: 'Tarefas' }]} sx={{ mb: { xs: 3, md: 5 } }} />
       <CrmAccessGuard min="agente">
         <Tasks />
       </CrmAccessGuard>
@@ -48,7 +49,7 @@ function Tasks() {
   const [dialog, setDialog] = useState<{ task: CrmTask | null } | null>(null);
 
   const load = useCallback(() => {
-    CrmService.listTasks({ scope, status, due: due || undefined })
+    GrowthService.listTasks({ scope, status, due: due || undefined })
       .then(setTasks)
       .catch((err) => toast.error(err?.message || 'Erro ao carregar tarefas'));
   }, [scope, status, due]);

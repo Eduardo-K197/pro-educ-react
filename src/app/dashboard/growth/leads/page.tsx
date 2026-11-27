@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 
-import { CrmLeadListView } from 'src/sections/crm/view';
+import { GrowthLeadListView } from 'src/sections/growth/view';
 
-export const metadata: Metadata = { title: 'CRM - Leads' };
+export const metadata: Metadata = { title: 'Growth - Leads' };
 
 export default function Page() {
-  return <CrmLeadListView />;
+  return <GrowthLeadListView />;
 }

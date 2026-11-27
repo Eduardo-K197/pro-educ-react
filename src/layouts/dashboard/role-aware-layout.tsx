@@ -48,13 +48,14 @@ export function RoleAwareDashboardLayout({ children }: Props) {
   const { modules } = useSchoolModules();
   const nav = useMemo(() => {
     const base = useAdminNav ? navAdmin : navSuperAdmin;
-    if (modules.crm) return base;
-    // CRM é módulo pago: sem contrato, o item some do menu.
+    if (modules.crm && modules.growth) return base;
+    // ChatFlow (crm) e Growth são módulos pagos: sem contrato, o grupo some do menu.
+    const hidden = [!modules.crm && paths.dashboard.crm.root, !modules.growth && paths.dashboard.growth.root].filter(Boolean);
     return base.map((section) => ({
       ...section,
-      items: section.items.filter((item) => item.path !== paths.dashboard.crm.root),
+      items: section.items.filter((item) => !hidden.includes(item.path)),
     }));
-  }, [useAdminNav, modules.crm]);
+  }, [useAdminNav, modules.crm, modules.growth]);
 
   const handleExitSchool = () => {
     sessionStorage.removeItem(SCHOOL_MODE_KEY);

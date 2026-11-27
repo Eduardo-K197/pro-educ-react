@@ -52,7 +52,8 @@ export function CrmMemberListView() {
   );
 }
 
-function CrmMemberList() {
+/** Lista de membros; `embedded` = sem breadcrumbs (usada nas configurações do Growth). */
+export function CrmMemberList({ embedded = false }: { embedded?: boolean }) {
   const table = useTable({ defaultOrderBy: 'name', defaultRowsPerPage: 10 });
   const confirm = useBoolean();
   const form = useBoolean();
@@ -163,29 +164,37 @@ function CrmMemberList() {
 
   return (
     <>
-      <CustomBreadcrumbs
-        heading="Membros"
-        links={[
-          { name: 'Painel', href: paths.dashboard.root },
-          { name: 'CRM', href: paths.dashboard.crm.root },
-          { name: 'Membros' },
-        ]}
-        action={
-          <Button
-            variant="contained"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-            onClick={openCreate}
-          >
+      {embedded ? (
+        <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
+          <Button variant="contained" startIcon={<Iconify icon="mingcute:add-line" />} onClick={openCreate}>
             Adicionar membro
           </Button>
-        }
-        sx={{ mb: { xs: 3, md: 5 } }}
-      />
+        </Stack>
+      ) : (
+        <CustomBreadcrumbs
+          heading="Membros"
+          links={[
+            { name: 'Painel', href: paths.dashboard.root },
+            { name: 'CRM', href: paths.dashboard.crm.root },
+            { name: 'Membros' },
+          ]}
+          action={
+            <Button
+              variant="contained"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+              onClick={openCreate}
+            >
+              Adicionar membro
+            </Button>
+          }
+          sx={{ mb: { xs: 3, md: 5 } }}
+        />
+      )}
 
       <Stack sx={{ mb: 2 }}>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          Administradores da escola já são gestores do CRM automaticamente e não precisam ser
-          cadastrados aqui.
+          Administradores da escola já são gestores do CRM e do Growth automaticamente e não
+          precisam ser cadastrados aqui.
         </Typography>
       </Stack>
 

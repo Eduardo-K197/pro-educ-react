@@ -18,7 +18,7 @@ import { Iconify } from 'src/components/iconify';
 
 import { CRM_DEAL_SOURCE_LABELS } from 'src/types/services/crm-deal';
 
-import { daysSince } from './crm-deal-utils';
+import { daysSince } from './deal-utils';
 
 // ----------------------------------------------------------------------
 

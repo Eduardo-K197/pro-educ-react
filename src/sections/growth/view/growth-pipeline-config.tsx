@@ -17,35 +17,20 @@ import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
-import { paths } from 'src/routes/paths';
-
-import { CrmService } from 'src/services/crm';
-import { DashboardContent } from 'src/layouts/dashboard';
+import { GrowthService } from 'src/services/growth';
 
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
-import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
 import { CRM_STAGE_KIND_LABELS } from 'src/types/services/crm-deal';
 
-import { CrmAccessGuard } from '../crm-access-guard';
 
 // ----------------------------------------------------------------------
 
 const COLORS = ['#00B8D9', '#8E33FF', '#FFAB00', '#078DEE', '#22C55E', '#FF5630', '#637381', '#00A76F'];
 
-export function CrmPipelineConfigView() {
-  return (
-    <DashboardContent>
-      <CustomBreadcrumbs heading="Etapas do funil" links={[{ name: 'CRM', href: paths.dashboard.crm.root }, { name: 'Etapas do funil' }]} sx={{ mb: { xs: 3, md: 5 } }} />
-      <CrmAccessGuard min="gestor">
-        <PipelineConfig />
-      </CrmAccessGuard>
-    </DashboardContent>
-  );
-}
-
-function PipelineConfig() {
+/** Configuração dos funis e etapas (só gestor; o guard fica na tela de configurações). */
+export function GrowthPipelineConfig() {
   const [pipelines, setPipelines] = useState<CrmPipeline[]>([]);
   const [selectedId, setSelectedId] = useState('');
   const [name, setName] = useState('');
@@ -62,7 +47,7 @@ function PipelineConfig() {
   };
 
   const load = useCallback((keepId?: string) => {
-    CrmService.listPipelines()
+    GrowthService.listPipelines()
       .then((list) => {
         setPipelines(list);
         apply(list.find((p) => p.id === keepId) ?? list.find((p) => p.isDefault) ?? list[0]);
@@ -88,7 +73,7 @@ function PipelineConfig() {
   const save = async () => {
     setSaving(true);
     try {
-      await CrmService.updatePipeline(selectedId, { name: name.trim(), agentsSeeAll, stages: stages.map((s) => ({ ...s, name: s.name.trim() })) });
+      await GrowthService.updatePipeline(selectedId, { name: name.trim(), agentsSeeAll, stages: stages.map((s) => ({ ...s, name: s.name.trim() })) });
       toast.success('Funil salvo.');
       load(selectedId);
     } catch (err: any) {
@@ -100,7 +85,7 @@ function PipelineConfig() {
 
   const createPipeline = async () => {
     try {
-      const created = await CrmService.createPipeline({ name: 'Novo funil' });
+      const created = await GrowthService.createPipeline({ name: 'Novo funil' });
       load(created.id);
     } catch (err: any) {
       toast.error(err?.message || 'Não foi possível criar o funil.');

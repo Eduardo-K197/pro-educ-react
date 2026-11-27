@@ -45,6 +45,16 @@ export const paths = {
       details: (id: string) => `${ROOTS.DASHBOARD}/students/${id}`,
       edit: (id: string) => `${ROOTS.DASHBOARD}/students/${id}/edit`,
     },
+    growth: {
+      root: `${ROOTS.DASHBOARD}/growth`,
+      funnel: `${ROOTS.DASHBOARD}/growth/funnel`,
+      leads: `${ROOTS.DASHBOARD}/growth/leads`,
+      lead: (id: string) => `${ROOTS.DASHBOARD}/growth/leads/${id}`,
+      recovery: `${ROOTS.DASHBOARD}/growth/recovery`,
+      retention: `${ROOTS.DASHBOARD}/growth/retention`,
+      tasks: `${ROOTS.DASHBOARD}/growth/tasks`,
+      settings: `${ROOTS.DASHBOARD}/growth/settings`,
+    },
     crm: {
       root: `${ROOTS.DASHBOARD}/crm`,
       departments: `${ROOTS.DASHBOARD}/crm/departments`,
@@ -53,11 +63,6 @@ export const paths = {
       channels: `${ROOTS.DASHBOARD}/crm/channels`,
       quickReplies: `${ROOTS.DASHBOARD}/crm/quick-replies`,
       tags: `${ROOTS.DASHBOARD}/crm/tags`,
-      funnel: `${ROOTS.DASHBOARD}/crm/funnel`,
-      leads: `${ROOTS.DASHBOARD}/crm/leads`,
-      lead: (id: string) => `${ROOTS.DASHBOARD}/crm/leads/${id}`,
-      tasks: `${ROOTS.DASHBOARD}/crm/tasks`,
-      pipelines: `${ROOTS.DASHBOARD}/crm/pipelines`,
     },
     teachers: {
       root: `${ROOTS.DASHBOARD}/teachers`,
