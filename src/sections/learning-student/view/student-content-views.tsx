@@ -1,8 +1,8 @@
 'use client';
 
-import type { MyLesson, MyCourse, MyCourseDetail } from 'src/services/learning-student';
+import type { MyLesson, MyCourse, MyFeedback, MyAssessment, MyCourseDetail, CertificateStatus } from 'src/services/learning-student';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -27,6 +27,7 @@ import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
 import { EmptyContent } from 'src/components/empty-content';
 
+import { usePlayerWatch } from '../use-player-watch';
 import { useStudentSession } from '../student-session';
 import { StudentProgressBar } from '../student-progress-bar';
 import { fBytes, fDuration, LESSON_TYPE_ICON } from '../../learning/utils';
@@ -96,7 +97,7 @@ export function StudentCoursesView() {
               </Typography>
             )}
             <Box sx={{ mt: 1.5 }}>
-              <StudentProgressBar percent={c.percent} completed={c.completedLessons} total={c.totalLessons} dense />
+              <StudentProgressBar percent={c.percent} completed={c.completedLessons} total={c.totalLessons} required={c.requiredLessons} completedRequired={c.completedRequiredLessons} dense />
             </Box>
           </CardActionArea>
         </Card>
@@ -136,7 +137,7 @@ export function StudentCourseView({ id }: { id: string }) {
       </Box>
 
       <Card sx={{ p: { xs: 2, sm: 3 } }}>
-        <StudentProgressBar percent={data.percent} completed={data.completedLessons} total={data.totalLessons} />
+        <StudentProgressBar percent={data.percent} completed={data.completedLessons} total={data.totalLessons} required={data.requiredLessons} completedRequired={data.completedRequiredLessons} />
         {data.nextLessonId && (
           <Button
             component={RouterLink}
@@ -156,6 +157,8 @@ export function StudentCourseView({ id }: { id: string }) {
           </Alert>
         )}
       </Card>
+
+      <CourseCertificateCard courseId={id} percent={data.percent} />
 
       {!data.modules.length && <EmptyContent filled title="O conteúdo deste curso ainda não foi publicado" sx={{ py: 6 }} />}
 
@@ -205,6 +208,153 @@ export function StudentCourseView({ id }: { id: string }) {
           </Accordion>
         ))}
       </Box>
+
+      <CourseAssessments courseId={id} />
+      <CourseFeedback courseId={id} />
+    </Stack>
+  );
+}
+
+// ---------------------------------------------------------------- certificado, avaliações e feedback
+
+function CourseCertificateCard({ courseId, percent }: { courseId: string; percent: number }) {
+  const [status, setStatus] = useState<CertificateStatus | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    StudentLearningApi.certificate(courseId)
+      .then(setStatus)
+      .catch(() => setStatus(null));
+  }, [courseId, percent]);
+
+  if (!status?.eligible && !status?.certificateId) return null;
+
+  const open = async () => {
+    setBusy(true);
+    try {
+      const id = status.certificateId ?? (await StudentLearningApi.issueCertificate(courseId)).certificateId;
+      setStatus({ ...status, certificateId: id });
+      await StudentLearningApi.openCertificate(id);
+    } catch (err: any) {
+      toast.error(err?.message || 'Não foi possível emitir o certificado');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card sx={{ p: { xs: 2, sm: 3 }, bgcolor: 'success.lighter' }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }}>
+        <Iconify icon="solar:diploma-bold-duotone" width={40} sx={{ color: 'success.dark' }} />
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="subtitle1">Certificado liberado</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Você concluiu todas as aulas obrigatórias.
+          </Typography>
+        </Box>
+        <LoadingButton variant="contained" color="success" loading={busy} onClick={open}>
+          {status.certificateId ? 'Baixar certificado' : 'Emitir certificado'}
+        </LoadingButton>
+      </Stack>
+    </Card>
+  );
+}
+
+const ASSESSMENT_STATE: Record<MyAssessment['availability'], string> = { open: 'Aberta', upcoming: 'Em breve', closed: 'Encerrada' };
+
+function CourseAssessments({ courseId }: { courseId: string }) {
+  const router = useRouter();
+  const [items, setItems] = useState<MyAssessment[]>([]);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  useEffect(() => {
+    StudentLearningApi.assessments(courseId)
+      .then(setItems)
+      .catch(() => setItems([]));
+  }, [courseId]);
+
+  if (!items.length) return null;
+
+  const start = async (a: MyAssessment) => {
+    setBusy(a.id);
+    try {
+      const attempt = await StudentLearningApi.startAttempt(a.id);
+      router.push(paths.student.attempt(attempt.id));
+    } catch (err: any) {
+      toast.error(err?.message || 'Não foi possível iniciar');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <Stack spacing={1.5}>
+      <Typography variant="h6">Avaliações</Typography>
+      {items.map((a) => {
+        const canStart = a.availability === 'open' && (a.inProgressAttemptId || a.attemptsUsed < a.maxAttempts);
+        return (
+          <Card key={a.id} sx={{ p: 2 }}>
+            <Stack spacing={1}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Iconify icon="solar:clipboard-check-bold-duotone" width={24} sx={{ color: 'primary.main' }} />
+                <Typography variant="subtitle1" sx={{ flex: 1 }}>
+                  {a.title}
+                </Typography>
+                {a.resultsReleased && a.grade !== null && (
+                  <Typography variant="subtitle1" sx={{ color: 'success.main' }}>
+                    Nota {a.grade}
+                  </Typography>
+                )}
+              </Stack>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {ASSESSMENT_STATE[a.availability]}
+                {a.dueAt ? ` · até ${new Date(a.dueAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}` : ''}
+                {a.timeLimitMin ? ` · ${a.timeLimitMin} min` : ''} · tentativas {a.attemptsUsed}/{a.maxAttempts}
+                {a.submitted && !a.resultsReleased ? ' · aguardando nota' : ''}
+              </Typography>
+              <Stack direction="row" spacing={1}>
+                {canStart && (
+                  <LoadingButton variant="contained" size="small" loading={busy === a.id} onClick={() => start(a)}>
+                    {a.inProgressAttemptId ? 'Continuar' : a.attemptsUsed ? 'Nova tentativa' : 'Fazer agora'}
+                  </LoadingButton>
+                )}
+                {a.lastAttemptId && !a.inProgressAttemptId && (
+                  <Button size="small" component={RouterLink} href={paths.student.attempt(a.lastAttemptId)}>
+                    {a.resultsReleased ? 'Ver resultado' : 'Ver envio'}
+                  </Button>
+                )}
+              </Stack>
+            </Stack>
+          </Card>
+        );
+      })}
+    </Stack>
+  );
+}
+
+function CourseFeedback({ courseId }: { courseId: string }) {
+  const [items, setItems] = useState<MyFeedback[]>([]);
+
+  useEffect(() => {
+    StudentLearningApi.feedback(courseId)
+      .then(setItems)
+      .catch(() => setItems([]));
+  }, [courseId]);
+
+  if (!items.length) return null;
+
+  return (
+    <Stack spacing={1.5}>
+      <Typography variant="h6">Recados do professor</Typography>
+      {items.map((f) => (
+        <Card key={f.id} sx={{ p: 2 }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            {f.authorName ?? 'Professor'}
+            {f.createdAt ? ` · ${new Date(f.createdAt).toLocaleDateString('pt-BR')}` : ''}
+          </Typography>
+          <Box sx={{ typography: 'body2' }} dangerouslySetInnerHTML={{ __html: f.body }} />
+        </Card>
+      ))}
     </Stack>
   );
 }
@@ -216,6 +366,20 @@ export function StudentLessonView({ id }: { id: string }) {
   const loader = useCallback(() => StudentLearningApi.lesson(id), [id]);
   const { data: lesson, error, loading, setData } = useLoad<MyLesson>(loader);
   const [completing, setCompleting] = useState(false);
+  const playerRef = useRef<HTMLIFrameElement>(null);
+
+  // Vídeo próprio (Bunny): conta o tempo assistido e conclui sozinho em 90%.
+  usePlayerWatch({
+    lessonId: id,
+    enabled: !!lesson?.trackWatch && !!lesson?.embedUrl,
+    iframe: playerRef,
+    onCompleted: () => {
+      if (lesson && !lesson.completed) {
+        setData({ ...lesson, completed: true });
+        toast.success('Aula concluída pelo tempo assistido!');
+      }
+    },
+  });
 
   useEffect(() => {
     if (typeof window !== 'undefined') window.scrollTo({ top: 0 });
@@ -255,10 +419,19 @@ export function StudentLessonView({ id }: { id: string }) {
         <Typography variant="h5">{lesson.title}</Typography>
       </Box>
 
+      {lesson.type === 'video' && !lesson.embedUrl && (
+        <Alert severity="info" icon={<Iconify icon="solar:videocamera-record-bold-duotone" />}>
+          {lesson.videoStatus === 'failed'
+            ? 'O vídeo desta aula está indisponível. Avise a escola.'
+            : 'O vídeo desta aula está sendo processado. Volte em alguns minutos.'}
+        </Alert>
+      )}
+
       {lesson.type === 'video' && lesson.embedUrl && (
         <Box sx={{ position: 'relative', width: 1, pt: '56.25%', borderRadius: 1.5, overflow: 'hidden', bgcolor: 'common.black' }}>
           <Box
             component="iframe"
+            ref={playerRef}
             src={lesson.embedUrl}
             title={lesson.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
@@ -299,7 +472,7 @@ export function StudentLessonView({ id }: { id: string }) {
       )}
 
       <Card sx={{ p: { xs: 2, sm: 3 } }}>
-        <StudentProgressBar percent={lesson.percent} completed={lesson.completedLessons} total={lesson.totalLessons} dense />
+        <StudentProgressBar percent={lesson.percent} completed={lesson.completedLessons} total={lesson.totalLessons} required={lesson.requiredLessons} completedRequired={lesson.completedRequiredLessons} dense />
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 2 }}>
           {lesson.completed ? (
             <Button variant="soft" color="success" disabled startIcon={<Iconify icon="eva:checkmark-circle-2-fill" />} sx={{ flex: 1 }}>

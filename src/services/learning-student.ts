@@ -92,7 +92,14 @@ export type StudentMe = {
   profiles: { id: string; studentName: string; current: boolean }[];
 };
 
-export type ProgressSummary = { totalLessons: number; completedLessons: number; percent: number };
+/** percent conta só as aulas obrigatórias (sem nenhuma obrigatória, todas). */
+export type ProgressSummary = {
+  totalLessons: number;
+  completedLessons: number;
+  requiredLessons?: number;
+  completedRequiredLessons?: number;
+  percent: number;
+};
 
 export type MyCourse = ProgressSummary & {
   id: string;
@@ -121,6 +128,10 @@ export type MyLesson = ProgressSummary & {
   type: 'video' | 'text' | 'file';
   body: string | null;
   embedUrl: string | null;
+  videoProvider: string | null;
+  videoStatus: string | null;
+  trackWatch: boolean;
+  watchedSec: number;
   durationSec: number | null;
   required: boolean;
   file: { name: string; size: number | null; mime: string | null; url: string } | null;
@@ -149,4 +160,80 @@ export const StudentLearningApi = {
   course: (courseId: string) => data<MyCourseDetail>(studentAxios.get(`/learning/me/courses/${courseId}`)),
   lesson: (lessonId: string) => data<MyLesson>(studentAxios.get(`/learning/me/lessons/${lessonId}`)),
   complete: (lessonId: string) => data<CompleteResult>(studentAxios.post(`/learning/me/lessons/${lessonId}/complete`)),
+  watch: (lessonId: string, position: number, duration?: number) =>
+    data<WatchResult>(studentAxios.post(`/learning/me/lessons/${lessonId}/watch`, { position, duration })),
+  assessments: (courseId: string) => data<MyAssessment[]>(studentAxios.get(`/learning/me/courses/${courseId}/assessments`)),
+  startAttempt: (assessmentId: string) => data<MyAttempt>(studentAxios.post(`/learning/me/assessments/${assessmentId}/attempts`)),
+  attempt: (attemptId: string) => data<MyAttempt>(studentAxios.get(`/learning/me/attempts/${attemptId}`)),
+  saveAnswers: (attemptId: string, answers: { questionId: string; response: unknown }[]) =>
+    data<{ saved: number }>(studentAxios.put(`/learning/me/attempts/${attemptId}/answers`, { answers })),
+  submitAttempt: (attemptId: string, answers?: { questionId: string; response: unknown }[]) =>
+    data<MyAttempt>(studentAxios.post(`/learning/me/attempts/${attemptId}/submit`, { answers })),
+  feedback: (courseId: string) => data<MyFeedback[]>(studentAxios.get(`/learning/me/courses/${courseId}/feedback`)),
+  certificate: (courseId: string) => data<CertificateStatus>(studentAxios.get(`/learning/me/courses/${courseId}/certificate`)),
+  issueCertificate: (courseId: string) =>
+    data<{ certificateId: number; created: boolean }>(studentAxios.post(`/learning/me/courses/${courseId}/certificate`)),
+  /** Abre o PDF numa aba (o download precisa do token, então vem como blob). */
+  openCertificate: async (certificateId: number) => {
+    const res = await studentAxios.get(`/learning/me/certificates/${certificateId}/pdf`, { responseType: 'blob' });
+    const url = URL.createObjectURL(res.data as Blob);
+    window.open(url, '_blank', 'noopener');
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  },
 };
+
+export type WatchResult = { watchedSec: number; durationSec: number | null; percentWatched: number | null; completed: boolean };
+
+export type MyAssessment = {
+  id: string;
+  title: string;
+  description: string | null;
+  moduleId: string | null;
+  availableFrom: string | null;
+  dueAt: string | null;
+  timeLimitMin: number | null;
+  maxAttempts: number;
+  attemptsUsed: number;
+  availability: 'open' | 'upcoming' | 'closed';
+  inProgressAttemptId: string | null;
+  lastAttemptId: string | null;
+  submitted: boolean;
+  resultsReleased: boolean;
+  grade: number | null;
+};
+
+export type MyQuestion = {
+  id: string;
+  type: 'single' | 'multiple' | 'true_false' | 'short' | 'essay';
+  prompt: string;
+  points: number;
+  options: { id: string; text: string }[] | null;
+  response: unknown;
+  answerKey?: unknown;
+  explanation?: string | null;
+  isCorrect?: boolean | null;
+  earned?: number;
+  pending?: boolean;
+};
+
+export type MyFeedback = { id: string; attemptId?: string | null; lessonId?: string | null; body: string; authorName: string | null; createdAt: string | null };
+
+export type MyAttempt = {
+  id: string;
+  assessment: { id: string; title: string; description: string | null; courseId: string };
+  number: number;
+  maxAttempts: number;
+  status: 'in_progress' | 'submitted' | 'graded';
+  startedAt: string;
+  deadlineAt: string | null;
+  submittedAt: string | null;
+  serverNow: string;
+  resultsReleased?: boolean;
+  score?: number | null;
+  maxScore?: number | null;
+  grade?: number | null;
+  questions: MyQuestion[];
+  feedback?: MyFeedback[];
+};
+
+export type CertificateStatus = { eligible: boolean; percent: number; certificateId: number | null; subscriptionId: string };
