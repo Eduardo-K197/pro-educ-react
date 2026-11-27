@@ -126,6 +126,19 @@ export const navAdmin = [
           { title: 'Membros', path: paths.dashboard.crm.members },
         ],
       },
+      {
+        title: 'Growth',
+        path: paths.dashboard.growth.root,
+        icon: <Iconify icon="solar:graph-up-bold-duotone" />,
+        children: [
+          { title: 'Funil', path: paths.dashboard.growth.funnel },
+          { title: 'Leads', path: paths.dashboard.growth.leads },
+          { title: 'Recuperação', path: paths.dashboard.growth.recovery },
+          { title: 'Retenção', path: paths.dashboard.growth.retention },
+          { title: 'Tarefas', path: paths.dashboard.growth.tasks },
+          { title: 'Configurações', path: paths.dashboard.growth.settings },
+        ],
+      },
     ],
   },
 ];

@@ -53,6 +53,16 @@ export const paths = {
       details: (id: string) => `${ROOTS.DASHBOARD}/students/${id}`,
       edit: (id: string) => `${ROOTS.DASHBOARD}/students/${id}/edit`,
     },
+    growth: {
+      root: `${ROOTS.DASHBOARD}/growth`,
+      funnel: `${ROOTS.DASHBOARD}/growth/funnel`,
+      leads: `${ROOTS.DASHBOARD}/growth/leads`,
+      lead: (id: string) => `${ROOTS.DASHBOARD}/growth/leads/${id}`,
+      recovery: `${ROOTS.DASHBOARD}/growth/recovery`,
+      retention: `${ROOTS.DASHBOARD}/growth/retention`,
+      tasks: `${ROOTS.DASHBOARD}/growth/tasks`,
+      settings: `${ROOTS.DASHBOARD}/growth/settings`,
+    },
     crm: {
       root: `${ROOTS.DASHBOARD}/crm`,
       departments: `${ROOTS.DASHBOARD}/crm/departments`,

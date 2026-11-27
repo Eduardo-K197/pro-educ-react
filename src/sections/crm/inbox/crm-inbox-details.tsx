@@ -19,6 +19,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
+import { useSchoolModules } from 'src/hooks/use-school-modules';
+
 import { fCurrency } from 'src/utils/format-number';
 import { fDate, fDateTime } from 'src/utils/format-time';
 
@@ -27,6 +29,8 @@ import { CrmService } from 'src/services/crm';
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
+
+import { CrmInboxDealPanel } from 'src/sections/growth/components/inbox-deal-panel';
 
 import { CRM_CONVERSATION_STATUS_LABELS } from 'src/types/services/crm';
 
@@ -49,6 +53,8 @@ type LinkOption =
   | { kind: 'guardian'; id: string; label: string; hint: string };
 
 export function CrmInboxDetails({ conversation, tags, notes, onConversation, onDeleteNote, myUserId, canSupervise }: Props) {
+  // Lead no painel só com o Growth contratado (ChatFlow + Growth).
+  const { modules } = useSchoolModules();
   const [contact, setContact] = useState<CrmContactDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
@@ -154,6 +160,13 @@ export function CrmInboxDetails({ conversation, tags, notes, onConversation, onD
         />
 
         <Divider />
+
+        {modules.growth && (
+          <>
+            <CrmInboxDealPanel conversation={conversation} />
+            <Divider />
+          </>
+        )}
 
         <Typography variant="subtitle2">Vínculo com o cadastro</Typography>
         {student ? (

@@ -20,6 +20,11 @@ import { toast } from 'src/components/snackbar';
 
 // ----------------------------------------------------------------------
 
+const MODULE_HINTS: Record<string, string> = {
+  crm: 'Atendimento por WhatsApp: inbox, canais, setores e respostas rápidas.',
+  growth: 'Captação e funil comercial, recuperação de leads e retenção de alunos. Com o ChatFlow, o lead aparece na conversa.',
+};
+
 /** Super admin: módulos pagos contratados pela escola (liga/desliga). */
 export function SchoolModulesCard({ schoolId }: { schoolId: string }) {
   const [modules, setModules] = useState<SchoolModuleInfo[]>([]);
@@ -69,6 +74,11 @@ export function SchoolModulesCard({ schoolId }: { schoolId: string }) {
               <Switch checked={m.enabled} disabled={saving === m.module} onChange={(e) => toggle(m, e.target.checked)} />
               <Stack sx={{ flex: 1 }}>
                 <Typography variant="subtitle2">{m.label}</Typography>
+                {MODULE_HINTS[m.module] && (
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    {MODULE_HINTS[m.module]}
+                  </Typography>
+                )}
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                   {m.enabled
                     ? `Ativo${m.enabledAt ? ` desde ${fDateTime(m.enabledAt, 'DD/MM/YYYY HH:mm')}` : ''}`
