@@ -2,6 +2,7 @@ export * from './crm-inbox-view';
 export { CrmTagListView } from './crm-tag-list-view';
 export { CrmOverviewView } from './crm-overview-view';
 export { CrmMemberListView } from './crm-member-list-view';
+export { CrmTicketListView } from './crm-ticket-list-view';
 export { CrmChannelListView } from './crm-channel-list-view';
 export { CrmDepartmentListView } from './crm-department-list-view';
 export { CrmQuickReplyListView } from './crm-quick-reply-list-view';

@@ -119,6 +119,7 @@ export const navAdmin = [
         children: [
           { title: 'Visão geral', path: paths.dashboard.crm.root },
           { title: 'Atendimento', path: paths.dashboard.crm.inbox },
+          { title: 'Chamados', path: paths.dashboard.crm.tickets },
           { title: 'Respostas rápidas', path: paths.dashboard.crm.quickReplies },
           { title: 'Tags', path: paths.dashboard.crm.tags },
           { title: 'Canais', path: paths.dashboard.crm.channels },
