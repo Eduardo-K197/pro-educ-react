@@ -58,7 +58,9 @@ export function LearningLessonDialog({ open, lesson, onClose, onSubmit }: Props)
   }, [open, lesson]);
 
   const hasFile = !!file || !!lesson?.file;
-  const canPublish = type === 'video' ? !!videoUrl.trim() : type === 'file' ? hasFile : !!body.replace(/<[^>]*>/g, '').trim();
+  const ownVideo = lesson?.videoProvider === 'bunny';
+  const canPublish =
+    type === 'video' ? !!videoUrl.trim() || ownVideo : type === 'file' ? hasFile : !!body.replace(/<[^>]*>/g, '').trim();
 
   const submit = async () => {
     setSaving(true);
@@ -69,7 +71,8 @@ export function LearningLessonDialog({ open, lesson, onClose, onSubmit }: Props)
           type,
           title: title.trim(),
           body: body || null,
-          videoUrl: type === 'video' ? videoUrl.trim() || null : lesson?.videoUrl ? null : undefined,
+          // Aula com vídeo próprio: link vazio mantém o vídeo enviado; preencher troca por link externo.
+          videoUrl: type === 'video' ? videoUrl.trim() || (ownVideo ? undefined : null) : lesson?.videoUrl ? null : undefined,
           durationSec,
           required,
           published: published && canPublish,
@@ -104,7 +107,11 @@ export function LearningLessonDialog({ open, lesson, onClose, onSubmit }: Props)
               placeholder="https://www.youtube.com/watch?v=..."
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
-              helperText="Use vídeos públicos ou não listados. O upload de vídeo próprio chega na próxima fase."
+              helperText={
+                ownVideo
+                  ? 'Esta aula usa vídeo próprio. Preencha só se quiser trocar por um link externo.'
+                  : 'Use vídeos públicos ou não listados. Se a escola tiver vídeo próprio, salve a aula e use o botão de envio.'
+              }
             />
           )}
 
@@ -149,7 +156,7 @@ export function LearningLessonDialog({ open, lesson, onClose, onSubmit }: Props)
           </Stack>
           {!canPublish && (
             <Alert severity="info">
-              {type === 'video' ? 'Informe o link do vídeo para publicar.' : type === 'file' ? 'Envie o arquivo para publicar.' : 'Escreva o conteúdo para publicar.'}
+              {type === 'video' ? 'Informe o link do vídeo (ou salve e envie o vídeo próprio) para publicar.' : type === 'file' ? 'Envie o arquivo para publicar.' : 'Escreva o conteúdo para publicar.'}
             </Alert>
           )}
         </Stack>

@@ -14,6 +14,8 @@ export type LearningLesson = {
   body: string | null;
   videoUrl: string | null;
   videoProvider: string | null;
+  /** Vídeo próprio (Bunny): uploading | processing | ready | failed. */
+  videoStatus: string | null;
   embedUrl: string | null;
   file: { name: string; size: number | null; mime: string | null } | null;
   durationSec: number | null;
@@ -179,3 +181,6 @@ export class LearningService {
     return ApiService.delete(`/learning/students/${studentId}/access/${linkId}`);
   }
 }
+
+export * from './learning-video';
+export * from './learning-assessment';
