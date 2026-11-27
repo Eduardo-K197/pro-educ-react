@@ -25,6 +25,15 @@ import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
+/** Texto colocado no campo de envio de fora (ex.: sugestão da IA). Nunca é enviado sozinho. */
+export type CrmMessageDraft = {
+  conversationId: string;
+  text: string;
+  focus: boolean;
+  /** Muda a cada aplicação, para reaplicar o mesmo texto. */
+  nonce: number;
+};
+
 type Props = {
   conversationId: string;
   /** Motivo para bloquear o envio ao contato (notas continuam liberadas). */
@@ -33,9 +42,22 @@ type Props = {
   onCancelReply: () => void;
   onSent: (message: CrmMessage) => void;
   onNote: (body: string) => Promise<void>;
+  /** Preenche o campo de envio (o atendente revisa e envia). */
+  draft?: CrmMessageDraft | null;
+  /** Conteúdo exibido logo acima do campo (ex.: card de sugestão da IA). */
+  slotAbove?: React.ReactNode;
 };
 
-export function CrmMessageInput({ conversationId, disabledReason, replyTo, onCancelReply, onSent, onNote }: Props) {
+export function CrmMessageInput({
+  conversationId,
+  disabledReason,
+  replyTo,
+  onCancelReply,
+  onSent,
+  onNote,
+  draft,
+  slotAbove,
+}: Props) {
   const [mode, setMode] = useState<'message' | 'note'>('message');
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
@@ -45,6 +67,7 @@ export function CrmMessageInput({ conversationId, disabledReason, replyTo, onCan
   const fileRef = useRef<HTMLInputElement>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const inputRef = useRef<HTMLTextAreaElement | HTMLInputElement>(null);
 
   useEffect(() => {
     CrmService.listQuickReplies()
@@ -56,6 +79,23 @@ export function CrmMessageInput({ conversationId, disabledReason, replyTo, onCan
     setText('');
     setMode('message');
   }, [conversationId]);
+
+  useEffect(() => {
+    if (!draft || draft.conversationId !== conversationId) return;
+    setMode('message');
+    setText(draft.text);
+    if (draft.focus) {
+      // Espera o campo reabilitar/renderizar antes de focar e pôr o cursor no fim.
+      setTimeout(() => {
+        const el = inputRef.current;
+        if (!el) return;
+        el.focus();
+        const end = el.value.length;
+        el.setSelectionRange(end, end);
+      }, 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft]);
 
   const blocked = mode === 'message' && !!disabledReason;
 
@@ -207,6 +247,8 @@ export function CrmMessageInput({ conversationId, disabledReason, replyTo, onCan
         </Stack>
       )}
 
+      {slotAbove}
+
       {blocked && (
         <Alert severity="info" sx={{ mx: 2, mt: 1, py: 0 }}>
           {disabledReason}
@@ -228,6 +270,7 @@ export function CrmMessageInput({ conversationId, disabledReason, replyTo, onCan
         </ToggleButtonGroup>
 
         <InputBase
+          inputRef={inputRef}
           multiline
           maxRows={6}
           value={text}

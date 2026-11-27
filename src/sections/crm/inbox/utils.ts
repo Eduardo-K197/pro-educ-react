@@ -7,7 +7,7 @@ import { hasCrmRole } from 'src/hooks/use-crm-permission';
 export type InboxTab = 'pending' | 'open' | 'closed';
 
 export const INBOX_TABS: { value: InboxTab; label: string; statuses: string }[] = [
-  { value: 'pending', label: 'Pendentes', statuses: 'bot,pending' },
+  { value: 'pending', label: 'Pendentes', statuses: 'bot,ai,pending' },
   { value: 'open', label: 'Em atendimento', statuses: 'open' },
   { value: 'closed', label: 'Encerradas', statuses: 'closed' },
 ];
@@ -24,7 +24,15 @@ export function canSeeConversation(me: CrmMe | null, conv: CrmConversation): boo
   if (hasCrmRole(me.role, 'supervisor')) return true;
   if (conv.assignee?.id === me.user.id) return true;
   if (conv.departmentId) return me.departmentIds.includes(conv.departmentId);
-  return conv.channel.agentsSeeUnassigned !== false && (conv.status === 'pending' || conv.status === 'bot');
+  return (
+    conv.channel.agentsSeeUnassigned !== false &&
+    (conv.status === 'pending' || conv.status === 'bot' || conv.status === 'ai')
+  );
+}
+
+/** Conversas sem atendente humano: menu automático (bot) ou IA atendendo (ai). */
+export function pendingCount(counts: Record<string, number>) {
+  return (counts.pending ?? 0) + (counts.bot ?? 0) + (counts.ai ?? 0);
 }
 
 export function isMine(me: CrmMe | null, conv: CrmConversation | null) {

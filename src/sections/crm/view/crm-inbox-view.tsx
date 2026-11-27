@@ -1,5 +1,6 @@
 'use client';
 
+import type { CrmAiSuggestion } from 'src/types/services/crm-ai';
 import type {
   CrmTag,
   CrmNote,
@@ -47,6 +48,7 @@ import { CrmMessageInput } from '../inbox/crm-message-input';
 import { CrmInboxDetails } from '../inbox/crm-inbox-details';
 import { CrmConnectionStatus } from '../crm-connection-status';
 import { CrmTransferDialog } from '../inbox/crm-transfer-dialog';
+import { CrmAiSuggestionCard } from '../inbox/crm-ai-suggestion-card';
 import {
   isMine,
   isMuted,
@@ -54,12 +56,14 @@ import {
   INBOX_TABS,
   tabOfStatus,
   formatPhone,
+  pendingCount,
   canSeeConversation,
   playNotificationSound,
 } from '../inbox/utils';
 
 import type { InboxTab } from '../inbox/utils';
 import type { InboxFilters } from '../inbox/crm-inbox-nav';
+import type { CrmMessageDraft } from '../inbox/crm-message-input';
 
 // ----------------------------------------------------------------------
 
@@ -204,6 +208,29 @@ function CrmInbox() {
   const closeDialog = useBoolean();
   const startDialog = useBoolean();
 
+  // Sugestões da IA: a última por conversa, só em memória (some ao recarregar a página).
+  const [aiSuggestions, setAiSuggestions] = useState<Record<string, CrmAiSuggestion>>({});
+  const [draft, setDraft] = useState<CrmMessageDraft | null>(null);
+
+  const dismissSuggestion = useCallback((conversationId: string) => {
+    setAiSuggestions((prev) => {
+      if (!prev[conversationId]) return prev;
+      const rest = { ...prev };
+      delete rest[conversationId];
+      return rest;
+    });
+  }, []);
+
+  /** "Usar"/"Editar": só preenche o campo de envio; o atendente revisa e envia. */
+  const applySuggestion = useCallback(
+    (suggestion: CrmAiSuggestion, focus: boolean) => {
+      if (!suggestion.text) return;
+      setDraft({ conversationId: suggestion.conversationId, text: suggestion.text, focus, nonce: Date.now() });
+      dismissSuggestion(suggestion.conversationId);
+    },
+    [dismissSuggestion]
+  );
+
   const select = useCallback((id: string | null) => router.push(id ? `?id=${id}` : '?'), [router]);
 
   const markRead = useCallback((conv: CrmConversation) => {
@@ -308,9 +335,14 @@ function CrmInbox() {
     if (conversationId === selectedId) setNotes((prev) => (prev.some((n) => n.id === note.id) ? prev : [...prev, note]));
   });
 
+  useCrmSocketEvent<CrmAiSuggestion>('crm:ai:suggestion', (suggestion) => {
+    if (!suggestion?.conversationId) return;
+    setAiSuggestions((prev) => ({ ...prev, [suggestion.conversationId]: suggestion }));
+  });
+
   // Título da aba com contagem de pendentes
   useEffect(() => {
-    const pending = (counts.pending ?? 0) + (counts.bot ?? 0);
+    const pending = pendingCount(counts);
     const base = 'CRM - Atendimento';
     document.title = pending ? `(${pending}) ${base}` : base;
   }, [counts]);
@@ -393,7 +425,17 @@ function CrmInbox() {
           <Label color={selected.channel.official ? 'success' : 'default'}>
             {selected.channel.official ? 'Oficial' : 'Não oficial'}
           </Label>
-          <Label color={selected.status === 'open' ? 'info' : selected.status === 'closed' ? 'default' : 'warning'}>
+          <Label
+            color={
+              selected.status === 'open'
+                ? 'info'
+                : selected.status === 'closed'
+                  ? 'default'
+                  : selected.status === 'ai'
+                    ? 'secondary'
+                    : 'warning'
+            }
+          >
             {CRM_CONVERSATION_STATUS_LABELS[selected.status]}
           </Label>
           {selected.departmentName && <Label variant="outlined">{selected.departmentName}</Label>}
@@ -492,6 +534,18 @@ function CrmInbox() {
                       onCancelReply={() => setReplyTo(null)}
                       onSent={upsertMessage}
                       onNote={addNote}
+                      draft={draft}
+                      slotAbove={
+                        aiSuggestions[selected.id] && (
+                          <CrmAiSuggestionCard
+                            suggestion={aiSuggestions[selected.id]}
+                            disabled={!!disabledReason}
+                            onUse={() => applySuggestion(aiSuggestions[selected.id], false)}
+                            onEdit={() => applySuggestion(aiSuggestions[selected.id], true)}
+                            onDismiss={() => dismissSuggestion(selected.id)}
+                          />
+                        )
+                      }
                     />
                   )}
                 </Stack>
