@@ -54,6 +54,12 @@ export const paths = {
       quickReplies: `${ROOTS.DASHBOARD}/crm/quick-replies`,
       tags: `${ROOTS.DASHBOARD}/crm/tags`,
     },
+    intelligence: {
+      root: `${ROOTS.DASHBOARD}/intelligence`,
+      autoatendimento: `${ROOTS.DASHBOARD}/intelligence/autoatendimento`,
+      historico: `${ROOTS.DASHBOARD}/intelligence/historico`,
+      conhecimento: `${ROOTS.DASHBOARD}/intelligence/conhecimento`,
+    },
     teachers: {
       root: `${ROOTS.DASHBOARD}/teachers`,
       new: `${ROOTS.DASHBOARD}/teachers/new`,

@@ -121,6 +121,17 @@ export const navAdmin = [
           { title: 'Membros', path: paths.dashboard.crm.members },
         ],
       },
+      {
+        title: 'Intelligence',
+        path: paths.dashboard.intelligence.root,
+        icon: <Iconify icon="solar:stars-bold-duotone" />,
+        children: [
+          { title: 'Visão geral', path: paths.dashboard.intelligence.root },
+          { title: 'Autoatendimento', path: paths.dashboard.intelligence.autoatendimento },
+          { title: 'Histórico', path: paths.dashboard.intelligence.historico },
+          { title: 'Base de conhecimento', path: paths.dashboard.intelligence.conhecimento },
+        ],
+      },
     ],
   },
 ];

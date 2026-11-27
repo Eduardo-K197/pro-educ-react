@@ -1,6 +1,6 @@
 import { ApiService } from './api/api';
 
-export type SchoolModuleName = 'crm';
+export type SchoolModuleName = 'crm' | 'intelligence';
 
 export type SchoolModuleInfo = {
   module: SchoolModuleName;
@@ -11,7 +11,7 @@ export type SchoolModuleInfo = {
   updatedAt: string | null;
 };
 
-/** Módulos pagos por escola (ex.: CRM). */
+/** Módulos pagos por escola (ex.: CRM, ProEduc Intelligence). */
 export class SchoolModuleService {
   /** Módulos da escola atual (header school-id). */
   static current(): Promise<{ schoolId: string; modules: Record<SchoolModuleName, boolean> }> {
