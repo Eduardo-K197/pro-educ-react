@@ -2,7 +2,7 @@
 
 import type { CrmChannel, CrmChannelState } from 'src/types/services/crm';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -47,13 +47,16 @@ export function CrmChannelConnectDialog({ open, channel, onClose, onStatus }: Pr
   const [code, setCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const updateStatus = useCallback(
-    (s: CrmChannelState) => {
-      setStatus(s);
-      onStatus(s);
-    },
-    [onStatus]
-  );
+  // onStatus costuma vir como arrow inline do pai: guardado em ref para não recriar os callbacks a cada render
+  // (antes isso refazia o connect em loop e a WAHA reiniciava a sessão sem nunca gerar o QR).
+  const onStatusRef = useRef(onStatus);
+  onStatusRef.current = onStatus;
+  const startedFor = useRef<string | null>(null);
+
+  const updateStatus = useCallback((s: CrmChannelState) => {
+    setStatus(s);
+    onStatusRef.current(s);
+  }, []);
 
   const start = useCallback(async () => {
     setStarting(true);
@@ -68,14 +71,19 @@ export function CrmChannelConnectDialog({ open, channel, onClose, onStatus }: Pr
     }
   }, [channel.id, updateStatus]);
 
+  // Um connect por abertura do diálogo (o botão "Tentar de novo" chama start() direto).
   useEffect(() => {
-    if (open) {
-      setQr(null);
-      setCode(null);
-      setError(null);
-      start();
+    if (!open) {
+      startedFor.current = null;
+      return;
     }
-  }, [open, start]);
+    if (startedFor.current === channel.id) return;
+    startedFor.current = channel.id;
+    setQr(null);
+    setCode(null);
+    setError(null);
+    start();
+  }, [open, channel.id, start]);
 
   // QR expira em ~20s na WAHA: renova enquanto o status pedir.
   useEffect(() => {
