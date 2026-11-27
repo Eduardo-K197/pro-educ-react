@@ -1,6 +1,6 @@
 'use client';
 
-import type { CrmAiRun, CrmAiMode, CrmAiDecision, CrmAiRunFilters } from 'src/types/services/crm-ai';
+import type { CrmAiRun, CrmAiMode, CrmAiDecision, CrmAiToolCall, CrmAiRunFilters } from 'src/types/services/crm-ai';
 
 import { useState, useEffect } from 'react';
 
@@ -40,10 +40,13 @@ import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import { useTable, TableNoData, TableHeadCustom, TablePaginationCustom } from 'src/components/table';
 
 import {
+  crmAiToolLabel,
   CRM_AI_MODE_LABELS,
   CRM_AI_PURPOSE_LABELS,
   CRM_AI_DECISION_LABELS,
   CRM_AI_DECISION_COLORS,
+  CRM_AI_TOOL_STATUS_LABELS,
+  CRM_AI_TOOL_STATUS_COLORS,
 } from 'src/types/services/crm-ai';
 
 import { fInt, fUsd, fLatency } from '../utils';
@@ -57,6 +60,7 @@ const TABLE_HEAD = [
   { id: 'decision', label: 'Decisão', width: 120 },
   { id: 'reason', label: 'Motivo' },
   { id: 'purpose', label: 'Finalidade', width: 110 },
+  { id: 'tools', label: 'Ferramentas', width: 110, align: 'center' },
   { id: 'model', label: 'Modelo', width: 160 },
   { id: 'tokens', label: 'Tokens in/out', width: 130, align: 'right' },
   { id: 'cost', label: 'Custo', width: 110, align: 'right' },
@@ -245,7 +249,9 @@ function RunList() {
 // ----------------------------------------------------------------------
 
 function RunRow({ row, open, onToggle }: { row: CrmAiRun; open: boolean; onToggle: () => void }) {
-  const hasDetails = !!row.suggestedText || !!row.citations?.length || !!row.reason || !!row.conversationId;
+  const toolCalls = row.toolCalls ?? [];
+  const hasDetails =
+    !!row.suggestedText || !!row.citations?.length || !!row.reason || !!row.conversationId || toolCalls.length > 0;
 
   return (
     <>
@@ -272,6 +278,23 @@ function RunRow({ row, open, onToggle }: { row: CrmAiRun; open: boolean; onToggl
           </Typography>
         </TableCell>
         <TableCell>{row.purpose ? CRM_AI_PURPOSE_LABELS[row.purpose] ?? row.purpose : '—'}</TableCell>
+        <TableCell align="center">
+          {toolCalls.length ? (
+            <Tooltip title={toolCalls.map((c) => crmAiToolLabel(c.name)).join(', ')}>
+              <Chip
+                size="small"
+                variant="soft"
+                color={toolCalls.some((c) => c.status === 'error' || c.status === 'invalid') ? 'error' : 'info'}
+                icon={<Iconify icon="solar:settings-minimalistic-bold" width={14} />}
+                label={toolCalls.length}
+              />
+            </Tooltip>
+          ) : (
+            <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+              —
+            </Typography>
+          )}
+        </TableCell>
         <TableCell>
           <Tooltip title={row.provider}>
             <Typography variant="body2" noWrap sx={{ maxWidth: 160 }}>
@@ -316,6 +339,7 @@ function RunRow({ row, open, onToggle }: { row: CrmAiRun; open: boolean; onToggl
                   </Typography>
                 )}
               </Stack>
+              {toolCalls.length > 0 && <ToolCallList calls={toolCalls} />}
               {!!row.citations?.length && (
                 <Stack spacing={0.75}>
                   <Typography variant="subtitle2">Fontes consultadas</Typography>
@@ -353,5 +377,69 @@ function RunRow({ row, open, onToggle }: { row: CrmAiRun; open: boolean; onToggl
         </TableCell>
       </TableRow>
     </>
+  );
+}
+
+// ----------------------------------------------------------------------
+
+function compactJson(value: unknown) {
+  if (value == null) return '—';
+  try {
+    const text = JSON.stringify(value);
+    return text === '{}' ? '—' : text;
+  } catch {
+    return String(value);
+  }
+}
+
+function ToolCallList({ calls }: { calls: CrmAiToolCall[] }) {
+  return (
+    <Stack spacing={0.75}>
+      <Typography variant="subtitle2">Ferramentas chamadas ({calls.length})</Typography>
+      <Stack spacing={1}>
+        {calls.map((call, index) => (
+          <Box
+            key={`${call.name}-${index}`}
+            sx={{ p: 1.5, borderRadius: 1, border: (theme) => `dashed 1px ${theme.vars.palette.divider}` }}
+          >
+            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+              <Typography variant="caption" sx={{ color: 'text.disabled', minWidth: 20 }}>
+                {index + 1}.
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {crmAiToolLabel(call.name)}
+              </Typography>
+              <Label variant="soft" color={CRM_AI_TOOL_STATUS_COLORS[call.status] ?? 'default'}>
+                {CRM_AI_TOOL_STATUS_LABELS[call.status] ?? call.status}
+              </Label>
+              <Typography variant="caption" sx={{ color: 'text.secondary', ml: 'auto' }}>
+                {fLatency(call.ms)}
+              </Typography>
+            </Stack>
+            <Typography
+              component="pre"
+              variant="caption"
+              sx={{
+                mt: 1,
+                mb: 0,
+                p: 1,
+                borderRadius: 0.75,
+                bgcolor: 'background.neutral',
+                fontFamily: 'monospace',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-all',
+              }}
+            >
+              {compactJson(call.input)}
+            </Typography>
+            {call.summary && (
+              <Typography variant="body2" sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>
+                {call.summary}
+              </Typography>
+            )}
+          </Box>
+        ))}
+      </Stack>
+    </Stack>
   );
 }
