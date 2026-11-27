@@ -90,12 +90,13 @@ export function CrmTransferDialog({ open, onClose, conversation, departments, ag
             label="Atendente"
             value={agentKey}
             onChange={(e) => setAgentKey(e.target.value)}
-            helperText="Sem atendente, a conversa volta para a fila do setor."
+            helperText="Sem atendente, a conversa volta para a fila do setor. Admins da escola recebem como gestores mesmo sem cadastro em Membros."
           >
             <MenuItem value="">(fila do setor)</MenuItem>
             {availableAgents.map((a) => (
               <MenuItem key={`${a.userType}:${a.userId}`} value={`${a.userType}:${a.userId}`}>
-                {a.name} {a.departments.length ? `— ${a.departments.map((d) => d.name).join(', ')}` : ''}
+                {a.name}
+                {a.implicit ? ' — Admin (gestor)' : a.departments.length ? ` — ${a.departments.map((d) => d.name).join(', ')}` : ''}
               </MenuItem>
             ))}
           </TextField>

@@ -159,6 +159,26 @@ export class CrmService {
     });
   }
 
+  static sendTemplate(id: string, templateId: string, variables: Record<string, string>): Promise<CrmMessage> {
+    return ApiService.post<object, CrmMessage>(`${this.BASE_PATH}/conversations/${id}/template`, { templateId, variables });
+  }
+
+  static editMessage(id: string, messageId: string, text: string): Promise<CrmMessage> {
+    return ApiService.put<object, CrmMessage>(`${this.BASE_PATH}/conversations/${id}/messages/${messageId}`, { text });
+  }
+
+  static deleteMessage(id: string, messageId: string): Promise<CrmMessage> {
+    return ApiService.delete<CrmMessage>(`${this.BASE_PATH}/conversations/${id}/messages/${messageId}`);
+  }
+
+  static reactMessage(id: string, messageId: string, emoji: string): Promise<CrmMessage> {
+    return ApiService.post<object, CrmMessage>(`${this.BASE_PATH}/conversations/${id}/messages/${messageId}/reaction`, { emoji });
+  }
+
+  static contactAvatar(contactId: string): Promise<{ avatarUrl: string | null }> {
+    return ApiService.get(`${this.BASE_PATH}/contacts/${contactId}/avatar`);
+  }
+
   static mediaUrl(key: string): Promise<{ url: string; expiresAt: string }> {
     return ApiService.get(`${this.BASE_PATH}/media/url`, { key, ttl: 900 });
   }
