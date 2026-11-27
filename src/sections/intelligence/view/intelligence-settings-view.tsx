@@ -5,7 +5,9 @@ import type { CrmAiMode, CrmAiTool, CrmAiUsage, CrmAiDecision, CrmAiSettings } f
 
 import { useState, useEffect, useCallback } from 'react';
 
+import Tab from '@mui/material/Tab';
 import Card from '@mui/material/Card';
+import Tabs from '@mui/material/Tabs';
 import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
@@ -46,6 +48,7 @@ import {
 } from 'src/types/services/crm-ai';
 
 import { fInt, fUsd } from '../utils';
+import { TicketSlaConfig } from '../ticket-sla-config';
 import { CrmAccessGuard } from '../../crm/crm-access-guard';
 
 // ----------------------------------------------------------------------
@@ -86,9 +89,30 @@ export function IntelligenceSettingsView() {
         sx={{ mb: { xs: 3, md: 5 } }}
       />
       <CrmAccessGuard min="gestor">
-        <SettingsForm />
+        <SettingsTabs />
       </CrmAccessGuard>
     </DashboardContent>
+  );
+}
+
+type SettingsTab = 'ia' | 'chamados';
+
+function SettingsTabs() {
+  const [tab, setTab] = useState<SettingsTab>('ia');
+
+  return (
+    <>
+      <Tabs value={tab} onChange={(_e, v: SettingsTab) => setTab(v)} sx={{ mb: { xs: 3, md: 4 } }}>
+        <Tab value="ia" label="IA no atendimento" icon={<Iconify icon="solar:stars-bold" width={20} />} iconPosition="start" />
+        <Tab
+          value="chamados"
+          label="Chamados e SLA"
+          icon={<Iconify icon="solar:clipboard-check-bold" width={20} />}
+          iconPosition="start"
+        />
+      </Tabs>
+      {tab === 'ia' ? <SettingsForm /> : <TicketSlaConfig />}
+    </>
   );
 }
 
