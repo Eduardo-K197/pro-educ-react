@@ -31,6 +31,7 @@ import { Iconify } from 'src/components/iconify';
 import { CRM_CONVERSATION_STATUS_LABELS } from 'src/types/services/crm';
 
 import { formatPhone } from './utils';
+import { CrmInboxDealPanel } from '../deals/crm-inbox-deal-panel';
 
 // ----------------------------------------------------------------------
 
@@ -152,6 +153,10 @@ export function CrmInboxDetails({ conversation, tags, notes, onConversation, onD
           }
           renderInput={(params) => <TextField {...params} label="Tags da conversa" />}
         />
+
+        <Divider />
+
+        <CrmInboxDealPanel conversation={conversation} />
 
         <Divider />
 
