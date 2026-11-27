@@ -76,6 +76,7 @@ export const paths = {
       campaigns: `${ROOTS.DASHBOARD}/crm/campaigns`,
       campaign: (id: string) => `${ROOTS.DASHBOARD}/crm/campaigns/${id}`,
       reports: `${ROOTS.DASHBOARD}/crm/reports`,
+      tickets: `${ROOTS.DASHBOARD}/crm/tickets`,
     },
     learning: {
       root: `${ROOTS.DASHBOARD}/learning`,

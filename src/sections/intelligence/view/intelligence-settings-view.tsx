@@ -1,11 +1,14 @@
 'use client';
 
 import type { CrmDepartment } from 'src/types/services/crm';
-import type { CrmAiMode, CrmAiUsage, CrmAiDecision, CrmAiSettings } from 'src/types/services/crm-ai';
+import type { CrmAiMode, CrmAiTool, CrmAiUsage, CrmAiDecision, CrmAiSettings } from 'src/types/services/crm-ai';
 
 import { useState, useEffect, useCallback } from 'react';
 
+import Tab from '@mui/material/Tab';
 import Card from '@mui/material/Card';
+import Tabs from '@mui/material/Tabs';
+import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Radio from '@mui/material/Radio';
@@ -34,6 +37,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
+import { Iconify } from 'src/components/iconify';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
 import {
@@ -44,6 +48,7 @@ import {
 } from 'src/types/services/crm-ai';
 
 import { fInt, fUsd } from '../utils';
+import { TicketSlaConfig } from '../ticket-sla-config';
 import { CrmAccessGuard } from '../../crm/crm-access-guard';
 
 // ----------------------------------------------------------------------
@@ -58,6 +63,7 @@ type FormState = {
   instructions: string;
   handoffDepartmentId: string;
   monthlyTokenBudget: string;
+  enabledTools: string[];
 };
 
 const toForm = (s: CrmAiSettings): FormState => ({
@@ -67,6 +73,7 @@ const toForm = (s: CrmAiSettings): FormState => ({
   instructions: s.instructions ?? '',
   handoffDepartmentId: s.handoffDepartmentId ?? '',
   monthlyTokenBudget: String(s.monthlyTokenBudget ?? 0),
+  enabledTools: s.tools ? s.tools.filter((t) => t.enabled).map((t) => t.name) : [...(s.enabledTools ?? [])],
 });
 
 export function IntelligenceSettingsView() {
@@ -82,9 +89,30 @@ export function IntelligenceSettingsView() {
         sx={{ mb: { xs: 3, md: 5 } }}
       />
       <CrmAccessGuard min="gestor">
-        <SettingsForm />
+        <SettingsTabs />
       </CrmAccessGuard>
     </DashboardContent>
+  );
+}
+
+type SettingsTab = 'ia' | 'chamados';
+
+function SettingsTabs() {
+  const [tab, setTab] = useState<SettingsTab>('ia');
+
+  return (
+    <>
+      <Tabs value={tab} onChange={(_e, v: SettingsTab) => setTab(v)} sx={{ mb: { xs: 3, md: 4 } }}>
+        <Tab value="ia" label="IA no atendimento" icon={<Iconify icon="solar:stars-bold" width={20} />} iconPosition="start" />
+        <Tab
+          value="chamados"
+          label="Chamados e SLA"
+          icon={<Iconify icon="solar:clipboard-check-bold" width={20} />}
+          iconPosition="start"
+        />
+      </Tabs>
+      {tab === 'ia' ? <SettingsForm /> : <TicketSlaConfig />}
+    </>
   );
 }
 
@@ -129,6 +157,7 @@ function SettingsForm() {
         instructions: form.instructions.trim() || null,
         handoffDepartmentId: form.handoffDepartmentId || null,
         monthlyTokenBudget: budget,
+        enabledTools: form.enabledTools,
       });
       setSettings(updated);
       setForm(toForm(updated));
@@ -235,11 +264,17 @@ function SettingsForm() {
             <TextField
               select
               label="Setor para encaminhar (handoff)"
-              helperText="Quando a IA passa a conversa para uma pessoa, ela entra na fila deste setor."
+              helperText={
+                form.handoffDepartmentId
+                  ? 'Quando a IA passa a conversa para uma pessoa, ela entra na fila deste setor.'
+                  : 'Quando a IA passa a conversa para uma pessoa, ela continua no setor em que já está (ou sem setor).'
+              }
               value={form.handoffDepartmentId}
               onChange={(e) => set({ handoffDepartmentId: e.target.value })}
+              SelectProps={{ displayEmpty: true }}
+              InputLabelProps={{ shrink: true }}
             >
-              <MenuItem value="">(setor padrão do canal)</MenuItem>
+              <MenuItem value="">Manter o setor atual da conversa</MenuItem>
               {deptOptions.map((d) => (
                 <MenuItem key={d.id} value={d.id}>
                   {d.name}
@@ -259,6 +294,14 @@ function SettingsForm() {
               }
               inputProps={{ inputMode: 'numeric' }}
               InputProps={{ endAdornment: <InputAdornment position="end">tokens</InputAdornment> }}
+            />
+
+            <Divider />
+
+            <ToolsSection
+              tools={settings.tools ?? []}
+              enabled={form.enabledTools}
+              onChange={(enabledTools) => set({ enabledTools })}
             />
 
             <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
@@ -282,6 +325,82 @@ function SettingsForm() {
         <UsageCard usage={settings.usage} budget={settings.monthlyTokenBudget} />
       </Grid>
     </Grid>
+  );
+}
+
+// ----------------------------------------------------------------------
+
+type ToolsSectionProps = {
+  tools: CrmAiTool[];
+  enabled: string[];
+  onChange: (enabled: string[]) => void;
+};
+
+function ToolsSection({ tools, enabled, onChange }: ToolsSectionProps) {
+  const toggle = (name: string, on: boolean) => {
+    const next = on ? [...enabled.filter((n) => n !== name), name] : enabled.filter((n) => n !== name);
+    // Mantém a ordem do catálogo para o PUT ficar estável.
+    onChange(tools.map((t) => t.name).filter((n) => next.includes(n)));
+  };
+
+  const hasSensitive = tools.some((t) => t.sensitive);
+
+  return (
+    <Stack spacing={1.5}>
+      <Stack spacing={0.5}>
+        <Typography variant="subtitle2">Ferramentas da IA</Typography>
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          O que a IA pode consultar ou fazer sozinha durante o atendimento. Ferramenta desligada não é usada.
+        </Typography>
+      </Stack>
+
+      {hasSensitive && (
+        <Alert severity="info" icon={<Iconify icon="solar:shield-user-bold" />}>
+          Antes de informar dados financeiros, notas ou frequência, a IA confirma a identidade do contato (telefone
+          cadastrado + pergunta de verificação).
+        </Alert>
+      )}
+
+      {!tools.length && (
+        <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+          Nenhuma ferramenta disponível.
+        </Typography>
+      )}
+
+      <Stack divider={<Divider flexItem sx={{ borderStyle: 'dashed' }} />} spacing={1}>
+        {tools.map((tool) => (
+          <FormControlLabel
+            key={tool.name}
+            sx={{ alignItems: 'flex-start', mx: 0, justifyContent: 'space-between', gap: 2 }}
+            labelPlacement="start"
+            control={
+              <Switch checked={enabled.includes(tool.name)} onChange={(e) => toggle(tool.name, e.target.checked)} />
+            }
+            label={
+              <Stack spacing={0.5}>
+                <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {tool.label}
+                  </Typography>
+                  {tool.sensitive && (
+                    <Chip
+                      size="small"
+                      color="warning"
+                      variant="soft"
+                      icon={<Iconify icon="solar:shield-user-bold" width={14} />}
+                      label="exige verificação de identidade"
+                    />
+                  )}
+                </Stack>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  {tool.description}
+                </Typography>
+              </Stack>
+            }
+          />
+        ))}
+      </Stack>
+    </Stack>
   );
 }
 

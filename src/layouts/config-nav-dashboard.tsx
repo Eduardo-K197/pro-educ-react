@@ -131,6 +131,7 @@ export const navAdmin = [
           { title: 'Campanhas', path: paths.dashboard.crm.campaigns },
           { title: 'Templates', path: paths.dashboard.crm.templates },
           { title: 'Relatórios', path: paths.dashboard.crm.reports },
+          { title: 'Chamados', path: paths.dashboard.crm.tickets },
           { title: 'Respostas rápidas', path: paths.dashboard.crm.quickReplies },
           { title: 'Tags', path: paths.dashboard.crm.tags },
           { title: 'Canais', path: paths.dashboard.crm.channels },

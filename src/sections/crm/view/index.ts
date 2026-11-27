@@ -3,6 +3,7 @@ export { CrmReportView } from './crm-report-view';
 export { CrmTagListView } from './crm-tag-list-view';
 export { CrmOverviewView } from './crm-overview-view';
 export { CrmMemberListView } from './crm-member-list-view';
+export { CrmTicketListView } from './crm-ticket-list-view';
 export { CrmChannelListView } from './crm-channel-list-view';
 export { CrmTemplateListView } from './crm-template-list-view';
 export { CrmCampaignListView } from './crm-campaign-list-view';
