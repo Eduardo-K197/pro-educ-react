@@ -48,9 +48,11 @@ export function RoleAwareDashboardLayout({ children }: Props) {
   const { modules } = useSchoolModules();
   const nav = useMemo(() => {
     const base = useAdminNav ? navAdmin : navSuperAdmin;
-    // Módulos pagos (ChatFlow = crm, Learning, Growth): sem contrato, o item some do menu.
+    // Módulos pagos (ChatFlow = crm, Intelligence, Learning, Growth): sem contrato, o item some do menu.
+    // O menu Intelligence hoje é o autoatendimento: depende também do CRM.
     const hidden = new Set<string>();
     if (!modules.crm) hidden.add(paths.dashboard.crm.root);
+    if (!modules.crm || !modules.intelligence) hidden.add(paths.dashboard.intelligence.root);
     if (!modules.learning) hidden.add(paths.dashboard.learning.root);
     if (!modules.growth) hidden.add(paths.dashboard.growth.root);
     if (!hidden.size) return base;
@@ -58,7 +60,7 @@ export function RoleAwareDashboardLayout({ children }: Props) {
       ...section,
       items: section.items.filter((item) => !hidden.has(item.path)),
     }));
-  }, [useAdminNav, modules.crm, modules.learning, modules.growth]);
+  }, [useAdminNav, modules.crm, modules.intelligence, modules.learning, modules.growth]);
 
   const handleExitSchool = () => {
     sessionStorage.removeItem(SCHOOL_MODE_KEY);

@@ -19,6 +19,10 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
+import { useSchoolModules } from 'src/hooks/use-school-modules';
+
+import { CRM_AI_MODULE_LABEL } from 'src/types/services/crm-ai';
+
 // ----------------------------------------------------------------------
 
 type Props = {
@@ -51,6 +55,9 @@ export function CrmChannelFormDialog({ open, current, departments, onClose, onSu
     ratingEnabled: false,
     agentsSeeUnassigned: true,
   });
+  const [aiEnabled, setAiEnabled] = useState(false);
+  const { modules } = useSchoolModules();
+  const intelligence = modules.crm && modules.intelligence;
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -72,6 +79,7 @@ export function CrmChannelFormDialog({ open, current, departments, onClose, onSu
       ratingEnabled: !!a?.ratingEnabled,
       agentsSeeUnassigned: a?.agentsSeeUnassigned ?? true,
     });
+    setAiEnabled(!!a?.aiEnabled);
   }, [open, current]);
 
   const field = (key: string, label: string, opts: { secret?: boolean; helper?: string; placeholder?: string } = {}) => (
@@ -95,6 +103,8 @@ export function CrmChannelFormDialog({ open, current, departments, onClose, onSu
         config,
         ...automation,
         defaultDepartmentId: automation.defaultDepartmentId || null,
+        // Só envia com o módulo ligado: sem ele a API não conhece/aceita a IA.
+        ...(intelligence ? { aiEnabled } : {}),
       });
     } finally {
       setSubmitting(false);
@@ -200,6 +210,20 @@ export function CrmChannelFormDialog({ open, current, departments, onClose, onSu
             }
             label="Agentes veem conversas pendentes sem setor"
           />
+          {intelligence && (
+            <>
+              <FormControlLabel
+                control={<Switch checked={aiEnabled} onChange={(e) => setAiEnabled(e.target.checked)} />}
+                label="Autoatendimento com IA"
+              />
+              {aiEnabled && (
+                <Alert severity="info">
+                  A IA ({CRM_AI_MODULE_LABEL}) atende as conversas novas deste canal conforme o modo definido em
+                  Intelligence › Autoatendimento e passa para a equipe quando necessário.
+                </Alert>
+              )}
+            </>
+          )}
         </Stack>
       </DialogContent>
       <DialogActions>

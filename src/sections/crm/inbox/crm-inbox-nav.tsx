@@ -23,7 +23,7 @@ import { fToNow } from 'src/utils/format-time';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
-import { initials, INBOX_TABS, formatPhone } from './utils';
+import { initials, INBOX_TABS, formatPhone, pendingCount } from './utils';
 
 import type { InboxTab } from './utils';
 
@@ -78,7 +78,7 @@ export function CrmInboxNav({
   onNew,
 }: Props) {
   const set = (patch: Partial<InboxFilters>) => onFilters({ ...filters, ...patch });
-  const tabCount = (value: InboxTab) => (value === 'pending' ? (counts.pending ?? 0) + (counts.bot ?? 0) : counts[value] ?? 0);
+  const tabCount = (value: InboxTab) => (value === 'pending' ? pendingCount(counts) : counts[value] ?? 0);
 
   return (
     <Stack sx={{ width: { xs: 1, md: 340 }, flexShrink: 0, borderRight: (theme) => `solid 1px ${theme.vars.palette.divider}`, minHeight: 0 }}>
@@ -202,6 +202,11 @@ export function CrmInboxNav({
                   {c.channel.official ? 'Oficial' : 'Não oficial'}
                 </Label>
                 {c.status === 'bot' && <Label color="warning">Menu</Label>}
+                {c.status === 'ai' && (
+                  <Label color="secondary" startIcon={<Iconify icon="solar:stars-bold" width={12} />}>
+                    IA
+                  </Label>
+                )}
                 {c.departmentName && <Label variant="outlined">{c.departmentName}</Label>}
                 {c.assignee?.name && c.status === 'open' && <Label variant="soft" color="info">{c.assignee.name}</Label>}
                 {c.tags.slice(0, 2).map((t) => (

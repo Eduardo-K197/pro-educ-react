@@ -76,6 +76,12 @@ export const paths = {
       root: `${ROOTS.DASHBOARD}/learning`,
       course: (id: string) => `${ROOTS.DASHBOARD}/learning/courses/${id}`,
     },
+    intelligence: {
+      root: `${ROOTS.DASHBOARD}/intelligence`,
+      autoatendimento: `${ROOTS.DASHBOARD}/intelligence/autoatendimento`,
+      historico: `${ROOTS.DASHBOARD}/intelligence/historico`,
+      conhecimento: `${ROOTS.DASHBOARD}/intelligence/conhecimento`,
+    },
     teachers: {
       root: `${ROOTS.DASHBOARD}/teachers`,
       new: `${ROOTS.DASHBOARD}/teachers/new`,

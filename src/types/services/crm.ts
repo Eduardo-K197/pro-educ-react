@@ -92,10 +92,11 @@ export type CrmDepartmentAutomation = {
   businessHours?: CrmBusinessHours | null;
 };
 
-export type CrmConversationStatus = 'bot' | 'pending' | 'open' | 'closed';
+export type CrmConversationStatus = 'bot' | 'ai' | 'pending' | 'open' | 'closed';
 
 export const CRM_CONVERSATION_STATUS_LABELS: Record<CrmConversationStatus, string> = {
   bot: 'No menu',
+  ai: 'IA',
   pending: 'Pendente',
   open: 'Em atendimento',
   closed: 'Encerrada',
@@ -312,6 +313,8 @@ export type CrmChannelAutomation = {
   botMenuMessage: string | null;
   ratingEnabled: boolean;
   agentsSeeUnassigned: boolean;
+  /** Autoatendimento com IA (módulo ProEduc Intelligence). */
+  aiEnabled?: boolean;
 };
 
 export type CrmChannel = {

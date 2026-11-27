@@ -10,6 +10,7 @@ import Typography from '@mui/material/Typography';
 
 import { fDateTime } from 'src/utils/format-time';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 import { CrmMedia } from './crm-media';
@@ -41,8 +42,11 @@ export function CrmMessageItem({ message, onReply, onOpenImage }: Props) {
 
   const me = message.direction === 'out';
   const status = MESSAGE_STATUS_ICON[message.status];
+  const fromAi = me && message.source === 'ai';
   const author =
-    me && (message.source === 'bot' ? 'Automática' : message.author?.name || (message.source === 'phone' ? 'Celular' : null));
+    me &&
+    !fromAi &&
+    (message.source === 'bot' ? 'Automática' : message.author?.name || (message.source === 'phone' ? 'Celular' : null));
 
   const renderBody = () => {
     if (message.deleted) {
@@ -104,6 +108,16 @@ export function CrmMessageItem({ message, onReply, onOpenImage }: Props) {
           <Typography variant="caption" sx={{ color: 'text.disabled', mb: 0.25 }}>
             {author}
           </Typography>
+        )}
+        {fromAi && (
+          <Label
+            color="secondary"
+            variant="soft"
+            startIcon={<Iconify icon="solar:stars-bold" width={12} />}
+            sx={{ mb: 0.5 }}
+          >
+            Assistente IA
+          </Label>
         )}
         <Stack
           direction="row"
