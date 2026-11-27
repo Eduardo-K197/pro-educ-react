@@ -15,7 +15,11 @@ export function CrmTicketCreatedBy({ createdBy }: { createdBy: CrmTicket['create
     return (
       <Tooltip title="Aberto pela IA durante o autoatendimento">
         <Stack direction="row" spacing={0.75} alignItems="center">
-          <Label variant="soft" color="secondary" startIcon={<Iconify icon="solar:stars-bold" width={14} />}>
+          <Label
+            variant="soft"
+            color="secondary"
+            startIcon={<Iconify icon="solar:stars-bold" width={14} />}
+          >
             IA
           </Label>
           {createdBy.name && (

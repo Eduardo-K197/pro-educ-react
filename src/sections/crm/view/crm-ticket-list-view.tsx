@@ -65,7 +65,13 @@ import { useCrmAccess } from '../crm-access-context';
 import { CrmTicketCreatedBy } from '../tickets/crm-ticket-created-by';
 import { CrmTicketFormDialog } from '../tickets/crm-ticket-form-dialog';
 import { CrmTicketDetailsDrawer } from '../tickets/crm-ticket-details-drawer';
-import { slaColor, statusLabel, isTicketDone, fSlaRemaining, priorityLabel } from '../tickets/utils';
+import {
+  slaColor,
+  statusLabel,
+  isTicketDone,
+  fSlaRemaining,
+  priorityLabel,
+} from '../tickets/utils';
 
 // ----------------------------------------------------------------------
 
@@ -92,7 +98,14 @@ type Filters = {
   sla: 'warning' | 'breached' | '';
 };
 
-const EMPTY_FILTERS: Filters = { search: '', priority: '', category: '', departmentId: '', assignee: '', sla: '' };
+const EMPTY_FILTERS: Filters = {
+  search: '',
+  priority: '',
+  category: '',
+  departmentId: '',
+  assignee: '',
+  sla: '',
+};
 
 const EMPTY_COUNTS: Record<CrmTicketStatus, number> = {
   aberto: 0,
@@ -145,8 +158,12 @@ function TicketList() {
     CrmTicketService.getConfig()
       .then(setConfig)
       .catch((err) => toast.error(err?.message || 'Erro ao carregar as categorias de chamados'));
-    CrmService.listDepartments().then(setDepartments).catch(() => undefined);
-    CrmService.listAgents().then(setAgents).catch(() => undefined);
+    CrmService.listDepartments()
+      .then(setDepartments)
+      .catch(() => undefined);
+    CrmService.listAgents()
+      .then(setAgents)
+      .catch(() => undefined);
   }, []);
 
   // Lista
@@ -215,7 +232,10 @@ function TicketList() {
   const replaceRow = useCallback((ticket: CrmTicket) => {
     setData((current) =>
       current
-        ? { ...current, items: current.items.map((t) => (t.id === ticket.id ? { ...t, ...ticket } : t)) }
+        ? {
+            ...current,
+            items: current.items.map((t) => (t.id === ticket.id ? { ...t, ...ticket } : t)),
+          }
         : current
     );
   }, []);
@@ -255,13 +275,21 @@ function TicketList() {
   const totalCount = CRM_TICKET_STATUSES.reduce((sum, s) => sum + (counts[s] ?? 0), 0);
   const rows = data?.items ?? [];
   const hasFilters = JSON.stringify(filters) !== JSON.stringify(EMPTY_FILTERS);
-  const priorities = config?.priorities.length ? config.priorities.map((p) => p.key) : CRM_TICKET_PRIORITIES;
-  const statuses = config?.statuses.length ? config.statuses.map((s) => s.key) : CRM_TICKET_STATUSES;
+  const priorities = config?.priorities.length
+    ? config.priorities.map((p) => p.key)
+    : CRM_TICKET_PRIORITIES;
+  const statuses = config?.statuses.length
+    ? config.statuses.map((s) => s.key)
+    : CRM_TICKET_STATUSES;
 
   return (
     <>
       <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2, mt: { xs: -2, md: -4 } }}>
-        <Button variant="contained" startIcon={<Iconify icon="mingcute:add-line" />} onClick={createDialog.onTrue}>
+        <Button
+          variant="contained"
+          startIcon={<Iconify icon="mingcute:add-line" />}
+          onClick={createDialog.onTrue}
+        >
           Novo chamado
         </Button>
       </Stack>
@@ -274,7 +302,10 @@ function TicketList() {
             setPage(0);
           }}
           variant="scrollable"
-          sx={{ px: 2.5, boxShadow: (theme) => `inset 0 -2px 0 0 ${alpha(theme.palette.grey[500], 0.08)}` }}
+          sx={{
+            px: 2.5,
+            boxShadow: (theme) => `inset 0 -2px 0 0 ${alpha(theme.palette.grey[500], 0.08)}`,
+          }}
         >
           {statuses.map((s) => (
             <Tab
@@ -283,7 +314,10 @@ function TicketList() {
               iconPosition="end"
               label={statusLabel(config, s)}
               icon={
-                <Label variant={tab === s ? 'filled' : 'soft'} color={CRM_TICKET_STATUS_COLORS[s] ?? 'default'}>
+                <Label
+                  variant={tab === s ? 'filled' : 'soft'}
+                  color={CRM_TICKET_STATUS_COLORS[s] ?? 'default'}
+                >
                   {counts[s] ?? 0}
                 </Label>
               }
@@ -431,7 +465,11 @@ function TicketList() {
                 <TableNoData
                   notFound={!loading && rows.length === 0}
                   title="Nenhum chamado"
-                  description={hasFilters ? 'Nada encontrado com esses filtros.' : 'Nenhum chamado nesta situação.'}
+                  description={
+                    hasFilters
+                      ? 'Nada encontrado com esses filtros.'
+                      : 'Nenhum chamado nesta situação.'
+                  }
                 />
               </TableBody>
             </Table>
@@ -507,7 +545,10 @@ function TicketRow({ row, now, config, highlight, selected, onClick }: RowProps)
         ...(highlight &&
           !done && {
             bgcolor: (theme) =>
-              alpha(highlight === 'breached' ? theme.palette.error.main : theme.palette.warning.main, 0.08),
+              alpha(
+                highlight === 'breached' ? theme.palette.error.main : theme.palette.warning.main,
+                0.08
+              ),
           }),
       }}
     >
@@ -523,7 +564,9 @@ function TicketRow({ row, now, config, highlight, selected, onClick }: RowProps)
         </Typography>
         {(row.contact?.name || row.student?.name) && (
           <Typography variant="caption" sx={{ color: 'text.secondary' }} noWrap component="div">
-            {[row.contact?.name, row.student?.name ? `aluno: ${row.student.name}` : null].filter(Boolean).join(' · ')}
+            {[row.contact?.name, row.student?.name ? `aluno: ${row.student.name}` : null]
+              .filter(Boolean)
+              .join(' · ')}
           </Typography>
         )}
       </TableCell>
@@ -539,17 +582,27 @@ function TicketRow({ row, now, config, highlight, selected, onClick }: RowProps)
         </Label>
       </TableCell>
       <TableCell>
-        <Typography variant="body2" noWrap sx={{ color: row.departmentName ? 'text.primary' : 'text.disabled' }}>
+        <Typography
+          variant="body2"
+          noWrap
+          sx={{ color: row.departmentName ? 'text.primary' : 'text.disabled' }}
+        >
           {row.departmentName || 'Sem setor'}
         </Typography>
       </TableCell>
       <TableCell>
-        <Typography variant="body2" noWrap sx={{ color: row.assignee ? 'text.primary' : 'text.disabled' }}>
+        <Typography
+          variant="body2"
+          noWrap
+          sx={{ color: row.assignee ? 'text.primary' : 'text.disabled' }}
+        >
           {row.assignee ? row.assignee.name || row.assignee.id : 'Sem responsável'}
         </Typography>
       </TableCell>
       <TableCell sx={{ whiteSpace: 'nowrap' }}>
-        <Tooltip title={`Prazo: ${fDateTime(row.slaDueAt, 'DD/MM/YYYY HH:mm')} (${row.slaHours}h úteis)`}>
+        <Tooltip
+          title={`Prazo: ${fDateTime(row.slaDueAt, 'DD/MM/YYYY HH:mm')} (${row.slaHours}h úteis)`}
+        >
           <Stack direction="row" spacing={0.75} alignItems="center">
             {level && (
               <Iconify
@@ -559,7 +612,10 @@ function TicketRow({ row, now, config, highlight, selected, onClick }: RowProps)
               />
             )}
             <Stack>
-              <Typography variant="body2" sx={{ color: slaColor(slaState), fontWeight: level ? 600 : 400 }}>
+              <Typography
+                variant="body2"
+                sx={{ color: slaColor(slaState), fontWeight: level ? 600 : 400 }}
+              >
                 {done ? 'Concluído' : fSlaRemaining(row.slaDueAt, now)}
               </Typography>
               <Typography variant="caption" sx={{ color: 'text.disabled' }}>

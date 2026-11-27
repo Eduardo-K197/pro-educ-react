@@ -43,9 +43,22 @@ type FormState = {
   departmentId: string;
 };
 
-const EMPTY: FormState = { subject: '', description: '', category: '', priority: 'media', departmentId: '' };
+const EMPTY: FormState = {
+  subject: '',
+  description: '',
+  category: '',
+  priority: 'media',
+  departmentId: '',
+};
 
-export function CrmTicketFormDialog({ open, onClose, config, departments, conversationId, onCreated }: Props) {
+export function CrmTicketFormDialog({
+  open,
+  onClose,
+  config,
+  departments,
+  conversationId,
+  onCreated,
+}: Props) {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [saving, setSaving] = useState(false);
 
@@ -61,7 +74,9 @@ export function CrmTicketFormDialog({ open, onClose, config, departments, conver
     set({ category: key, departmentId: category?.departmentId ?? form.departmentId });
   };
 
-  const priorities = config?.priorities.length ? config.priorities.map((p) => p.key) : CRM_TICKET_PRIORITIES;
+  const priorities = config?.priorities.length
+    ? config.priorities.map((p) => p.key)
+    : CRM_TICKET_PRIORITIES;
   const valid = form.subject.trim().length > 0 && !!form.category;
 
   const submit = async () => {

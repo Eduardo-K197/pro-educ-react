@@ -1,6 +1,11 @@
 // ---------------------------------------------------------------------- ChatFlow: central de chamados
 
-export type CrmTicketStatus = 'aberto' | 'em_andamento' | 'aguardando_cliente' | 'resolvido' | 'fechado';
+export type CrmTicketStatus =
+  | 'aberto'
+  | 'em_andamento'
+  | 'aguardando_cliente'
+  | 'resolvido'
+  | 'fechado';
 
 export type CrmTicketPriority = 'baixa' | 'media' | 'alta' | 'urgente';
 
@@ -35,14 +40,16 @@ export const CRM_TICKET_STATUS_LABELS: Record<CrmTicketStatus, string> = {
   fechado: 'Fechado',
 };
 
-export const CRM_TICKET_STATUS_COLORS: Record<CrmTicketStatus, 'info' | 'primary' | 'warning' | 'success' | 'default'> =
-  {
-    aberto: 'info',
-    em_andamento: 'primary',
-    aguardando_cliente: 'warning',
-    resolvido: 'success',
-    fechado: 'default',
-  };
+export const CRM_TICKET_STATUS_COLORS: Record<
+  CrmTicketStatus,
+  'info' | 'primary' | 'warning' | 'success' | 'default'
+> = {
+  aberto: 'info',
+  em_andamento: 'primary',
+  aguardando_cliente: 'warning',
+  resolvido: 'success',
+  fechado: 'default',
+};
 
 export const CRM_TICKET_PRIORITY_LABELS: Record<CrmTicketPriority, string> = {
   baixa: 'Baixa',
@@ -51,7 +58,10 @@ export const CRM_TICKET_PRIORITY_LABELS: Record<CrmTicketPriority, string> = {
   urgente: 'Urgente',
 };
 
-export const CRM_TICKET_PRIORITY_COLORS: Record<CrmTicketPriority, 'default' | 'info' | 'warning' | 'error'> = {
+export const CRM_TICKET_PRIORITY_COLORS: Record<
+  CrmTicketPriority,
+  'default' | 'info' | 'warning' | 'error'
+> = {
   baixa: 'default',
   media: 'info',
   alta: 'warning',
@@ -156,7 +166,10 @@ export type CrmTicketConfig = {
   warnBeforeMinutes: number;
 };
 
-export type CrmTicketConfigPayload = Pick<CrmTicketConfig, 'categories' | 'slaHours' | 'warnBeforeMinutes'>;
+export type CrmTicketConfigPayload = Pick<
+  CrmTicketConfig,
+  'categories' | 'slaHours' | 'warnBeforeMinutes'
+>;
 
 // ---------------------------------------------------------------------- tempo real
 

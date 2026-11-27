@@ -7,7 +7,10 @@ import type {
   CrmTicketPriority,
 } from 'src/types/services/crm-ticket';
 
-import { CRM_TICKET_STATUS_LABELS, CRM_TICKET_PRIORITY_LABELS } from 'src/types/services/crm-ticket';
+import {
+  CRM_TICKET_STATUS_LABELS,
+  CRM_TICKET_PRIORITY_LABELS,
+} from 'src/types/services/crm-ticket';
 
 // ----------------------------------------------------------------------
 
@@ -37,7 +40,8 @@ export function slaColor(state: CrmTicketSlaState) {
   return 'text.secondary';
 }
 
-export const isTicketDone = (status: CrmTicketStatus) => status === 'resolvido' || status === 'fechado';
+export const isTicketDone = (status: CrmTicketStatus) =>
+  status === 'resolvido' || status === 'fechado';
 
 export const agentKey = (a: { type?: string; userType?: string; id?: string; userId?: string }) =>
   `${a.type ?? a.userType}:${a.id ?? a.userId}`;
@@ -64,10 +68,20 @@ export function categoryLabel(config: CrmTicketConfig | null, key: string) {
 
 /** Atendentes para atribuição: inclui o responsável atual mesmo que não esteja mais na lista. */
 export function assigneeOptions(agents: CrmAgent[], ticket: CrmTicket | null) {
-  const options = agents.map((a) => ({ key: agentKey(a), type: a.userType as string, id: a.userId, name: a.name }));
+  const options = agents.map((a) => ({
+    key: agentKey(a),
+    type: a.userType as string,
+    id: a.userId,
+    name: a.name,
+  }));
   const current = ticket?.assignee;
   if (current && !options.some((o) => o.key === agentKey(current))) {
-    options.unshift({ key: agentKey(current), type: current.type, id: current.id, name: current.name });
+    options.unshift({
+      key: agentKey(current),
+      type: current.type,
+      id: current.id,
+      name: current.name,
+    });
   }
   return options;
 }

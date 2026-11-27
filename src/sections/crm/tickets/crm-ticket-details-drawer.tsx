@@ -70,7 +70,16 @@ type Props = {
   onUpdated: (ticket: CrmTicket) => void;
 };
 
-export function CrmTicketDetailsDrawer({ ticketId, onClose, config, departments, agents, live, now, onUpdated }: Props) {
+export function CrmTicketDetailsDrawer({
+  ticketId,
+  onClose,
+  config,
+  departments,
+  agents,
+  live,
+  now,
+  onUpdated,
+}: Props) {
   const [ticket, setTicket] = useState<CrmTicket | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +105,9 @@ export function CrmTicketDetailsDrawer({ ticketId, onClose, config, departments,
   // Atualização em tempo real do chamado aberto.
   useEffect(() => {
     if (!live || live.id !== ticketId) return;
-    setTicket((current) => (current ? { ...live, events: live.events ?? current.events } : current));
+    setTicket((current) =>
+      current ? { ...live, events: live.events ?? current.events } : current
+    );
   }, [live, ticketId]);
 
   const patch = async (payload: CrmTicketUpdatePayload, success?: string) => {
@@ -179,7 +190,10 @@ export function CrmTicketDetailsDrawer({ ticketId, onClose, config, departments,
                 <Label variant="soft" color={CRM_TICKET_STATUS_COLORS[ticket.status] ?? 'default'}>
                   {statusLabel(config, ticket.status)}
                 </Label>
-                <Label variant="soft" color={CRM_TICKET_PRIORITY_COLORS[ticket.priority] ?? 'default'}>
+                <Label
+                  variant="soft"
+                  color={CRM_TICKET_PRIORITY_COLORS[ticket.priority] ?? 'default'}
+                >
                   {priorityLabel(config, ticket.priority)}
                 </Label>
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -187,7 +201,10 @@ export function CrmTicketDetailsDrawer({ ticketId, onClose, config, departments,
                 </Typography>
               </Stack>
               {ticket.description && (
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: 'text.secondary' }}>
+                <Typography
+                  variant="body2"
+                  sx={{ whiteSpace: 'pre-wrap', color: 'text.secondary' }}
+                >
                   {ticket.description}
                 </Typography>
               )}
@@ -204,7 +221,10 @@ export function CrmTicketDetailsDrawer({ ticketId, onClose, config, departments,
               }}
             >
               <Info label="Prazo do SLA">
-                <Typography variant="body2" sx={{ color: slaColor(ticket.slaState), fontWeight: 600 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: slaColor(ticket.slaState), fontWeight: 600 }}
+                >
                   {ticket.slaState === 'done' ? 'Concluído' : fSlaRemaining(ticket.slaDueAt, now)}
                 </Typography>
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -225,12 +245,16 @@ export function CrmTicketDetailsDrawer({ ticketId, onClose, config, departments,
               </Info>
               {ticket.resolvedAt && (
                 <Info label="Resolvido em">
-                  <Typography variant="body2">{fDateTime(ticket.resolvedAt, 'DD/MM/YYYY HH:mm')}</Typography>
+                  <Typography variant="body2">
+                    {fDateTime(ticket.resolvedAt, 'DD/MM/YYYY HH:mm')}
+                  </Typography>
                 </Info>
               )}
               {ticket.closedAt && (
                 <Info label="Fechado em">
-                  <Typography variant="body2">{fDateTime(ticket.closedAt, 'DD/MM/YYYY HH:mm')}</Typography>
+                  <Typography variant="body2">
+                    {fDateTime(ticket.closedAt, 'DD/MM/YYYY HH:mm')}
+                  </Typography>
                 </Info>
               )}
             </Box>
@@ -259,7 +283,10 @@ export function CrmTicketDetailsDrawer({ ticketId, onClose, config, departments,
                   disabled={saving}
                   onChange={(e) => patch({ status: e.target.value as CrmTicketStatus })}
                 >
-                  {(config?.statuses.length ? config.statuses.map((s) => s.key) : CRM_TICKET_STATUSES).map((s) => (
+                  {(config?.statuses.length
+                    ? config.statuses.map((s) => s.key)
+                    : CRM_TICKET_STATUSES
+                  ).map((s) => (
                     <MenuItem key={s} value={s}>
                       {statusLabel(config, s)}
                     </MenuItem>
@@ -274,13 +301,14 @@ export function CrmTicketDetailsDrawer({ ticketId, onClose, config, departments,
                   disabled={saving}
                   onChange={(e) => patch({ priority: e.target.value as CrmTicketPriority })}
                 >
-                  {(config?.priorities.length ? config.priorities.map((p) => p.key) : CRM_TICKET_PRIORITIES).map(
-                    (p) => (
-                      <MenuItem key={p} value={p}>
-                        {priorityLabel(config, p)}
-                      </MenuItem>
-                    )
-                  )}
+                  {(config?.priorities.length
+                    ? config.priorities.map((p) => p.key)
+                    : CRM_TICKET_PRIORITIES
+                  ).map((p) => (
+                    <MenuItem key={p} value={p}>
+                      {priorityLabel(config, p)}
+                    </MenuItem>
+                  ))}
                 </TextField>
               </Stack>
               <TextField
@@ -292,7 +320,9 @@ export function CrmTicketDetailsDrawer({ ticketId, onClose, config, departments,
                 onChange={(e) => patch({ category: e.target.value })}
               >
                 {!config?.categories.some((c) => c.key === ticket.category) && (
-                  <MenuItem value={ticket.category}>{ticket.categoryLabel || ticket.category}</MenuItem>
+                  <MenuItem value={ticket.category}>
+                    {ticket.categoryLabel || ticket.category}
+                  </MenuItem>
                 )}
                 {(config?.categories ?? []).map((c) => (
                   <MenuItem key={c.key} value={c.key}>
@@ -312,7 +342,9 @@ export function CrmTicketDetailsDrawer({ ticketId, onClose, config, departments,
               >
                 <MenuItem value="">(sem setor)</MenuItem>
                 {ticket.departmentId && !departments.some((d) => d.id === ticket.departmentId) && (
-                  <MenuItem value={ticket.departmentId}>{ticket.departmentName ?? ticket.departmentId}</MenuItem>
+                  <MenuItem value={ticket.departmentId}>
+                    {ticket.departmentName ?? ticket.departmentId}
+                  </MenuItem>
                 )}
                 {departments
                   .filter((d) => d.active || d.id === ticket.departmentId)
@@ -439,30 +471,47 @@ function TicketTimeline({ events, lookup }: TimelineProps) {
     <Stack spacing={0}>
       {sorted.map((event, index) => {
         const slaBreached = event.type === 'sla' && event.to === 'breached';
-        const color = event.type === 'sla' ? (slaBreached ? 'error.main' : 'warning.main') : 'text.secondary';
+        const color =
+          event.type === 'sla' ? (slaBreached ? 'error.main' : 'warning.main') : 'text.secondary';
         let detail: string | null = null;
         if (event.type === 'sla') {
           detail = slaBreached ? 'SLA estourado' : 'SLA perto de estourar';
-        } else if (event.type !== 'created' && event.type !== 'note' && (event.from != null || event.to != null)) {
+        } else if (
+          event.type !== 'created' &&
+          event.type !== 'note' &&
+          (event.from != null || event.to != null)
+        ) {
           detail = `${lookup(event.type, event.from)} → ${lookup(event.type, event.to)}`;
         }
         return (
           <Stack key={`${event.at}-${index}`} direction="row" spacing={1.5}>
             <Stack alignItems="center">
-              <Iconify icon={EVENT_ICONS[event.type] ?? 'solar:record-circle-bold'} width={20} sx={{ color }} />
-              {index < sorted.length - 1 && <Box sx={{ flex: 1, width: '1px', bgcolor: 'divider', my: 0.5 }} />}
+              <Iconify
+                icon={EVENT_ICONS[event.type] ?? 'solar:record-circle-bold'}
+                width={20}
+                sx={{ color }}
+              />
+              {index < sorted.length - 1 && (
+                <Box sx={{ flex: 1, width: '1px', bgcolor: 'divider', my: 0.5 }} />
+              )}
             </Stack>
             <Stack spacing={0.25} sx={{ pb: 2, minWidth: 0, flex: 1 }}>
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
                 {EVENT_TITLES[event.type] ?? event.type}
               </Typography>
               {detail && (
-                <Typography variant="body2" sx={{ color: event.type === 'sla' ? color : 'text.primary' }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: event.type === 'sla' ? color : 'text.primary' }}
+                >
                   {detail}
                 </Typography>
               )}
               {event.note && (
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: 'text.secondary' }}>
+                <Typography
+                  variant="body2"
+                  sx={{ whiteSpace: 'pre-wrap', color: 'text.secondary' }}
+                >
                   {event.note}
                 </Typography>
               )}

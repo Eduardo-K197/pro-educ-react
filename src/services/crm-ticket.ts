@@ -39,6 +39,9 @@ export class CrmTicketService {
   }
 
   static updateConfig(payload: CrmTicketConfigPayload): Promise<CrmTicketConfig> {
-    return ApiService.put<CrmTicketConfigPayload, CrmTicketConfig>(`${this.BASE_PATH}/config`, payload);
+    return ApiService.put<CrmTicketConfigPayload, CrmTicketConfig>(
+      `${this.BASE_PATH}/config`,
+      payload
+    );
   }
 }
