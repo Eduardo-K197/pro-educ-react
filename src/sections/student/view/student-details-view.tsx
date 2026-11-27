@@ -40,6 +40,7 @@ import { StudentTurmasTab } from '../student-turmas-tab';
 import { StudentPagamentosTab } from '../student-pagamentos-tab';
 import { StudentDesempenhoTab } from '../student-desempenho-tab';
 import { StudentJourneySummary } from '../student-journey-summary';
+import { StudentLearningAccessCard } from '../../learning/student-learning-access-card';
 
 // ----------------------------------------------------------------------
 
@@ -232,6 +233,9 @@ export function StudentDetailsView({ id }: Props) {
                 </Card>
               )}
             </Box>
+          </Grid>
+          <Grid xs={12}>
+            <StudentLearningAccessCard studentId={student.id} />
           </Grid>
         </Grid>
       )}
