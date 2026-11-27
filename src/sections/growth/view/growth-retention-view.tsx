@@ -79,8 +79,8 @@ function Retention() {
     <Stack spacing={2}>
       {settings && (
         <Alert severity="info">
-          Alunos ativos com cobrança vencida há mais de {settings.overdueGraceDays} dia(s) ou com {settings.absenceThreshold}+ faltas nos últimos{' '}
-          {settings.absenceWindowDays} dias. Ajuste em{' '}
+          Alunos ativos com mensalidade vencida há mais de {settings.overdueGraceDays} dia(s) ou com faltas acima de {settings.absenceRatePercent}% das
+          aulas nos últimos {settings.absenceWindowDays} dias (mínimo de {settings.absenceMinClasses} aulas lançadas). Ajuste em{' '}
           <Link component={RouterLink} href={paths.dashboard.growth.settings}>
             Configurações
           </Link>
@@ -152,8 +152,8 @@ function Retention() {
                       : 'Em dia'}
                   </TableCell>
                   <TableCell>
-                    {r.signals.absences} falta(s)
-                    {r.signals.presences + r.signals.absences ? ` de ${r.signals.presences + r.signals.absences} aula(s)` : ''}
+                    {r.signals.classes ? `${r.signals.absences} falta(s) em ${r.signals.classes} aula(s)` : 'Sem frequência lançada'}
+                    {r.absenceRate !== null ? ` · ${r.absenceRate}%` : ''}
                   </TableCell>
                   <TableCell align="right">
                     <Button size="small" variant={r.openTasks ? 'text' : 'outlined'} onClick={() => setTaskFor(r)}>

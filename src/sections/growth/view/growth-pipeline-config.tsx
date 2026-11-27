@@ -35,6 +35,7 @@ export function GrowthPipelineConfig() {
   const [selectedId, setSelectedId] = useState('');
   const [name, setName] = useState('');
   const [agentsSeeAll, setAgentsSeeAll] = useState(false);
+  const [stalledDays, setStalledDays] = useState(7);
   const [stages, setStages] = useState<CrmStageInput[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -43,6 +44,7 @@ export function GrowthPipelineConfig() {
     setSelectedId(p.id);
     setName(p.name);
     setAgentsSeeAll(p.agentsSeeAll);
+    setStalledDays(p.stalledDays ?? 7);
     setStages(p.stages.filter((s) => s.active).map((s) => ({ id: s.id, name: s.name, color: s.color, probability: s.probability, kind: s.kind })));
   };
 
@@ -73,7 +75,7 @@ export function GrowthPipelineConfig() {
   const save = async () => {
     setSaving(true);
     try {
-      await GrowthService.updatePipeline(selectedId, { name: name.trim(), agentsSeeAll, stages: stages.map((s) => ({ ...s, name: s.name.trim() })) });
+      await GrowthService.updatePipeline(selectedId, { name: name.trim(), agentsSeeAll, stalledDays, stages: stages.map((s) => ({ ...s, name: s.name.trim() })) });
       toast.success('Funil salvo.');
       load(selectedId);
     } catch (err: any) {
@@ -109,6 +111,15 @@ export function GrowthPipelineConfig() {
             </TextField>
           )}
           <TextField size="small" label="Nome do funil" value={name} onChange={(e) => setName(e.target.value)} inputProps={{ maxLength: 80 }} />
+          <TextField
+            size="small"
+            type="number"
+            label="Lead parado após (dias)"
+            value={stalledDays}
+            onChange={(e) => setStalledDays(Math.max(1, Math.min(365, Math.round(Number(e.target.value) || 1))))}
+            helperText="Usado na Recuperação"
+            sx={{ width: 190 }}
+          />
           <FormControlLabel
             control={<Switch checked={agentsSeeAll} onChange={(e) => setAgentsSeeAll(e.target.checked)} />}
             label="Agentes veem todos os leads deste funil"

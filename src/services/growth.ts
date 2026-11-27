@@ -5,6 +5,8 @@ import type {
   CrmPipeline,
   CrmDealList,
   CrmDealNote,
+  GrowthOwner,
+  GrowthCourse,
   CrmDealDetail,
   CrmStageInput,
   CrmDealFilters,
@@ -36,7 +38,7 @@ export class GrowthService {
 
   static updatePipeline(
     id: string,
-    payload: { name?: string; agentsSeeAll?: boolean; isDefault?: boolean; stages?: CrmStageInput[] }
+    payload: { name?: string; agentsSeeAll?: boolean; isDefault?: boolean; stalledDays?: number; stages?: CrmStageInput[] }
   ): Promise<CrmPipeline> {
     return ApiService.put<object, CrmPipeline>(`${this.BASE_PATH}/pipelines/${id}`, payload);
   }
@@ -113,6 +115,17 @@ export class GrowthService {
 
   static deleteTask(id: string): Promise<void> {
     return ApiService.delete<void>(`${this.BASE_PATH}/tasks/${id}`);
+  }
+
+  // Apoio dos formulários -----------------------------------------------
+
+  /** Membros ativos do CRM + admins da escola (gestores implícitos). */
+  static listOwners(): Promise<GrowthOwner[]> {
+    return ApiService.get<GrowthOwner[]>(`${this.BASE_PATH}/owners`);
+  }
+
+  static listCourses(): Promise<GrowthCourse[]> {
+    return ApiService.get<GrowthCourse[]>(`${this.BASE_PATH}/courses`);
   }
 
   // Recuperação, retenção e configurações --------------------------------

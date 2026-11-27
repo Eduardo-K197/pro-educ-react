@@ -23,6 +23,7 @@ export type CrmPipeline = {
   name: string;
   isDefault: boolean;
   agentsSeeAll: boolean;
+  stalledDays: number;
   active: boolean;
   position: number;
   stages: CrmPipelineStage[];
@@ -82,6 +83,7 @@ export type CrmDealPayload = {
   contactId?: string | null;
   studentName?: string | null;
   studentBirthDate?: string | null;
+  interestCourseId?: string | null;
   interestLabel?: string | null;
   guardianName?: string | null;
   guardianPhone?: string | null;
@@ -205,13 +207,15 @@ export function isDeletedDeal(deal: CrmDealSocketPayload['deal']): deal is { id:
 // Growth: configurações, recuperação e retenção
 
 export type GrowthSettings = {
-  stalledDays: number;
+  lostRecentDays: number;
   absenceWindowDays: number;
-  absenceThreshold: number;
+  absenceRatePercent: number;
+  absenceMinClasses: number;
   overdueGraceDays: number;
 };
 
-export type GrowthRecovery = CrmDealList & { type: 'stalled' | 'lost'; days: number };
+/** `days` = null e `byPipeline` = true quando os parados seguem o prazo de cada funil. */
+export type GrowthRecovery = CrmDealList & { type: 'stalled' | 'lost'; days: number | null; byPipeline: boolean };
 
 export type GrowthRiskReason = 'inadimplencia' | 'faltas';
 
@@ -221,10 +225,15 @@ export type GrowthStudentAtRisk = {
   level: 'alto' | 'medio';
   reasons: GrowthRiskReason[];
   score: number;
-  signals: { overdueCount: number; overdueTotal: number; oldestOverdueDays: number | null; absences: number; presences: number };
+  absenceRate: number | null;
+  signals: { overdueCount: number; overdueTotal: number; oldestOverdueDays: number | null; absences: number; classes: number };
   openTasks: number;
 };
 
 export type GrowthRetentionList = { settings: GrowthSettings; data: GrowthStudentAtRisk[] };
 
 export const GROWTH_RISK_LABELS: Record<GrowthRiskReason, string> = { inadimplencia: 'Inadimplência', faltas: 'Faltas' };
+
+export type GrowthOwner = { userType: string; userId: string; name: string; role: string };
+
+export type GrowthCourse = { id: string; name: string };

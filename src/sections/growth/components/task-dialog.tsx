@@ -18,7 +18,7 @@ import { GrowthService } from 'src/services/growth';
 
 import { toast } from 'src/components/snackbar';
 
-import { useCrmAgents, toLocalInput } from './deal-utils';
+import { toLocalInput, useGrowthOwners } from './deal-utils';
 
 // ----------------------------------------------------------------------
 
@@ -47,7 +47,7 @@ export function CrmTaskDialog({ open, onClose, onSaved, dealId, studentId, defau
   const [dueAt, setDueAt] = useState('');
   const [assignee, setAssignee] = useState('');
   const [saving, setSaving] = useState(false);
-  const agents = useCrmAgents(open && canSupervise);
+  const owners = useGrowthOwners(open && canSupervise);
 
   useEffect(() => {
     if (!open) return;
@@ -90,12 +90,12 @@ export function CrmTaskDialog({ open, onClose, onSaved, dealId, studentId, defau
           {canSupervise && (
             <TextField select label="Responsável" value={assignee} onChange={(e) => setAssignee(e.target.value)}>
               <MenuItem value="">Eu mesmo</MenuItem>
-              {agents.map((a) => (
+              {owners.map((a) => (
                 <MenuItem key={`${a.userType}:${a.userId}`} value={`${a.userType}:${a.userId}`}>
                   {a.name}
                 </MenuItem>
               ))}
-              {assignee && !agents.some((a) => `${a.userType}:${a.userId}` === assignee) && (
+              {assignee && !owners.some((a) => `${a.userType}:${a.userId}` === assignee) && (
                 <MenuItem value={assignee}>{task?.assignee.name ?? 'Responsável atual'}</MenuItem>
               )}
             </TextField>
