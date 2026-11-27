@@ -53,6 +53,11 @@ export const navSuperAdmin = [
         path: paths.dashboard.webhooks,
         icon: ICONS.webhook,
       },
+      {
+        title: 'Provedores de IA',
+        path: paths.dashboard.intelligence.providers,
+        icon: <Iconify icon="solar:stars-bold-duotone" />,
+      },
     ],
   },
 ];

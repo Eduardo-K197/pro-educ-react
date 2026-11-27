@@ -89,6 +89,7 @@ export const paths = {
       autoatendimento: `${ROOTS.DASHBOARD}/intelligence/autoatendimento`,
       historico: `${ROOTS.DASHBOARD}/intelligence/historico`,
       conhecimento: `${ROOTS.DASHBOARD}/intelligence/conhecimento`,
+      providers: `${ROOTS.DASHBOARD}/intelligence/provedores`,
     },
     teachers: {
       root: `${ROOTS.DASHBOARD}/teachers`,
