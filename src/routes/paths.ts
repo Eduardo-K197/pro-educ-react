@@ -17,6 +17,14 @@ export const paths = {
       changePassword: `${ROOTS.AUTH}/jwt/change-password`,
     },
   },
+  // ÁREA DO ALUNO (ProEduc Learning) — layout próprio, fora do dashboard
+  student: {
+    root: '/aluno',
+    signIn: '/aluno/entrar',
+    forgot: '/aluno/esqueci-senha',
+    course: (id: string) => `/aluno/cursos/${id}`,
+    lesson: (id: string) => `/aluno/aulas/${id}`,
+  },
   // DASHBOARD
   dashboard: {
     root: ROOTS.DASHBOARD,
@@ -53,6 +61,10 @@ export const paths = {
       channels: `${ROOTS.DASHBOARD}/crm/channels`,
       quickReplies: `${ROOTS.DASHBOARD}/crm/quick-replies`,
       tags: `${ROOTS.DASHBOARD}/crm/tags`,
+    },
+    learning: {
+      root: `${ROOTS.DASHBOARD}/learning`,
+      course: (id: string) => `${ROOTS.DASHBOARD}/learning/courses/${id}`,
     },
     teachers: {
       root: `${ROOTS.DASHBOARD}/teachers`,

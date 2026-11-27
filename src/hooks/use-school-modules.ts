@@ -12,7 +12,7 @@ import { SchoolModuleService } from 'src/services/school-modules';
 
 type Modules = Record<SchoolModuleName, boolean>;
 
-const EMPTY: Modules = { crm: false };
+const EMPTY: Modules = { crm: false, learning: false };
 const CHANGED_EVENT = 'proeduc:school-modules-changed';
 const cache = new Map<string, Promise<Modules>>();
 

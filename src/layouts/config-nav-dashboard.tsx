@@ -93,6 +93,11 @@ export const navAdmin = [
         icon: <Iconify icon="solar:notebook-bold-duotone" />,
       },
       {
+        title: 'Learning (EAD)',
+        path: paths.dashboard.learning.root,
+        icon: <Iconify icon="solar:play-circle-bold-duotone" />,
+      },
+      {
         title: 'Grade Curricular',
         path: paths.dashboard.curriculum.root,
         icon: <Iconify icon="solar:clipboard-list-bold-duotone" />,
