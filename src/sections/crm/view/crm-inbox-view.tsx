@@ -16,6 +16,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
+import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
@@ -47,6 +48,7 @@ import { CrmStartDialog } from '../inbox/crm-start-dialog';
 import { CrmMessageInput } from '../inbox/crm-message-input';
 import { CrmInboxDetails } from '../inbox/crm-inbox-details';
 import { CrmConnectionStatus } from '../crm-connection-status';
+import { CrmTemplateDialog } from '../inbox/crm-template-dialog';
 import { CrmTransferDialog } from '../inbox/crm-transfer-dialog';
 import { CrmAiSuggestionCard } from '../inbox/crm-ai-suggestion-card';
 import {
@@ -386,6 +388,73 @@ function CrmInbox() {
     [selectedId]
   );
 
+  // Foto do contato (cache na API) -----------------------------------------
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const contactId = selected?.contact.id;
+  const cachedAvatar = selected?.contact.avatarUrl ?? null;
+  useEffect(() => {
+    setAvatar(cachedAvatar);
+    if (!contactId) return undefined;
+    let cancelled = false;
+    CrmService.contactAvatar(contactId)
+      .then((res) => {
+        if (!cancelled && res.avatarUrl) setAvatar(res.avatarUrl);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [contactId, cachedAvatar]);
+
+  // Editar / apagar / reagir ---------------------------------------------------
+  const editMessage = useCallback(
+    async (message: CrmMessage, text: string) => {
+      if (!selectedId) return;
+      try {
+        upsertMessage(await CrmService.editMessage(selectedId, message.id, text));
+        toast.success('Mensagem editada');
+      } catch (err: any) {
+        toast.error(err?.message || 'Erro ao editar mensagem');
+        throw err;
+      }
+    },
+    [selectedId, upsertMessage]
+  );
+
+  const deleteMessage = useCallback(
+    async (message: CrmMessage) => {
+      if (!selectedId || !window.confirm('Apagar esta mensagem para todos?')) return;
+      try {
+        upsertMessage(await CrmService.deleteMessage(selectedId, message.id));
+      } catch (err: any) {
+        toast.error(err?.message || 'Erro ao apagar mensagem');
+      }
+    },
+    [selectedId, upsertMessage]
+  );
+
+  const reactMessage = useCallback(
+    async (message: CrmMessage, emoji: string) => {
+      if (!selectedId) return;
+      try {
+        upsertMessage(await CrmService.reactMessage(selectedId, message.id, emoji));
+      } catch (err: any) {
+        toast.error(err?.message || 'Erro ao reagir');
+      }
+    },
+    [selectedId, upsertMessage]
+  );
+
+  const templateDialog = useBoolean();
+  const caps = selected?.channel.capabilities;
+  const templateAvailable =
+    !!selected &&
+    !!selected.channel.official &&
+    caps?.templates !== false &&
+    !selected.channel.deleted &&
+    selected.status !== 'closed' &&
+    !(selected.status === 'open' && selected.assignee && !isMine(me, selected) && !canSupervise);
+
   const disabledReason = (() => {
     if (!selected) return null;
     if (selected.status === 'closed') return 'Conversa encerrada. Reabra para responder.';
@@ -414,6 +483,9 @@ function CrmInbox() {
       <IconButton size="small" sx={{ display: { md: 'none' } }} onClick={() => select(null)}>
         <Iconify icon="eva:arrow-ios-back-fill" />
       </IconButton>
+      <Avatar src={avatar ?? undefined} alt={selected.contact.name} sx={{ width: 40, height: 40 }}>
+        {(selected.contact.name || '?').charAt(0).toUpperCase()}
+      </Avatar>
       <Box sx={{ flex: 1, minWidth: 160 }}>
         <Typography variant="subtitle1" noWrap>
           {selected.contact.name || formatPhone(selected.contact.phone)}
@@ -525,6 +597,11 @@ function CrmInbox() {
                     loadingMore={loadingOlder}
                     onLoadMore={loadOlder}
                     onReply={setReplyTo}
+                    myUserId={me?.user.id}
+                    capabilities={selected?.channel.deleted ? undefined : selected?.channel.capabilities}
+                    onEditText={editMessage}
+                    onDelete={deleteMessage}
+                    onReact={reactMessage}
                   />
                   {selected && (
                     <CrmMessageInput
@@ -535,6 +612,7 @@ function CrmInbox() {
                       onSent={upsertMessage}
                       onNote={addNote}
                       draft={draft}
+                      onOpenTemplate={templateAvailable ? templateDialog.onTrue : undefined}
                       slotAbove={
                         aiSuggestions[selected.id] && (
                           <CrmAiSuggestionCard
@@ -588,6 +666,12 @@ function CrmInbox() {
               onConversationChanged(c);
               refreshCounts();
             }}
+          />
+          <CrmTemplateDialog
+            open={templateDialog.value}
+            onClose={templateDialog.onFalse}
+            conversation={selected}
+            onSent={upsertMessage}
           />
           <CrmCloseDialog
             open={closeDialog.value}

@@ -6,15 +6,24 @@ import { useRef, useState, useEffect, useLayoutEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import TextField from '@mui/material/TextField';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
 import LinearProgress from '@mui/material/LinearProgress';
 
 import { Lightbox } from 'src/components/lightbox';
 
 import { CrmMessageItem } from './crm-message-item';
 
+import type { CrmMessageActions } from './crm-message-item';
+
 // ----------------------------------------------------------------------
 
-type Props = {
+type Props = Omit<CrmMessageActions, 'onEdit'> & {
+  /** Salva o novo texto de uma mensagem própria. */
+  onEditText?: (message: CrmMessage, text: string) => Promise<void>;
   loading: boolean;
   messages: CrmMessage[];
   hasMore: boolean;
@@ -23,7 +32,22 @@ type Props = {
   onReply: (message: CrmMessage) => void;
 };
 
-export function CrmMessageList({ loading, messages, hasMore, loadingMore, onLoadMore, onReply }: Props) {
+export function CrmMessageList({ loading, messages, hasMore, loadingMore, onLoadMore, onReply, onEditText, ...actions }: Props) {
+  const [editing, setEditing] = useState<CrmMessage | null>(null);
+  const [editText, setEditText] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const saveEdit = async () => {
+    if (!editing || !onEditText || !editText.trim()) return;
+    setSavingEdit(true);
+    try {
+      await onEditText(editing, editText.trim());
+      setEditing(null);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   const ref = useRef<HTMLDivElement>(null);
   const lastId = useRef<string | null>(null);
   const firstId = useRef<string | null>(null);
@@ -79,10 +103,45 @@ export function CrmMessageList({ loading, messages, hasMore, loadingMore, onLoad
           </Box>
         )}
         {messages.map((m) => (
-          <CrmMessageItem key={m.id} message={m} onReply={onReply} onOpenImage={setImage} />
+          <CrmMessageItem
+            key={m.id}
+            message={m}
+            onReply={onReply}
+            onOpenImage={setImage}
+            {...actions}
+            onEdit={
+              onEditText
+                ? (msg) => {
+                    setEditing(msg);
+                    setEditText(msg.body ?? '');
+                  }
+                : undefined
+            }
+          />
         ))}
       </Box>
       <Lightbox slides={image ? [{ src: image }] : []} open={!!image} close={() => setImage(null)} index={0} />
+      <Dialog open={!!editing} onClose={() => setEditing(null)} fullWidth maxWidth="sm">
+        <DialogTitle>Editar mensagem</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            fullWidth
+            multiline
+            minRows={2}
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            helperText="O WhatsApp permite editar até 15 minutos depois do envio."
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditing(null)}>Cancelar</Button>
+          <Button variant="contained" disabled={savingEdit || !editText.trim() || editText.trim() === editing?.body} onClick={saveEdit}>
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

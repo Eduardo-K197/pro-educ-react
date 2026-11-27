@@ -9,6 +9,7 @@ import List from '@mui/material/List';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import InputBase from '@mui/material/InputBase';
 import IconButton from '@mui/material/IconButton';
@@ -46,6 +47,8 @@ type Props = {
   draft?: CrmMessageDraft | null;
   /** Conteúdo exibido logo acima do campo (ex.: card de sugestão da IA). */
   slotAbove?: React.ReactNode;
+  /** Abre o envio de template (canal oficial). Ausente = canal sem template. */
+  onOpenTemplate?: () => void;
 };
 
 export function CrmMessageInput({
@@ -57,6 +60,7 @@ export function CrmMessageInput({
   onNote,
   draft,
   slotAbove,
+  onOpenTemplate,
 }: Props) {
   const [mode, setMode] = useState<'message' | 'note'>('message');
   const [text, setText] = useState('');
@@ -140,11 +144,16 @@ export function CrmMessageInput({
       }
       setText('');
     } catch (err: any) {
-      toast.error(err?.message || 'Erro ao enviar');
+      if (err?.response?.data?.code === 'WINDOW_CLOSED' && onOpenTemplate) {
+        toast.warning('A janela de 24h fechou: envie um template aprovado.');
+        onOpenTemplate();
+      } else {
+        toast.error(err?.message || 'Erro ao enviar');
+      }
     } finally {
       setSending(false);
     }
-  }, [text, sending, mode, onNote, conversationId, replyTo, onSent, onCancelReply]);
+  }, [text, sending, mode, onNote, conversationId, replyTo, onSent, onCancelReply, onOpenTemplate]);
 
   const sendFile = useCallback(
     async (file: File | Blob, fileName?: string) => {
@@ -250,7 +259,17 @@ export function CrmMessageInput({
       {slotAbove}
 
       {blocked && (
-        <Alert severity="info" sx={{ mx: 2, mt: 1, py: 0 }}>
+        <Alert
+          severity="info"
+          sx={{ mx: 2, mt: 1, py: 0 }}
+          action={
+            onOpenTemplate ? (
+              <Button size="small" color="inherit" onClick={onOpenTemplate}>
+                Enviar template
+              </Button>
+            ) : undefined
+          }
+        >
           {disabledReason}
         </Alert>
       )}
@@ -316,6 +335,15 @@ export function CrmMessageInput({
                 </IconButton>
               </span>
             </Tooltip>
+            {onOpenTemplate && (
+              <Tooltip title="Enviar template aprovado (Meta)">
+                <span>
+                  <IconButton disabled={sending || recording} onClick={onOpenTemplate}>
+                    <Iconify icon="solar:document-text-bold" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )}
             <Tooltip title={recording ? 'Parar e enviar' : 'Gravar áudio'}>
               <span>
                 <IconButton color={recording ? 'error' : 'default'} disabled={blocked || sending} onClick={toggleRecording}>

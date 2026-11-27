@@ -9,11 +9,13 @@ import Chip from '@mui/material/Chip';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Switch from '@mui/material/Switch';
 import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import Autocomplete from '@mui/material/Autocomplete';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { paths } from 'src/routes/paths';
@@ -138,6 +140,33 @@ export function CrmInboxDetails({ conversation, tags, notes, onConversation, onD
           <Iconify icon="solar:phone-bold" width={16} sx={{ mr: 0.5, verticalAlign: 'middle' }} />
           {formatPhone(contact.phone) || '(número oculto pelo WhatsApp)'}
         </Typography>
+        {contact.optedOut && (
+          <Chip
+            size="small"
+            color="warning"
+            variant="soft"
+            icon={<Iconify icon="solar:bell-off-bold" width={16} />}
+            label="Não recebe campanhas (SAIR)"
+            sx={{ alignSelf: 'flex-start' }}
+          />
+        )}
+        {canSupervise && (
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={!!contact.optedOut}
+                onChange={(e) => saveContact({ optedOut: e.target.checked })}
+              />
+            }
+            label={
+              <Typography variant="caption">
+                Bloquear campanhas para este contato
+                {contact.optedOut && contact.optedOutAt ? ` (desde ${fDate(contact.optedOutAt)})` : ''}
+              </Typography>
+            }
+          />
+        )}
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
           Protocolo {conversation.protocol} · {CRM_CONVERSATION_STATUS_LABELS[conversation.status]}
           {conversation.channel.name ? ` · ${conversation.channel.name}` : ''}
